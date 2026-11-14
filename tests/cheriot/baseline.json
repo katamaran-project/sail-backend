@@ -22,7 +22,7 @@
   "execute_SHIFTIWOP",
   "execute_UTYPE"
  ],
- "commit": "9b45dd1c+dirty",
+ "commit": "f40fe15e+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -303,7 +303,7 @@
   "execute_CSetBoundsImmediate": "ok",
   "execute_CSetBoundsRoundDown": "ok",
   "execute_CSetHigh": "holes",
-  "execute_CSpecialRW": "missing",
+  "execute_CSpecialRW": "ok",
   "execute_CSub": "ok",
   "execute_CTestSubset": "ok",
   "execute_CUnseal": "ok",
@@ -550,7 +550,7 @@
   "sail_ones": "ok",
   "sealCap": "ok",
   "setCapAddr": "ok",
-  "setCapBounds": "missing",
+  "setCapBounds": "holes",
   "setCapBoundsRoundDown": "ok",
   "setCapPerms": "ok",
   "set_mstatus_SXL": "ok",
@@ -605,13 +605,13 @@
   "zreg": "ok"
  },
  "headline": {
-  "NYI holes": 26,
-  "functions generated": 490,
+  "NYI holes": 28,
+  "functions generated": 492,
   "hard failures": 0,
   "instructions clean": 20,
-  "instructions generated": 58,
-  "missing calls": 132,
-  "untranslated definitions": 64
+  "instructions generated": 59,
+  "missing calls": 127,
+  "untranslated definitions": 62
  },
  "holes": {
   "align_down": 3,
@@ -620,6 +620,7 @@
   "pmpReadCfgReg": 4,
   "pmpWriteAddrReg": 5,
   "read_ram": 1,
+  "setCapBounds": 2,
   "tag_addr_to_addr": 1,
   "writeCSR": 5
  },
@@ -2898,6 +2899,7 @@
     "capToBits",
     "getCapBoundsBits",
     "getCapBounds",
+    "setCapBounds",
     "setCapBoundsRoundDown",
     "getCapPerms",
     "setCapPerms",
@@ -3287,6 +3289,7 @@
     "capToBits",
     "getCapBoundsBits",
     "getCapBounds",
+    "setCapBounds",
     "setCapBoundsRoundDown",
     "getCapPerms",
     "setCapPerms",
@@ -3708,6 +3711,7 @@
     "execute_CUnseal",
     "execute_CTestSubset",
     "execute_CSub",
+    "execute_CSpecialRW",
     "execute_CSetHigh",
     "execute_CSetBoundsRoundDown",
     "execute_CSetBoundsImmediate",
@@ -3771,6 +3775,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261114T173139-9b45dd1c-dirty",
+ "run": "20261114T173928-f40fe15e-dirty",
  "scope": "a130c4ba22f6"
 }

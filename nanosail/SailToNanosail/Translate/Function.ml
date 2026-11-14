@@ -1319,10 +1319,25 @@ let rec statement_of_aexp
           end
         end
         else begin
-            let message =
-              Printf.sprintf "assignment to local variable (nonregister) %s" (Ast.Identifier.to_string id_in_lhs)
-            in
-            TC.not_yet_implemented ~message [%here] location
+          (*
+               x = expr
+
+             where x is a mutable local variable (var x = ...) becomes
+
+               stm_assign "x" expr;
+               ()
+
+             muSail's local variables are mutable: stm_assign updates the variable bound by the enclosing stm_let.
+             As for registers, the explicit unit keeps Sail's type of the assignment (stm_assign's value is the assigned value).
+          *)
+          let* translated_rhs = statement_of_aexp None rhs
+          in
+          TC.return begin
+            Ast.Statement.Seq (
+              AssignVariable { variable_identifier = id_in_lhs; assigned_value = translated_rhs },
+              Expression (Value Unit)
+            )
+          end
         end
       end
     | AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
@@ -2134,6 +2149,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | Seq (left, right)     -> Seq (rewrite left, rewrite right)
     | ReadRegister _        -> statement
     | WriteRegister _       -> statement
+    | AssignVariable { variable_identifier; assigned_value } -> AssignVariable { variable_identifier; assigned_value = rewrite assigned_value }
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
     | Unconstrained _       -> statement

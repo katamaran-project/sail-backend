@@ -330,6 +330,13 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
       return @@ Ast.Statement.WriteRegister { register_identifier; written_value }
     end
 
+  | AssignVariable { variable_identifier; assigned_value } -> begin
+      let* variable_identifier = substitute_identifier variable_identifier
+      and* assigned_value      = normalize_statement assigned_value
+      in
+      return @@ Ast.Statement.AssignVariable { variable_identifier; assigned_value }
+    end
+
   | Cast (statement, typ) -> begin
       let* statement = normalize_statement statement
       in

@@ -710,6 +710,23 @@ module Statement = struct
 
 
   (*
+    stm_assign "<variable_identifier>" (<assigned_value>)
+  *)
+  let pp_assign
+        ~(variable_identifier : PP.t)
+        ~(assigned_value      : PP.t) : PP.t
+    =
+    PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_assign")
+          [
+            PP.(surround dquotes) variable_identifier;
+            PP.(surround parens) assigned_value;
+          ]
+      end
+
+
+  (*
     let: "<bound_identifier>" :: <bound_value_type> := bound_value
     in
       <body>
