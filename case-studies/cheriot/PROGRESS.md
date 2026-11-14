@@ -15,19 +15,19 @@ An instruction is *clean* when everything it reaches translates without holes an
 
 ## Now
 
-14 Nov 2026, measured on `c71962a4` plus the step 5 changes; cheriot-sail `518813e`, Katamaran `1688c950`.
+14 Nov 2026, measured on `53075be3` plus the configuration clean-up; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **1 of 61** (`FENCEI`) |
 | instructions generated | 48 of 61 |
 | functions generated | 554 of 647 |
-| untranslated definitions | 149 |
+| untranslated definitions | 113 |
 | `NYI` holes | 30, in 12 definitions |
 | hard failures | 0 |
 | calls to missing functions | 1381: extern 1141, untranslated 138, outside the scope 86 (from `execute`), skipped by configuration 14, unknown 2 |
-| Rocq, plain | `base.v:593`, the first `NYI`, in `Access_kind` |
-| Rocq, probe (`NYI` as an axiom) | `base.v:594`, in `Access_kind`: a type with a type parameter; 24 of 540 definitions before it |
+| Rocq, plain | `base.v:604`, in `Record Capability`: `reserved already exists` |
+| Rocq, probe (`NYI` as an axiom) | the same; 39 of 506 definitions before it |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all 694 definitions in scope.
 
@@ -49,9 +49,12 @@ The run's report ranks all blockers; `progress.json` lists them per instruction.
 | P11 | `CGetLen`, `CGetTop` | `if` inside a numeric type |
 | P07 | `CJALR` | register reference |
 
-**Rocq:** `Access_kind`, a concurrency-interface type whose parameter is a type, stops `base.v` before any instruction. Next planned: ignore it by configuration, with P12.
+**Rocq:** `base.v` stops at `Record Capability`, because its fields `reserved`, `B`, `T` and `address` are also fields of `EncCapability` (and `global` of `TLB_Entry`), and Rocq record projections are global names.
+This needs a translator change (for example, prefix clashing projections with the record name). It is not in the inventory, which predates coqc measurements.
+The next stops after it are known from `base.v`: the unions with type parameters (`AccessType`, `MemoryOpResult`, `Ext_*_Check`, `PTW_Result`, `TR_Result`; P02), which in-scope code uses.
+The concurrency-interface types (`Access_kind`, `Mem_*_request`, ...), the unused `regfp.sail` types and the range abbreviations `CapAddrInt` and `CapLen` (P11) are now ignored by configuration; see `configuration.lisp`.
 
-**All piles in scope**, by definitions affected: P13 size-polymorphic functions 54, P12 overloads and pragmas 37 (mostly noise), P02 31, P08 computed top-level `let`s 19, P15 casts 18, P04 17, P09 mappings 16, P07 9, P01 6, P11 6, P14 6, P05 5, P06 4, P10 4, P03 3.
+**All piles in scope**, by definitions affected: P13 size-polymorphic functions 54, P02 31, P08 computed top-level `let`s 19, P15 casts 18, P04 17, P09 mappings 16, P07 9, P01 6, P11 6, P14 6, P05 5, P06 4, P10 4, P03 3.
 
 ## History
 
@@ -61,6 +64,7 @@ The run's report ranks all blockers; `progress.json` lists them per instruction.
 | 2026-11-14 | `f9171dfb` | whole model | 118 / 147 | 1130 / 1950 | 953 | 103 | 0 | `Access_kind` | #65: no workarounds needed; the 10 vector helpers that the splice stubbed are untranslated |
 | 2026-11-14 | `b8d43e8f` | core | 48 / 61 | 549 / 643 | 150 | 30 | 0 | `Access_kind` | first run restricted to the core |
 | 2026-11-14 | `c71962a4`+ | core | 48 / 61, 1 clean | 554 / 647 | 149 | 30 | 0 | `Access_kind` | step 5: clean instructions, first baseline; operators are now named correctly in the call graph, which adds 4 functions to the scope |
+| 2026-11-14 | `53075be3`+ | core | 48 / 61, 1 clean | 554 / 647 | 113 | 30 | 0 | `Capability` (39 of 506) | configuration clean-up: overloads and pragmas (P12), concurrency-interface and `regfp` types, `CapAddrInt`/`CapLen` ignored; `bv` widths parenthesised |
 
 Rows with a different scope are not comparable. Function totals before `b8d43e8f` come from a call graph that missed 9 functions, and before step 5 from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

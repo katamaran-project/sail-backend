@@ -3,7 +3,7 @@
  "clean_instructions": [
   "execute_FENCEI"
  ],
- "commit": "c71962a4+dirty",
+ "commit": "53075be3+dirty",
  "date": "2026-11-14",
  "definitions": {
   "CGP_IDX": "ok",
@@ -708,7 +708,7 @@
   "instructions clean": 1,
   "instructions generated": 48,
   "missing calls": 1381,
-  "untranslated definitions": 149
+  "untranslated definitions": 113
  },
  "holes": {
   "align_down": 2,
@@ -787,13 +787,13 @@
  "rocq": {
   "plain": [
    0,
-   24
+   39
   ],
   "probe": [
    0,
-   24
+   39
   ]
  },
- "run": "20261114T012748-c71962a4-dirty",
+ "run": "20261114T015308-53075be3-dirty",
  "scope": "93755be135d2"
 }

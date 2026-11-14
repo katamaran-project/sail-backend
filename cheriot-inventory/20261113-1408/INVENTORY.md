@@ -28,7 +28,10 @@ Nothing in the translator was changed. All numbers come from the scripts in this
 - **`pmpAddrRange` is fixed too, without excluding it.** Its failure was not about PMP: in `pmpaddr + 1`, `pmpaddr` has the type `xlenbits` (an alias of `bits(xlen)`, with `xlen` a type-level constant), so the width needed for a bitvector literal was not known. `add_bits_int` now looks through aliases and, if the width is still unknown, uses `uop.get_slice_int` on the integer literal. Test: `bitvectors-add-int-synonym-width`.
 - **Milestone: the full model translates with no workaround at all** — no splice, nothing ignored beyond the case study's own configuration (`base.v` 1.7 MB, `machine.v` 9.2 MB, 69 `NYI`s).
   `coqc base.v` stops at line 593, the concurrency-interface type `Access_kind('arch_ak)`, whose parameter is a type (`Kind.ml:8`, `Type.ml:262`).
-- **Next in line: the configuration clean-up** (§6, item 2), which ignores exactly those concurrency-interface types (`Access_kind`, `Mem_*_request`), together with P12 (§6, item 1).
+- **The configuration clean-up is done for the core** (§6, item 2, 14 Nov 2026, in `case-studies/cheriot/configuration.lisp`): P12 (overloads and pragmas, including `$option`, `$target_set`, `$c_reserved`, `$abstract`), the concurrency-interface types (`Access_kind`, `Mem_*_request`, …), the unused `regfp.sail` types, and the range abbreviations `CapAddrInt`/`CapLen` (a P11 stopgap) are ignored.
+  The translator now parenthesises compound `bv` widths (`bv (8 * 8)`; test `type-alias-of-bitvector-arithmetic-width`).
+  `coqc base.v` now stops at `Record Capability`: its fields clash with those of `EncCapability` (Rocq projections are global). See `case-studies/cheriot/PROGRESS.md`.
+  Printing, mappings (P09) and the in-scope `_set_*` setters (P07) were *not* ignored: in-scope code calls them, so ignoring them would only turn them into missing calls; they wait for the policy exclusion of `docs/cheriot-loop.md` §4.2.
 - Found along the way, not fixed: `sail_shiftleft(v, 2)` generates the shift amount as `[bv 2]` of width 1, which Rocq rejects. sail-riscv's own `<<` uses `shift_bits_left`/`shiftl`, so CHERIoT may not be affected.
 - PMP support was estimated (13 Nov 2026) at 3–5 weeks of PMP-specific work (register arrays P10, loops P05, run-time-offset slices, platform parameters), on top of P02 and P13, which the memory path needs anyway; its checks only matter once the memory path translates. Deferred, as decided. Note that in-scope Zicsr calls the PMP CSR helpers and the initialisation calls `init_pmp`, so leaving PMP out needs the "remove a definition and stub its calls" configuration feature.
 
@@ -494,8 +497,8 @@ A cast is harmless if source and target µSail types agree. Assert that, or emit
 
 Aim: a `machine.v` that compiles for the RV32I + CHERIoT instruction subset, with the non-essential parts (assembly, printing, V, Zb*, Sv32) ignored by configuration rather than implemented.
 
-1. ~~**P00** (rewrite pipeline)~~, ~~**`add_bits_int`**~~ and ~~the **`sail_assert` message**~~ (done: the full model now translates without workarounds), and **P12** (overloads, pragmas): unblock the full model without workarounds and remove most of the noise. S + S + S.
-2. **Configuration clean-up** (no translator change; **next in line**: `coqc base.v` now stops at `Access_kind`):
+1. ~~**P00** (rewrite pipeline)~~, ~~**`add_bits_int`**~~ and ~~the **`sail_assert` message**~~ (done: the full model now translates without workarounds), and ~~**P12** (overloads, pragmas)~~ (done by configuration): unblock the full model without workarounds and remove most of the noise. S + S + S.
+2. **Configuration clean-up** (done for the core on 14 Nov 2026, see the status at the top; what is left needs the policy exclusion of `docs/cheriot-loop.md` §4.2):
    - ignore P09 mappings and printing, the `_set_*` setters (P07 option 1), the concurrency-interface types (`Access_kind`, `Mem_*_request`), and V/Sv32/TLB if unused;
    - add the `translate-union-as-sum` lines from `workarounds/configuration-sum-variant.lisp` as a stopgap.
    This also makes the inventory much easier to read.
