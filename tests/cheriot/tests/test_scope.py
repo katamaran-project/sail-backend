@@ -64,6 +64,14 @@ class ComputeTests(unittest.TestCase):
     def test_warnings(self):
         self.assertEqual(self.scope.warnings, ['roots that are not definitions of the model: not_a_definition'])
 
+    def test_single_instructions(self):
+        scope_file = scope.ScopeFile.from_text('instruction-files = ["model/insts_base.sail"]\nroots = ["step"]\n'
+                                               'instructions = ["FOO", "ADDI"]\n[dispatchers]\nexecute = "execute_"\n')
+        result = scope.compute(callgraph.CallGraph.from_dump(DUMP), scope_file,
+                               {'model/insts_base.sail': (CHERIOT_SAIL / 'model/insts_base.sail').read_text()})
+        self.assertEqual(result.instructions, ['ADDI', 'FOO'])
+        self.assertEqual(result.dispatched, {'execute_ADDI', 'execute_FOO'})
+
     def test_warning_for_an_instruction_without_its_function(self):
         scope_file = scope.ScopeFile(['model/insts_vector.sail', 'model/insts_base.sail'], ['step'], {'execute': 'run_'})
         sources = {name: (CHERIOT_SAIL / name).read_text() for name in scope_file.instruction_files}
@@ -88,12 +96,19 @@ class DispatcherInScopeTests(unittest.TestCase):
         self.assertIn('execute_FOO', self.scope.mentioned)
         self.assertFalse(self.scope.includes('execute_FOO'))
 
+    def test_out_of_scope_instructions_are_failures(self):
+        self.assertEqual(self.scope.undispatched, {'execute_FOO'})
+        self.assertIn("(exclude-functions-as-failure\n  '(\n   \"execute_FOO\"\n  ))\n", scope.configuration(self.scope))
+
     def test_unexpected_calls(self):
+        # execute's call to execute_FOO should have become a failure
         calls = [dangling.DanglingCall('execute_FOO', 1, 'outside the scope', '', ['execute']),
                  dangling.DanglingCall('vector_helper', 2, 'outside the scope', '', ['helper', 'step']),
                  dangling.DanglingCall('truncate', 1, 'extern', '', ['helper'])]
         self.assertEqual(scope.unexpected_calls(calls, self.scope),
-                         ['helper, step call vector_helper, which is outside the scope'])
+                         ['execute still calls execute_FOO, which is the function of an out-of-scope instruction: '
+                          'the translation should have removed the call',
+                          'helper, step call vector_helper, which is outside the scope'])
 
 
 class ConfigurationTests(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-4 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm` (`translationMode`; for loads also the read path).
+4 of 67 instructions are not clean, all on the memory read path: `LOAD`, `LoadCapImm`, `NOT_CAPMODE`, `NOT_C_CAPMODE`.
 
 ## Memory path
 
@@ -18,26 +18,18 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Patterns
 
-- **Option patterns**: a constructor or tuple pattern inside `Some` (option is µSail's `ty.sum`):
-  ```sail
-  match architecture(get_mstatus_SXL(mstatus)) { Some(RV32) => ..., _ => internal_error(...) }   // translationMode
-  match dispatchInterrupt(cur_privilege) { Some(intr, priv) => ..., None() => ... }            // step
-  ```
-  - Blocks: `translationMode` (`LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`); `step` and `dispatchInterrupt` (`Some(ip, p)`), so interrupt handling.
-- **Tuple pattern at a tuple type abbreviation**: `let (capEx, regnum) = err` with `err : ext_data_addr_error`.
-  Blocks `ext_handle_data_check_error` (`LOAD`, `STORE`).
-- **`match` on a `bool`**: `encdec_backwards` (the main decoder), from `bool_not_bits(s)` in the `DIV` encoding.
-  Blocks decoding; not counted in clean instructions, as decoders are not in their call cones.
+- **A `match` on a bitvector with only a wildcard**: `match head_exp# {_ => false}` in Sail's `*_matches` mapping helpers. Not in scope today.
 
 ## Rocq output
 
-- **Calls to out-of-scope instructions.** `execute` still calls the 86 `execute_<C>` outside the scope, which `machine.v` does not define.
-  Needs: those calls as failures (the dispatcher's out-of-scope arms excluded as `failure`). Blocks plain Rocq of `machine.v`.
+- **`execute`'s compressed and Zb\* arms are failures, but reachable** (`haveZb*()` are `true`; `misa.C` is `sys_enable_rvc()`, unconstrained), so a proof says nothing about executions that decode one.
+  Decision pending: make them absent like PMP (`haveZb*`, `sys_enable_rvc` excluded as the value `false`), or keep the failures as a documented assumption.
+- **Slow decoder**: `encdec_backwards` type-checks but takes 608 s in `coqc`, and `End FunDefKit` 72 s, both over the 45 s stall limit (with the memory-write functions axiomatised, all of `machine.v` compiles in 753 s).
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
 
 ## Later
 
-- **Exceptions**: `try` in `try_execute` (untranslated). Not needed for now.
+- **Exceptions**: `try` in `try_execute` (untranslated; called by `step`). Not needed for now.
 - **Minimal faithful PMP**: 16 entries instead of `sys_pmp_count = 0`.
   - Register arrays (`pmpcfg_n`, `pmpaddr_n`) as one register per entry: a constant index is that register, a run-time index a `match`.
   - Loops with constant bounds (`foreach`) unrolled or as a recursive helper; `pmpCheck`'s `return` inside a `foreach`.

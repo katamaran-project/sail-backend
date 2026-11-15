@@ -391,6 +391,7 @@ def compute_scope(sources: list[Path], cheriot_sail: Path, sandbox: Path, sail_v
         'excluded_functions': sorted(result.excluded_functions),
         'excluded_values': sorted(result.excluded_values),
         'policy_excluded': dict(sorted(result.policy.items())),
+        'undispatched': sorted(result.undispatched),
         'warnings': result.warnings,
     }, indent=1) + '\n')
     stage.ok = True

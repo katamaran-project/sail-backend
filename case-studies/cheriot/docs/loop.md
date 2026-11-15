@@ -37,7 +37,7 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 4. **translate**: the plugin at `VERBOSE=4` (lower levels lose which definition each warning belongs to, and save little time).
 5. **rocq**: plain and probe compilation (below).
 6. **analyse**: items (untranslated definitions, holes, warnings, coqc errors), reachability, missing calls, definition statuses, clean instructions.
-   Fails if `machine.v` calls an excluded definition other than from a dispatcher (the scope is wrong).
+   Fails if `machine.v` calls an excluded definition (the scope or an exclusion is wrong).
 7. **ratchet**: compare with the baseline.
 
 ## Scope file
@@ -46,10 +46,11 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 
 ```toml
 instruction-files = ["sail-riscv/model/riscv_insts_base.sail", "src/cheri_insts.sail", ...]  # constructors of `ast` declared there
+instructions = ["FENCE_RESERVED", "FENCEI_RESERVED"]                                       # single constructors, from files not in scope as a whole
 roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
 
 [dispatchers]
-execute = "execute_"          # from execute, follow only the calls to execute_<C> for in-scope C
+execute = "execute_"          # from execute, follow only the calls to execute_<C> for in-scope C; the others are failures
 
 [policy-excluded]
 no-op = ["print_reg", ...]
@@ -65,6 +66,7 @@ sys_pmp_count = "0"
 - The call graph comes from Sail's AST dump after the rewrites, cached in `~/.cache/sail-backend/cheriot-dumps` (key: Sail version, `sail_plugin/Rewrites.ml`, the model's sources).
   On a miss, a Sail run makes it in about 20 s. The translation's own dump must be identical, or the cache key misses an input.
 - Out of scope: ignored with `ignore-functions` and `ignore-values`. Types are never ignored.
+- A dispatcher's calls for out-of-scope instructions become failures (`exclude-functions-as-failure`; `undispatched` in `scope.json`).
 
 ### Policy exclusions
 

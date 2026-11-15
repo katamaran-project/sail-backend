@@ -2,7 +2,7 @@
 The scope: which part of the model the loop translates and measures (case-studies/cheriot/docs/loop.md).
 
 tests/cheriot/scope.toml says which instructions are in scope (by the source file
-that declares their constructors) and which other entry points always are. The
+that declares their constructors, or one by one) and which other entry points always are. The
 scope is everything the call graph reaches from those, and is computed rather
 than listed by hand:
 
@@ -33,9 +33,10 @@ configuration functions ignore-functions and ignore-values. Types are not
 excluded: a type that only out-of-scope code uses is still translated, which is
 harmless, while a wrongly excluded one would break the translation.
 
-A dispatcher still calls the functions of out-of-scope instructions, which are
-then missing from machine.v. Those calls are expected; any other call into
-excluded code means the scope is wrong (see unexpected_calls).
+A dispatcher's calls to the functions of out-of-scope instructions become failures
+(exclude-functions-as-failure): executing an instruction outside the scope is
+unreachable for a proof about the scope. Any call in machine.v into excluded code
+means the scope is wrong (see unexpected_calls).
 """
 
 from __future__ import annotations
@@ -71,6 +72,7 @@ class ScopeFile:
     dispatchers: dict[str, str]             # dispatcher -> prefix of the function per instruction
     policy: dict[str, str] = field(default_factory=dict)    # policy-excluded definition -> key of POLICIES
     values: dict[str, str] = field(default_factory=dict)    # under the key value: function -> Sail expression
+    instructions: list[str] = field(default_factory=list)   # single constructors, from files not in scope as a whole
 
     @classmethod
     def load(cls, path: Path) -> 'ScopeFile':
@@ -84,7 +86,8 @@ class ScopeFile:
                    roots=list(data['roots']),
                    dispatchers=dict(data.get('dispatchers', {})),
                    policy=policy_exclusions(table),
-                   values=dict(table.get('value', {})))
+                   values=dict(table.get('value', {})),
+                   instructions=list(data.get('instructions', [])))
 
 
 def policy_exclusions(table: dict[str, Any]) -> dict[str, str]:
@@ -135,6 +138,7 @@ class Scope:
     excluded_functions: set[str]
     excluded_values: set[str]
     dispatched: set[str]                    # the functions that dispatchers call for in-scope instructions
+    undispatched: set[str] = field(default_factory=set)     # those they call for out-of-scope instructions: failures
     dispatchers: dict[str, str] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     policy: dict[str, str] = field(default_factory=dict)    # policy-excluded definition -> key of POLICIES
@@ -191,6 +195,7 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
         if not found:
             warnings.append(f'{name} declares no constructors of ast')
         instructions += found
+    instructions += [constructor for constructor in scope_file.instructions if constructor not in instructions]
     dispatched = set()
     for dispatcher, prefix in scope_file.dispatchers.items():
         if dispatcher not in graph.functions:
@@ -213,6 +218,9 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
     roots = [root for root in [*scope_file.roots, *sorted(graph.registers), *sorted(dispatched)]
              if root not in policy and matching_pattern(root, patterns) is None]
     nodes = graph.reachable(roots, skip_edge)
+    undispatched = {target for dispatcher, prefix in scope_file.dispatchers.items() if dispatcher in nodes
+                    for target in graph.edges.get(dispatcher, set())
+                    if target.startswith(prefix) and target not in dispatched and target not in policy}
     # the definitions that a pattern matches and that in-scope code mentions (externs included) are excluded by name
     mentioned = graph.mentioned(nodes)
     for name in sorted(mentioned):
@@ -222,7 +230,7 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
     return Scope(instructions=instructions, nodes=nodes, mentioned=mentioned,
                  excluded_functions=graph.functions - nodes - set(policy),
                  excluded_values=graph.values - nodes - set(policy),
-                 dispatched=dispatched, dispatchers=dict(scope_file.dispatchers), warnings=warnings,
+                 dispatched=dispatched, undispatched=undispatched, dispatchers=dict(scope_file.dispatchers), warnings=warnings,
                  policy=policy, values=dict(scope_file.values))
 
 
@@ -253,19 +261,24 @@ def configuration(scope: Scope) -> str:
                 text += f'({function}\n  \'(\n{pairs}\n  ))\n'
             else:
                 text += f'({function}\n  \'(\n{names(selected)}\n  ))\n'
+    if scope.undispatched:
+        text += (f';; The {len(scope.undispatched)} functions of out-of-scope instructions that dispatchers call: '
+                 f'each call is a failure.\n'
+                 f'(exclude-functions-as-failure\n  \'(\n{names(scope.undispatched)}\n  ))\n')
     return text
 
 
 def unexpected_calls(calls: list[DanglingCall], scope: Scope) -> list[str]:
     """
-    Calls in machine.v to excluded definitions, other than those from a dispatcher to the
-    function of an out-of-scope instruction. Each is a bug in the scope.
+    Calls in machine.v to excluded definitions. Each is a bug in the scope, or in the translation
+    of a policy exclusion (the calls to the functions of out-of-scope instructions included).
     """
     problems = []
     for call in calls:
-        if call.callee in scope.policy:
+        if call.callee in scope.policy or call.callee in scope.undispatched:
+            why = 'policy-excluded' if call.callee in scope.policy else 'the function of an out-of-scope instruction'
             problems.append(f'{", ".join(call.callers)} still call{"s" if len(call.callers) == 1 else ""} '
-                            f'{call.callee}, which is policy-excluded: the translation should have removed '
+                            f'{call.callee}, which is {why}: the translation should have removed '
                             f'{"the call" if call.calls == 1 else "the calls"}')
             continue
         if call.callee not in scope.excluded:
