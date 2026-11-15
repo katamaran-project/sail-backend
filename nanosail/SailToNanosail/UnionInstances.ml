@@ -109,6 +109,12 @@ let rec simplify_type (typ : S.typ) : S.typ =
     | Typ_fn (parameter_types, typ)   -> Typ_fn (List.map ~f:simplify_type parameter_types, simplify_type typ)
     | Typ_bidir (left, right)         -> Typ_bidir (simplify_type left, simplify_type right)
     | Typ_tuple types                 -> Typ_tuple (List.map ~f:simplify_type types)
+    (*
+       bool('p) and int('n) are bool and int: the translation erases their index, so that
+       MemoryOpResult(bool('p)), the type of a flow-typed boolean result, is MemoryOpResult(bool)
+    *)
+    | Typ_app (S.Id_aux (Id "atom_bool", identifier_location), _) -> Typ_id (S.Id_aux (Id "bool", identifier_location))
+    | Typ_app (S.Id_aux (Id "atom", identifier_location), _)      -> Typ_id (S.Id_aux (Id "int", identifier_location))
     | Typ_app (identifier, arguments) -> Typ_app (identifier, List.map ~f:simplify_type_argument arguments)
     | Typ_exist (kinded_ids, nc, typ) -> Typ_exist (kinded_ids, nc, simplify_type typ)
   in

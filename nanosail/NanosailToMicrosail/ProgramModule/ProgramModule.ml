@@ -70,12 +70,28 @@ let generate_program_prelude () : PP.t GC.t =
    specialises (Ast.Statement.Specialize) matches on PeanoNat.Nat.eq_dec of a size variable,
    which vm_compute cannot reduce: those definitions are unfolded and the decisions case-split first.
 *)
+(* Whether the function's body decides a branch fact or equality in Rocq (see Statements.pp_specialize) *)
+let decides_in_rocq (function_definition : Ast.Definition.Function.t) : bool =
+  let parameters = List.map ~f:fst @@ FunDeclKit.type_level_parameters function_definition
+  in
+  let is_parameter (identifier : Ast.Identifier.t) = List.mem parameters identifier ~equal:Ast.Identifier.equal
+  in
+  List.exists (Ast.Statement.specialisations function_definition.function_body) ~f:(fun (equalities, facts) ->
+      List.exists equalities ~f:(fun (identifier, _) -> is_parameter identifier)
+      || List.exists facts ~f:(fun fact ->
+          match TypeLevelParameters.constraint_variables fact with
+          | Some (_ :: _ as variables) -> List.for_all variables ~f:is_parameter
+          | Some [] | None             -> false
+        )
+    )
+
+
 let fundef_bindfree (function_definitions : (Sail.sail_definition * Ast.Definition.Function.t) list) : string =
   let specialised =
     List.concat_map function_definitions ~f:(fun (_, (function_definition : Ast.Definition.Function.t)) ->
         if List.is_empty function_definition.monomorphs then [ function_definition ] else function_definition.monomorphs
       )
-    |> List.filter ~f:(fun (function_definition : Ast.Definition.Function.t) -> Ast.Statement.contains_specialize function_definition.function_body)
+    |> List.filter ~f:(fun (function_definition : Ast.Definition.Function.t) -> decides_in_rocq function_definition)
     |> List.map ~f:(fun (function_definition : Ast.Definition.Function.t) -> Ast.Identifier.to_string @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name)
   in
   let proof =
@@ -85,7 +101,10 @@ let fundef_bindfree (function_definitions : (Sail.sail_definition * Ast.Definiti
         String.concat ~sep:"\n" [
           "Proof.";
           "    destruct f; cbv [FunDef " ^ String.concat ~sep:" " specialised ^ "];";
-          "      repeat match goal with |- context [PeanoNat.Nat.eq_dec ?a ?b] => destruct (PeanoNat.Nat.eq_dec a b) end;";
+          "      repeat match goal with";
+          "             | |- context [PeanoNat.Nat.eq_dec ?a ?b] => destruct (PeanoNat.Nat.eq_dec a b)";
+          "             | |- context [sail_decide ?b] => destruct (sail_decide b)";
+          "             end;";
           "      now vm_compute.";
           "  Qed.";
         ]

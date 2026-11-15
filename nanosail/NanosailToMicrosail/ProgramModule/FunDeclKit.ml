@@ -151,6 +151,7 @@ let pp_unconstrained_inhabitant () : PP.t =
      by lia; Katamaran's own hint only computes closed booleans. Both run during type class search,
      for the hypotheses of a callee and for side conditions such as uop.vector_subrange's.
    - sail_cast casts an expression along an equality of size variables (F is the type as a function of it).
+   - sail_decide decides a branch fact (a constraint that Sail's flow typing adds in a branch).
 *)
 let pp_hypothesis_support () : PP.t =
   PP.vertical @@ List.map ~f:PP.string [
@@ -165,13 +166,19 @@ let pp_hypothesis_support () : PP.t =
     "";
     "Definition sail_cast {Γ : LCtx} (F : nat -> Ty) {m n : nat} (H : m = n) (e : Exp Γ (F m)) : Exp Γ (F n) :=";
     "  match H with eq_refl => e end.";
+    "";
+    "Definition sail_decide (b : bool) : {IsTrue b} + {~ IsTrue b} :=";
+    "  match b return {IsTrue b} + {~ IsTrue b} with";
+    "  | true  => left (@IsTrue.mk true I)";
+    "  | false => right (fun H => IsTrue.from H)";
+    "  end.";
   ]
 
 
 let needs_hypothesis_support (function_definitions : Ast.Definition.Function.t list) : bool =
   List.exists function_definitions ~f:(fun (function_definition : Ast.Definition.Function.t) ->
       not (List.is_empty (signature function_definition).hypotheses)
-      || Ast.Statement.contains_specialize function_definition.function_body
+      || Ast.Statement.contains_specialize function_definition.function_body (* sail_cast, sail_decide *)
     )
 
 

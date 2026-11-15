@@ -45,3 +45,28 @@ function store_flow(width, data) =
 
 val store_flow_word : bits(32) -> unit
 function store_flow_word(w) = store_flow(4, w)
+
+// a branch fact that fixes no value: the call needs 'n <= 8
+val store_small : forall 'n, 0 < 'n <= 16. (int('n), bits(8 * 'n)) -> unit
+function store_small(width, data) = if width <= 8 then store_flow(width, data) else ()
+
+// a result type that Sail writes with a division (bits(8 * ('p8_times_n / 8)))
+val read_bytes = pure "read_bytes" : forall 'n, 0 < 'n <= 8. int('n) -> bits(8 * 'n)
+
+val read_wrapped : forall 'n, 0 < 'n <= 8. int('n) -> bits(8 * 'n)
+function read_wrapped(width) = {
+  let v = read_bytes(width);
+  v
+}
+
+// a union at a flow-typed boolean: Res(bool('p)) is Res(bool)
+union Res ('a : Type) = { Ok : 'a, Err : unit }
+
+val flag_result : forall 'n, 'n > 0. int('n) -> Res(bool)
+function flag_result(width) = {
+  let r = Ok(width > 4);
+  r
+}
+
+val int_result : unit -> Res(int)
+function int_result() = Ok(1)

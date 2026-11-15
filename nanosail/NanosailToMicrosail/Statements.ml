@@ -753,6 +753,7 @@ and pp_unconstrained (typ : Ast.Type.t) : PP.t GC.t =
 *)
 and pp_specialize
     ~(equalities  : (Ast.Identifier.t * Z.t) list   )
+    ~(facts       : Ast.Numeric.Constraint.t list   )
     ~(rebinds     : (Ast.Identifier.t * Ast.Type.t) list)
     ~(result_type : Ast.Type.t                      )
     ~(body        : Ast.Statement.t                 ) : PP.t GC.t
@@ -763,6 +764,18 @@ and pp_specialize
     match bound with
     | None       -> []
     | Some bound -> List.filter equalities ~f:(fun (identifier, _) -> Ast.Identifier.Set.mem bound identifier)
+  in
+  (* the facts over parameters only, and not closed (after the substitution of the equalities) *)
+  let decided_facts : Ast.Numeric.Constraint.t list =
+    match bound with
+    | None       -> []
+    | Some bound -> begin
+        List.filter facts ~f:(fun fact ->
+            match TypeLevelParameters.constraint_variables fact with
+            | Some (_ :: _ as variables) -> List.for_all variables ~f:(Ast.Identifier.Set.mem bound)
+            | Some [] | None             -> false
+          )
+      end
   in
   let mentions (typ : Ast.Type.t) (identifier : Ast.Identifier.t) : bool =
     List.exists (TypeLevelParameters.of_type typ) ~f:(fun (identifier', _) -> Ast.Identifier.equal identifier identifier')
@@ -851,10 +864,29 @@ and pp_specialize
     let* pp_result_type = Type.pp_type result_type
     in
     let message =
-      Printf.sprintf "unreachable: Sail's typing fixes %s here"
-        (String.concat ~sep:", " @@ List.map decided ~f:(fun (identifier, value) -> Printf.sprintf "%s = %s" (Ast.Identifier.to_string identifier) (Z.to_string value)))
+      match decided with
+      | [] -> "unreachable: Sail's typing ensures this branch's constraints"
+      | _  -> begin
+          Printf.sprintf "unreachable: Sail's typing fixes %s here"
+            (String.concat ~sep:", " @@ List.map decided ~f:(fun (identifier, value) -> Printf.sprintf "%s = %s" (Ast.Identifier.to_string identifier) (Z.to_string value)))
+        end
     in
     GC.return @@ MuSail.Statement.pp_fail pp_result_type (Coq.pp_string message)
+  in
+  (* the facts, decided as one conjunction *)
+  let pp_body =
+    match decided_facts with
+    | []     -> pp_body
+    | _ :: _ -> begin
+        PP.(surround parens) begin
+          Coq.pp_match
+            (PP.separate_horizontally ~separator:PP.space [ PP.string "sail_decide"; TypeLevelParameters.pp_conjunction decided_facts ])
+            [
+              (PP.string "left Hfact", pp_body);
+              (PP.string "right _", pp_fail);
+            ]
+        end
+      end
   in
   GC.return begin
     PP.annotate [%here] begin
@@ -912,8 +944,9 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
     | Fail (typ, message)                       -> pp_fail typ message
     | Unconstrained typ                         -> pp_unconstrained typ
     | Specialize { equalities;
+                   facts;
                    rebinds;
                    result_type;
-                   body }                       -> pp_specialize ~equalities ~rebinds ~result_type ~body
+                   body }                       -> pp_specialize ~equalities ~facts ~rebinds ~result_type ~body
     | Located (location, inner_statement)       -> GC.with_sail_location location @@ pp_statement inner_statement
   end

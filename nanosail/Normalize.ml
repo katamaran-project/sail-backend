@@ -352,7 +352,7 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
   | Fail _ -> return statement
   | Unconstrained _ -> return statement
 
-  | Specialize { equalities; rebinds; result_type; body } -> begin
+  | Specialize { equalities; facts; rebinds; result_type; body } -> begin
       let* rebinds =
         let substitute_rebind ((identifier, typ) : Ast.Identifier.t * Ast.Type.t) =
           let* identifier = substitute_identifier identifier
@@ -362,7 +362,7 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
         map ~f:substitute_rebind rebinds
       and* body = normalize_statement body
       in
-      return @@ Ast.Statement.Specialize { equalities; rebinds; result_type; body }
+      return @@ Ast.Statement.Specialize { equalities; facts; rebinds; result_type; body }
     end
 
 

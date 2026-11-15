@@ -258,14 +258,19 @@ let rec pp_constraint (numeric_constraint : Ast.Numeric.Constraint.t) : PP.t =
   | Var _                                                      -> PP.string "true" (* excluded by constraint_variables *)
 
 
-(* IsTrue (c1 && c2 && ...)%Z; each conjunct is parenthesised *)
-let pp_hypothesis_type (hypotheses : Ast.Numeric.Constraint.t list) : PP.t =
+(* (c1 && c2 && ...)%Z; each conjunct is parenthesised *)
+let pp_conjunction (constraints : Ast.Numeric.Constraint.t list) : PP.t =
   let conjunction =
-    match hypotheses with
-    | [ hypothesis ] -> pp_constraint hypothesis
-    | _              -> PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string " && ") @@ List.map ~f:pp_constraint hypotheses
+    match constraints with
+    | [ single ] -> pp_constraint single
+    | _          -> PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string " && ") @@ List.map ~f:pp_constraint constraints
   in
-  PP.horizontal [ PP.string "IsTrue "; conjunction; PP.string "%Z" ]
+  PP.horizontal [ conjunction; PP.string "%Z" ]
+
+
+(* IsTrue (c1 && c2 && ...)%Z *)
+let pp_hypothesis_type (hypotheses : Ast.Numeric.Constraint.t list) : PP.t =
+  PP.horizontal [ PP.string "IsTrue "; pp_conjunction hypotheses ]
 
 
 (* {kid__n : nat} ... {H : IsTrue (...)%Z} *)

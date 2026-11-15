@@ -731,6 +731,64 @@ let is_early_return (function_identifier : S.id) : bool =
    Only the size variables of the types of the variables in scope are considered (the solver is not
    free); a variable the enclosing environment already fixes is left alone.
 *)
+(*
+   A width that is not a constant nor a size variable, such as bits(8 * ('p8_times_n / 8)) in read_ram,
+   or bits(8 * 'n) where the signature has bits('p8_times_n) with 'p8_times_n == 8 * 'n, cannot be
+   identified with the parameter's width by Rocq. When Sail's solver proves, under the constraints in
+   the environment, that the width equals a size variable of the function's quantifier, the width is
+   that variable. Sail's existential variables (named with a #) are not candidates.
+*)
+let rec normalise_widths
+    (environment : Libsail.Type_check.Env.t)
+    (typ         : S.typ                   ) : S.typ
+  =
+  let candidates : S.kid list =
+    Libsail.Ast_compare.KBindings.bindings (Libsail.Type_check.Env.get_typ_vars environment)
+    |> List.filter_map ~f:(fun (kid, kind) ->
+        match kind with
+        | S.K_int when not (String.contains (Libsail.Ast_util.string_of_kid kid) '#') -> Some kid
+        | K_int | K_type | K_bool -> None
+      )
+  in
+  let normalise_nexp (nexp : S.nexp) : S.nexp =
+    let S.Nexp_aux (unwrapped_nexp, _) = nexp
+    in
+    match unwrapped_nexp with
+    | Nexp_constant _ | Nexp_var _ | Nexp_id _ -> nexp
+    | Nexp_app _ | Nexp_times _ | Nexp_sum _ | Nexp_minus _ | Nexp_neg _ | Nexp_exp _ | Nexp_if _ -> begin
+        let in_nexp = Libsail.Ast_util.tyvars_of_nexp nexp
+        in
+        (* only when every size variable of the width is a candidate, so that the solver has the constraints *)
+        if
+          Libsail.Ast_compare.KidSet.is_empty in_nexp
+          || not (Libsail.Ast_compare.KidSet.for_all (fun kid -> List.mem candidates kid ~equal:(fun a b -> Libsail.Ast_compare.Kid.compare a b = 0)) in_nexp)
+        then
+          nexp
+        else
+          match
+            List.find candidates ~f:(fun kid ->
+                try Libsail.Type_check.prove __POS__ environment (Libsail.Ast_util.nc_eq nexp (Libsail.Ast_util.nvar kid))
+                with _ -> false)
+          with
+          | Some kid -> Libsail.Ast_util.nvar kid
+          | None     -> nexp
+      end
+  in
+  let S.Typ_aux (unwrapped_typ, location) = typ
+  in
+  let normalise_argument (S.A_aux (argument, argument_location) : S.typ_arg) : S.typ_arg =
+    match argument with
+    | A_nexp nexp -> S.A_aux (A_nexp (normalise_nexp nexp), argument_location)
+    | A_typ typ   -> S.A_aux (A_typ (normalise_widths environment typ), argument_location)
+    | A_bool _    -> S.A_aux (argument, argument_location)
+  in
+  match unwrapped_typ with
+  | Typ_app (S.Id_aux (Id ("atom" | "range" | "atom_bool" | "implicit" | "itself"), _), _) -> typ
+  | Typ_app (identifier, arguments) -> S.Typ_aux (Typ_app (identifier, List.map ~f:normalise_argument arguments), location)
+  | Typ_tuple types                 -> S.Typ_aux (Typ_tuple (List.map ~f:(normalise_widths environment) types), location)
+  | Typ_internal_unknown | Typ_id _ | Typ_var _ | Typ_fn _ | Typ_bidir _ | Typ_exist _ -> typ
+
+
 let specialise_branch
     ~(outer_environment : Libsail.Type_check.Env.t)
     ~(branch            : S.typ S.aexp            )
@@ -766,9 +824,30 @@ let specialise_branch
           end
       )
   in
-  match fixed with
-  | [] -> TC.return statement
-  | _ :: _ -> begin
+  (*
+     The facts: the constraints Sail's flow typing added in the branch (if 'n <= 8 ...),
+     over the candidate size variables only.
+  *)
+  let* facts : Ast.Numeric.Constraint.t list =
+    let outer_constraints = Libsail.Type_check.Env.get_constraints outer_environment
+    in
+    let is_candidate (kid : S.kid) : bool =
+      List.mem candidates kid ~equal:(fun kid kid' -> Libsail.Ast_compare.Kid.compare kid kid' = 0)
+    in
+    Libsail.Type_check.Env.get_constraints inner_environment
+    |> List.filter ~f:(fun numeric_constraint ->
+        not (List.exists outer_constraints ~f:(fun numeric_constraint' -> Libsail.Ast_compare.NC.compare numeric_constraint numeric_constraint' = 0)))
+    |> List.concat_map ~f:TypeQuantifier.sail_conjuncts
+    |> List.filter ~f:(fun numeric_constraint ->
+        let kids = Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_constraint numeric_constraint
+        in
+        not (List.is_empty kids) && List.for_all kids ~f:is_candidate
+      )
+    |> TypeQuantifier.translate_conjuncts
+  in
+  match fixed, facts with
+  | [], [] -> TC.return statement
+  | _, _ -> begin
       let equalities : (Ast.Identifier.t * Z.t) list =
         List.map fixed ~f:(fun (kid, value) -> (Identifier.translate_kind_identifier kid, value))
       in
@@ -807,7 +886,10 @@ let specialise_branch
         begin
           let* result_type = Type.translate_type branch_type
           in
-          TC.return @@ Ast.Statement.Specialize { equalities; rebinds; result_type; body }
+          let facts =
+            List.map facts ~f:(Ast.Numeric.Constraint.substitute_numeric_expression_identifier (Ast.Numeric.size_variable_substitution equalities))
+          in
+          TC.return @@ Ast.Statement.Specialize { equalities; facts; rebinds; result_type; body }
         end
         (fun _ -> TC.return statement)
     end
@@ -1307,6 +1389,8 @@ let rec statement_of_aexp
         (body            : S.typ S.aexp        )
         (body_type       : S.typ               ) : Ast.Statement.t TC.t
     =
+    let expression_type = normalise_widths annotation.env expression_type
+    in
     let* binder                 = Identifier.translate_identifier [%here] identifier
     and* binding_statement_type = Type.translate_type expression_type
     and* binding_statement      = statement_of_aexp (Some expression_type) expression
@@ -1337,7 +1421,9 @@ let rec statement_of_aexp
       in
       specialise_branch ~outer_environment:annotation.env ~branch:then_clause ~branch_type:output_type when_true
     and* when_false =
-      statement_of_aexp (Some output_type) else_clause
+      let* when_false = statement_of_aexp (Some output_type) else_clause
+      in
+      specialise_branch ~outer_environment:annotation.env ~branch:else_clause ~branch_type:output_type when_false
     and* condition_variable =
       TC.generate_unique_identifier ()
     in
@@ -2572,7 +2658,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
     | Unconstrained _       -> statement
-    | Specialize { equalities; rebinds; result_type; body } -> Specialize { equalities; rebinds; result_type; body = rewrite body }
+    | Specialize { equalities; facts; rebinds; result_type; body } -> Specialize { equalities; facts; rebinds; result_type; body = rewrite body }
     | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
   in
   rewrite statement
