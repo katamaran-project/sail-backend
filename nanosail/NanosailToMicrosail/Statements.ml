@@ -605,6 +605,8 @@ and pp_sequence
 and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bool GC.t =
   match statement with
   | Located (_, inner) -> calls_function_with_ambiguous_result_type inner
+  (* lets that compute the call's arguments first: internal_error(__FILE__, __LINE__, "..." ^ BitStr(s)) *)
+  | Let { body_statement; _ } -> calls_function_with_ambiguous_result_type body_statement
   | Call (function_identifier, _) -> begin
       let* function_definition = GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ function_definition_named function_identifier)
       in
@@ -619,7 +621,7 @@ and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bo
             )
         end
     end
-  | Expression _ | Match _ | Let _ | Seq _ | ReadRegister _ | WriteRegister _ | AssignVariable _
+  | Expression _ | Match _ | Seq _ | ReadRegister _ | WriteRegister _ | AssignVariable _
   | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ -> GC.return false
 
 

@@ -5,6 +5,21 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Discarded call to a type-polymorphic function behind argument lets: `stm_seq`'s type not inferable
+- Found: by hand-compiling `machine.v` past the probe's stop, after the decoders' fallbacks entered the scope (`execute_NOT_C_CAPMODE`).
+- Cause: `pp_sequence` fixes the discarded type of a call such as `internal_error : forall ('a : Type). ... -> 'a` to `ty.unit`, but only for a bare call; with a computed argument the call sits under a `let`, and Rocq cannot infer `σ`.
+- Fix: the check looks through the `let`s around the call. Test `sequence-discarded-polymorphic-call`.
+```sail
+function clause execute(NOT_C_CAPMODE(s)) = {
+  internal_error(__FILE__, __LINE__, "should be unreachable: execute(NOT_C_CAPMODE(" ^ BitStr(s) ^ "))");
+  RETIRE_FAIL
+}
+```
+```coq
+(* before *) stm_seq (stm_let "ga#0" ty.string (...) (stm_call internal_error ...)) ...        (* ?σ *)
+(* after  *) @stm_seq _ _ ty.unit (stm_let "ga#0" ty.string (...) (stm_call internal_error ...)) ...
+```
+
 ### A binder in a `match` on a `bool` was dropped
 - Found: while translating `match` on a `bool` (`encdec_backwards`); the pattern tree logged "ignoring binder while matching bool".
 - Cause: the `Bool` node of the pattern tree keeps no binders, so `s => ... s ...` left `s` unbound.
