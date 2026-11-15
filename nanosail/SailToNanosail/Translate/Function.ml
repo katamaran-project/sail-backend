@@ -722,6 +722,97 @@ let is_early_return (function_identifier : S.id) : bool =
    it was once unclear what the expected types of a and b
    in a sequence "a; b; c" should be (they are unit, see statement_of_block).
 *)
+(*
+   A branch in which Sail's flow typing fixes size variables, such as the then-branch of
+   if width == 4 for width : int('n), with 'p == 8 * 'n among the function's constraints:
+   Sail's type checker added 'n == 4 to the branch's environment, and its solver finds 'p == 32.
+   The branch becomes a Specialize: its translation with each fixed variable replaced by its value,
+   the variables in scope whose type mentions one (rebound with a cast in Rocq), and the branch's type.
+   Only the size variables of the types of the variables in scope are considered (the solver is not
+   free); a variable the enclosing environment already fixes is left alone.
+*)
+let specialise_branch
+    ~(outer_environment : Libsail.Type_check.Env.t)
+    ~(branch            : S.typ S.aexp            )
+    ~(branch_type       : S.typ                   )
+    (statement          : Ast.Statement.t         ) : Ast.Statement.t TC.t
+  =
+  let S.AE_aux (_, branch_annotation) = branch
+  in
+  let inner_environment = branch_annotation.env
+  in
+  let locals : (S.id * S.typ) list =
+    List.map ~f:(fun (identifier, (_mutability, typ)) -> (identifier, typ)) @@ Bindings.bindings @@ Libsail.Type_check.Env.get_locals inner_environment
+  in
+  let outer_size_variables = Libsail.Type_check.Env.get_typ_vars outer_environment
+  in
+  let candidates : S.kid list =
+    List.concat_map locals ~f:(fun (_, typ) -> Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_typ typ)
+    |> List.dedup_and_sort ~compare:Libsail.Ast_compare.Kid.compare
+    |> List.filter ~f:(fun kid ->
+        match Libsail.Ast_compare.KBindings.find_opt kid outer_size_variables with
+        | Some K_int                -> true
+        | Some (K_type | K_bool) | None -> false
+      )
+  in
+  let fixed : (S.kid * Z.t) list =
+    List.filter_map candidates ~f:(fun kid ->
+        match Libsail.Type_check.solve_unique outer_environment (Libsail.Ast_util.nvar kid) with
+        | Some _ -> None
+        | None   -> begin
+            match Libsail.Type_check.solve_unique inner_environment (Libsail.Ast_util.nvar kid) with
+            | Some value -> Some (kid, value)
+            | None       -> None
+          end
+      )
+  in
+  match fixed with
+  | [] -> TC.return statement
+  | _ :: _ -> begin
+      let equalities : (Ast.Identifier.t * Z.t) list =
+        List.map fixed ~f:(fun (kid, value) -> (Identifier.translate_kind_identifier kid, value))
+      in
+      let body =
+        Ast.Statement.substitute_numeric_expression_identifier (Ast.Numeric.size_variable_substitution equalities) statement
+      in
+      let free_variables = Ast.Statement.free_variables body
+      in
+      let mentions_fixed (typ : S.typ) : bool =
+        List.exists fixed ~f:(fun (kid, _) -> Libsail.Ast_compare.KidSet.mem kid (Libsail.Ast_util.tyvars_of_typ typ))
+      in
+      let* rebinds : (Ast.Identifier.t * Ast.Type.t) list =
+        TC.filter_map locals ~f:(fun (identifier, typ) ->
+            if
+              mentions_fixed typ
+            then
+              TC.recover
+                begin
+                  let* identifier' = Identifier.translate_identifier [%here] identifier
+                  in
+                  if
+                    Ast.Identifier.Set.mem free_variables identifier'
+                  then
+                    let* typ' = Type.translate_type typ
+                    in
+                    TC.return @@ Some (identifier', typ')
+                  else
+                    TC.return None
+                end
+                (fun _ -> TC.return None)
+            else
+              TC.return None
+          )
+      in
+      TC.recover
+        begin
+          let* result_type = Type.translate_type branch_type
+          in
+          TC.return @@ Ast.Statement.Specialize { equalities; rebinds; result_type; body }
+        end
+        (fun _ -> TC.return statement)
+    end
+
+
 let rec statement_of_aexp
     (expression_type : S.typ option)
     (expression      : S.typ S.aexp) : Ast.Statement.t TC.t
@@ -1242,7 +1333,9 @@ let rec statement_of_aexp
       in
       TC.return (Ast.Statement.Expression condition_expression, named_statements)
     and* when_true =
-      statement_of_aexp (Some output_type) then_clause
+      let* when_true = statement_of_aexp (Some output_type) then_clause
+      in
+      specialise_branch ~outer_environment:annotation.env ~branch:then_clause ~branch_type:output_type when_true
     and* when_false =
       statement_of_aexp (Some output_type) else_clause
     and* condition_variable =
@@ -2479,6 +2572,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
     | Unconstrained _       -> statement
+    | Specialize { equalities; rebinds; result_type; body } -> Specialize { equalities; rebinds; result_type; body = rewrite body }
     | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
   in
   rewrite statement
@@ -2516,6 +2610,13 @@ let translate_function_definition
         and* parameters    = translate_parameter_bindings parts.parameter_bindings
         and* return_type   = translate_return_type parts.return_type
         and* function_body = TC.with_locally_bound_identifiers parts.locally_bound_identifiers (translate_body parts.body parts.return_type)
+        and* type_constraints =
+          (* the quantifier of the function's val spec, as Sail's type checker saw it *)
+          let environment = Libsail.Type_check.env_of_pat parts.parameter_bindings
+          in
+          match Libsail.Type_check.Env.get_val_spec_orig parts.identifier environment with
+          | (type_quantifier, _)           -> TypeQuantifier.translate_type_quantifier_constraints type_quantifier
+          | exception Libsail.Type_error.Type_error _ -> TC.return []
         in
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
@@ -2663,6 +2764,7 @@ let translate_function_definition
                     function_body = substituted_function_body;
                     polymorphic   = false;
                     monomorphs    = [];
+                    type_constraints = [];
                   }
                 in
                 let* () =
@@ -2714,6 +2816,7 @@ let translate_function_definition
           function_body;
           polymorphic = is_function_polymorphic;
           monomorphs;
+          type_constraints;
         }
       end
     | _ -> TC.not_yet_implemented [%here] definition_annotation.loc

@@ -8,6 +8,85 @@ end
 
 
 (*
+   The callee of a call to a function of the program. A size variable that is a parameter of the
+   callee only because its constraints relate it to the types (see TypeLevelParameters.of_signature)
+   cannot be inferred by Rocq; it is passed by name, from the argument whose Sail type is int('n):
+
+     (store_bytes (kid__n := 4))
+
+   A size variable whose instantiation is not known this way (or mentions a size variable that is not
+   in scope) is left to Rocq, which reports it.
+*)
+let pp_callee
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
+  =
+  let pp_name = Identifier.pp function_identifier
+  in
+  let* function_definition =
+    GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ function_definition_named function_identifier)
+  in
+  match function_definition with
+  | None                     -> GC.return pp_name
+  | Some function_definition -> begin
+      let signature =
+        TypeLevelParameters.of_signature
+          ~types:(List.append (List.map ~f:snd function_definition.function_type.parameters) [ function_definition.function_type.return_type ])
+          ~constraints:function_definition.type_constraints
+      in
+      let not_inferable =
+        List.filter signature.parameters ~f:(fun (identifier, _) ->
+            not (List.mem signature.inferable identifier ~equal:Ast.Identifier.equal)
+          )
+      in
+      (* the size of the argument whose parameter has type int('identifier) *)
+      let instantiation (identifier : Ast.Identifier.t) : Ast.Numeric.Expression.t option =
+        match List.zip function_definition.function_type.parameters arguments with
+        | Unequal_lengths -> None
+        | Ok pairs        -> begin
+            List.find_map pairs ~f:(fun ((_, parameter_type), argument) ->
+                match Ast.Type.strip_aliases parameter_type with
+                | Int (Some (Var identifier')) when Ast.Identifier.equal identifier identifier' -> begin
+                    match argument with
+                    | Value (Int value) -> Some (Ast.Numeric.Expression.Constant value)
+                    | _ -> begin
+                        match Ast.Type.strip_aliases (Ast.Expression.infer_type argument) with
+                        | Int (Some size)   -> Some (Ast.Numeric.Expression.simplify size)
+                        | _                 -> None
+                        | exception Ast.Expression.UnimplementedTypeInference -> None
+                      end
+                  end
+                | _ -> None
+              )
+          end
+      in
+      let* bound = GC.get_bound_type_level_identifiers
+      in
+      let in_scope (size : Ast.Numeric.Expression.t) : bool =
+        List.for_all (TypeLevelParameters.numeric_variables size) ~f:(fun identifier ->
+            match bound with
+            | Some bound -> Ast.Identifier.Set.mem bound identifier
+            | None       -> false
+          )
+      in
+      let* named_arguments =
+        GC.map not_inferable ~f:(fun (identifier, _) ->
+            match instantiation identifier with
+            | Some size when in_scope size -> begin
+                let* pp_size = Numeric.Expression.pp size
+                in
+                GC.return @@ Some (PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ Identifier.pp identifier; PP.string ":="; pp_size ])
+              end
+            | Some _ | None -> GC.return None
+          )
+      in
+      match List.filter_opt named_arguments with
+      | []                -> GC.return pp_name
+      | named_arguments   -> GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (pp_name :: named_arguments)
+    end
+
+
+(*
    Generates function call using the syntax specified in the configuration.
 *)
 let pp_function_call_using_configured_syntax
@@ -58,8 +137,9 @@ let translate_call
   | None                 -> begin
       let* pp_arguments =
         GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+      and* pp_callee = pp_callee function_identifier arguments
       in
-      GC.return @@ pp_function_call_using_configured_syntax (Identifier.pp function_identifier) pp_arguments
+      GC.return @@ pp_function_call_using_configured_syntax pp_callee pp_arguments
     end
 
 
@@ -1109,9 +1189,11 @@ let translate
         match foreign_function with
         | Some foreign_function -> translate_extern_call foreign_function arguments pp_arguments
         | None                  -> begin
+            let* pp_callee = pp_callee function_identifier arguments
+            in
             GC.return begin
               pp_function_call_using_configured_syntax
-                (Identifier.pp function_identifier)
+                pp_callee
                 pp_arguments
             end
           end

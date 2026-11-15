@@ -63,6 +63,11 @@ module Function = struct
       function_body : Statement.t;
       polymorphic   : bool;
       monomorphs    : t list;         (* list of monomorphized variants of the function *)
+      (*
+         The constraints of the function's type quantifier, as conjuncts (0 < 'n, 'p == 8 * 'n);
+         the generated Rocq takes them as hypotheses (see NanosailToMicrosail.TypeLevelParameters).
+      *)
+      type_constraints : NumericConstraint.t list;
     }
 
   let rec to_fexpr (function_definition : t) : FExpr.t =
@@ -84,6 +89,7 @@ module Function = struct
         ("body"         , function_body');
         ("polymorphic"  , polymorphic'  );
         ("monomorphs"   , monomorphs'   );
+        ("constraints"  , FExpr.mk_list @@ List.map ~f:NumericConstraint.to_fexpr function_definition.type_constraints);
       ]
     in
     FExpr.mk_application ~keyword "Def:Function"

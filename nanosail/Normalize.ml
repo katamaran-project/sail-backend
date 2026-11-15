@@ -352,6 +352,19 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
   | Fail _ -> return statement
   | Unconstrained _ -> return statement
 
+  | Specialize { equalities; rebinds; result_type; body } -> begin
+      let* rebinds =
+        let substitute_rebind ((identifier, typ) : Ast.Identifier.t * Ast.Type.t) =
+          let* identifier = substitute_identifier identifier
+          in
+          return (identifier, typ)
+        in
+        map ~f:substitute_rebind rebinds
+      and* body = normalize_statement body
+      in
+      return @@ Ast.Statement.Specialize { equalities; rebinds; result_type; body }
+    end
+
 
 let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTree.t) : SailToNanosail.Translate.Match.PatternTree.t Monad.t =
   let open SailToNanosail.Translate.Match

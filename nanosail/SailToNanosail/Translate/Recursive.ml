@@ -494,6 +494,7 @@ end = struct
       | S.NC_var kind_id                           -> TC.return @@ Ast.Numeric.Constraint.Var (Identifier.translate_kind_identifier kind_id)
       | S.NC_true                                  -> TC.return @@ Ast.Numeric.Constraint.True
       | S.NC_false                                 -> TC.return @@ Ast.Numeric.Constraint.False
+      | S.NC_set (Nexp_aux (Nexp_var kind_id, _), values) -> TC.return @@ Ast.Numeric.Constraint.Set (Identifier.translate_kind_identifier kind_id, values)
       | S.NC_set (_, _)                            -> TC.not_yet_implemented [%here] location
       | S.NC_id _                                  -> TC.not_yet_implemented [%here] location
     end

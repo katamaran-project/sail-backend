@@ -97,6 +97,30 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertEqual(lines[17], '  Admitted. (* tests/cheriot: some bodies are the NYI axiom *)')
         self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + inserted)
 
+    def test_multi_line_bindfree_proof_is_admitted(self):
+        text = '\n'.join([
+            'From Katamaran Require Import Base.',
+            '',
+            '    Definition fun_holes : Stm [] (ty.int) :=',
+            '      stm_exp NYI[0].',
+            '',
+            '  Lemma fundef_bindfree (Δ : PCtx) (τ : Ty) (f : Fun Δ τ) :',
+            '    stm_bindfree (FunDef f).',
+            '  Proof.',
+            '    destruct f; cbv [FunDef fun_store];',
+            '      now vm_compute.',
+            '  Qed.',
+            '',
+            '  Lemma other : True.',
+            '  Proof. Qed.',
+        ])
+        copy, at, inserted = rocq.probe_source(text)
+        lines = copy.split('\n')[at - 1 + inserted:]
+        self.assertEqual(lines[5], '  Admitted. (* tests/cheriot: some bodies are the NYI axiom *)')
+        self.assertEqual(lines[6:9], ['', '', ''])
+        self.assertEqual(lines[11], '  Proof. Qed.')
+        self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + inserted)
+
     def test_command_definition(self):
         starts = rocq.definition_starts('Definition a := 1.\nDerive EqDec for T.\n')
         self.assertEqual(rocq.command_definition(starts, 2, 'Derive EqDec for T.'), 'T')

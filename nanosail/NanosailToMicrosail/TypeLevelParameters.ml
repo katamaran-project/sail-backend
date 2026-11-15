@@ -107,3 +107,194 @@ let pp_explicit_application (name : PP.t) (parameters : (Ast.Identifier.t * Ast.
   match parameters with
   | []    -> name
   | _ :: _ -> PP.separate_horizontally ~separator:PP.space (PP.horizontal [ PP.string "@"; name ] :: List.map ~f:(Fn.compose Identifier.pp fst) parameters)
+
+
+(*
+   Sail's constraints on the size variables of a function become one implicit hypothesis
+   (see case-studies/cheriot/docs/design.md):
+
+     val store : forall 'n 'p, 0 < 'n <= 8 & 'p == 8 * 'n. (int('n), bits('p)) -> unit
+
+     | store {kid__p : nat} {kid__n : nat}
+         {H : IsTrue ((0 <? Z.of_nat kid__n) && (Z.of_nat kid__n <=? 8) && (Z.of_nat kid__p =? 8 * Z.of_nat kid__n))%Z} : Fun [...] ty.unit
+
+   The constraint is a boolean over Z (Sail's integers), with Z.of_nat of each size variable.
+   Rocq discharges it by type class search: Katamaran's IsTrue hint computes it at concrete widths,
+   the hint sail_constraint (ProgramModule.FunDeclKit) proves it with lia from the hypotheses in scope.
+*)
+type signature =
+  {
+    parameters : (Ast.Identifier.t * Ast.Kind.t) list;   (* the implicit parameters, in order *)
+    inferable  : Ast.Identifier.t list;                  (* those that the types mention, which Rocq infers *)
+    hypotheses : Ast.Numeric.Constraint.t list;          (* conjuncts, all over parameters *)
+  }
+
+
+(* The size variables (Var, not Id: an Id is a constant) of a numeric expression *)
+let rec numeric_variables (numeric_expression : Ast.Numeric.Expression.t) : Ast.Identifier.t list =
+  match numeric_expression with
+  | Constant _                       -> []
+  | BinaryOperation (_, left, right) -> List.append (numeric_variables left) (numeric_variables right)
+  | Neg operand                      -> numeric_variables operand
+  | PowerOf2 operand                 -> numeric_variables operand
+  | Id _                             -> []
+  | Var identifier                   -> [ identifier ]
+
+
+(* The size variables of a constraint, if Rocq can express it (see pp_constraint); None otherwise *)
+let rec constraint_variables (numeric_constraint : Ast.Numeric.Constraint.t) : Ast.Identifier.t list option =
+  match numeric_constraint with
+  | True | False                                      -> Some []
+  | Equal (NumericExpression left, NumericExpression right)
+  | NotEqual (NumericExpression left, NumericExpression right)
+  | GreaterThanOrEqualTo (left, right)
+  | GreaterThan (left, right)
+  | LessThanOrEqualTo (left, right)
+  | LessThan (left, right)                            -> Some (List.append (numeric_variables left) (numeric_variables right))
+  | Equal ((Type _ | Bool _ | NumericExpression _), _)
+  | NotEqual ((Type _ | Bool _ | NumericExpression _), _) -> None
+  | Set (identifier, _)                               -> Some [ identifier ]
+  | Or (left, right) | And (left, right)              -> begin
+      match constraint_variables left, constraint_variables right with
+      | Some left, Some right -> Some (List.append left right)
+      | None, _ | _, None     -> None
+    end
+  | App (_, _)                                        -> None
+  | Var _                                             -> None
+
+
+let of_signature
+    ~(types       : Ast.Type.t list                )
+    ~(constraints : Ast.Numeric.Constraint.t list  ) : signature
+  =
+  let from_types = of_types types
+  in
+  let expressible : (Ast.Numeric.Constraint.t * Ast.Identifier.t list) list =
+    List.filter_map constraints ~f:(fun numeric_constraint ->
+        Option.map (constraint_variables numeric_constraint) ~f:(fun variables -> (numeric_constraint, variables))
+      )
+  in
+  let is_parameter (parameters : (Ast.Identifier.t * Ast.Kind.t) list) (identifier : Ast.Identifier.t) : bool =
+    List.exists parameters ~f:(fun (identifier', _) -> Ast.Identifier.equal identifier identifier')
+  in
+  (* a constraint that mentions a parameter makes its other size variables parameters too, until nothing changes *)
+  let rec close (parameters : (Ast.Identifier.t * Ast.Kind.t) list) : (Ast.Identifier.t * Ast.Kind.t) list =
+    let added =
+      List.concat_map expressible ~f:(fun (_, variables) ->
+          if List.exists variables ~f:(is_parameter parameters)
+          then List.filter variables ~f:(fun identifier -> not (is_parameter parameters identifier))
+          else []
+        )
+      |> List.dedup_and_sort ~compare:Ast.Identifier.compare
+    in
+    if List.is_empty added
+    then parameters
+    else close (List.append parameters (List.map added ~f:(fun identifier -> (identifier, Ast.Kind.Int))))
+  in
+  let parameters = close from_types
+  in
+  let hypotheses =
+    List.filter_map expressible ~f:(fun (numeric_constraint, variables) ->
+        if not (List.is_empty variables) && List.for_all variables ~f:(is_parameter parameters)
+        then Some numeric_constraint
+        else None
+      )
+  in
+  {
+    parameters;
+    inferable  = List.map ~f:fst from_types;
+    hypotheses;
+  }
+
+
+(* The name of the hypothesis in binders and patterns *)
+let hypothesis_name : PP.t = PP.string "H"
+
+
+(* A numeric expression over Z: Z.of_nat kid__n for a size variable or a constant (both are nat in Rocq) *)
+let rec pp_z_expression (numeric_expression : Ast.Numeric.Expression.t) : PP.t =
+  let binary (operator : string) (left : Ast.Numeric.Expression.t) (right : Ast.Numeric.Expression.t) : PP.t =
+    PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ pp_z_expression left; PP.string operator; pp_z_expression right ]
+  in
+  match numeric_expression with
+  | Constant value                         -> if Z.lt value Z.zero then PP.(surround parens) @@ PP.string (Z.to_string value) else PP.string (Z.to_string value)
+  | BinaryOperation (Add, left, right)     -> binary "+" left right
+  | BinaryOperation (Sub, left, right)     -> binary "-" left right
+  | BinaryOperation (Mul, left, right)     -> binary "*" left right
+  | BinaryOperation (Div, left, right)     -> binary "/" left right
+  | BinaryOperation (Mod, left, right)     -> binary "mod" left right
+  | Neg operand                            -> PP.(surround parens) @@ PP.horizontal [ PP.string "- "; pp_z_expression operand ]
+  | PowerOf2 operand                       -> PP.(surround parens) @@ PP.horizontal [ PP.string "2 ^ "; pp_z_expression operand ]
+  | Id identifier | Var identifier         -> PP.horizontal [ PP.string "Z.of_nat "; Identifier.pp identifier ]
+
+
+(* A constraint as a boolean over Z (inside %Z); only called on constraints whose constraint_variables is Some *)
+let rec pp_constraint (numeric_constraint : Ast.Numeric.Constraint.t) : PP.t =
+  let comparison (operator : string) (left : Ast.Numeric.Expression.t) (right : Ast.Numeric.Expression.t) : PP.t =
+    PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ pp_z_expression left; PP.string operator; pp_z_expression right ]
+  and connective (operator : string) (left : Ast.Numeric.Constraint.t) (right : Ast.Numeric.Constraint.t) : PP.t =
+    PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ pp_constraint left; PP.string operator; pp_constraint right ]
+  in
+  match numeric_constraint with
+  | True                                                       -> PP.string "true"
+  | False                                                      -> PP.string "false"
+  | Equal (NumericExpression left, NumericExpression right)    -> comparison "=?" left right
+  | NotEqual (NumericExpression left, NumericExpression right) -> PP.(surround parens) @@ PP.horizontal [ PP.string "negb "; comparison "=?" left right ]
+  | GreaterThanOrEqualTo (left, right)                         -> comparison "<=?" right left
+  | GreaterThan (left, right)                                  -> comparison "<?" right left
+  | LessThanOrEqualTo (left, right)                            -> comparison "<=?" left right
+  | LessThan (left, right)                                     -> comparison "<?" left right
+  | Set (identifier, [])                                       -> let _ = identifier in PP.string "false"
+  | Set (identifier, values)                                   -> begin
+      PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string " || ") @@ List.map values ~f:(fun value ->
+          comparison "=?" (Var identifier) (Constant value)
+        )
+    end
+  | Or (left, right)                                           -> connective "||" left right
+  | And (left, right)                                          -> connective "&&" left right
+  | Equal ((Type _ | Bool _ | NumericExpression _), _)
+  | NotEqual ((Type _ | Bool _ | NumericExpression _), _)
+  | App (_, _)
+  | Var _                                                      -> PP.string "true" (* excluded by constraint_variables *)
+
+
+(* IsTrue (c1 && c2 && ...)%Z; each conjunct is parenthesised *)
+let pp_hypothesis_type (hypotheses : Ast.Numeric.Constraint.t list) : PP.t =
+  let conjunction =
+    match hypotheses with
+    | [ hypothesis ] -> pp_constraint hypothesis
+    | _              -> PP.(surround parens) @@ PP.separate_horizontally ~separator:(PP.string " && ") @@ List.map ~f:pp_constraint hypotheses
+  in
+  PP.horizontal [ PP.string "IsTrue "; conjunction; PP.string "%Z" ]
+
+
+(* {kid__n : nat} ... {H : IsTrue (...)%Z} *)
+let pp_signature_binders (signature : signature) : PP.t =
+  let hypothesis_binders =
+    match signature.hypotheses with
+    | []     -> []
+    | _ :: _ -> [ PP.(surround braces @@ separate_horizontally ~separator:space [ hypothesis_name; colon; pp_hypothesis_type signature.hypotheses ]) ]
+  in
+  PP.separate_horizontally ~separator:PP.space (List.append (List.map ~f:pp_binder signature.parameters) hypothesis_binders)
+
+
+(* The parameters and the hypothesis as implicit parameters of Coq.pp_definition *)
+let signature_as_definition_parameters (signature : signature) : (PP.t * PP.t option) list =
+  let hypothesis_parameters =
+    match signature.hypotheses with
+    | []     -> []
+    | _ :: _ -> [ (hypothesis_name, Some (pp_hypothesis_type signature.hypotheses)) ]
+  in
+  List.append (as_definition_parameters signature.parameters) hypothesis_parameters
+
+
+(* @name kid__n ... H *)
+let pp_signature_explicit_application (name : PP.t) (signature : signature) : PP.t =
+  let arguments =
+    List.append
+      (List.map ~f:(Fn.compose Identifier.pp fst) signature.parameters)
+      (match signature.hypotheses with [] -> [] | _ :: _ -> [ hypothesis_name ])
+  in
+  match arguments with
+  | []     -> name
+  | _ :: _ -> PP.separate_horizontally ~separator:PP.space (PP.horizontal [ PP.string "@"; name ] :: arguments)

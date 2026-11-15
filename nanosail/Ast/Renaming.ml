@@ -406,6 +406,19 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
   | Fail _         -> return statement
   | Unconstrained _ -> return statement
 
+  | Specialize { equalities; rebinds; result_type; body } -> begin
+      let* rebinds =
+        let rename_rebind ((identifier, typ) : Identifier.t * Type.t) =
+          let* identifier = rename identifier
+          in
+          return (identifier, typ)
+        in
+        map ~f:rename_rebind rebinds
+      and* body = rename_in_statement body
+      in
+      return @@ Statement.Specialize { equalities; rebinds; result_type; body }
+    end
+
   | Located (location, statement) -> begin
       let* new_statement = rename_in_statement statement
       in

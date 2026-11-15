@@ -620,7 +620,7 @@ and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bo
         end
     end
   | Expression _ | Match _ | Let _ | Seq _ | ReadRegister _ | WriteRegister _ | AssignVariable _
-  | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ -> GC.return false
+  | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ | Specialize _ -> GC.return false
 
 
 and pp_read_register (register_identifier : Ast.Identifier.t) : PP.t GC.t =
@@ -737,6 +737,141 @@ and pp_unconstrained (typ : Ast.Type.t) : PP.t GC.t =
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_unconstrained pp_typ
 
 
+(*
+   A branch in which Sail's flow typing fixes size variables (see Ast.Statement.Specialize):
+
+     match PeanoNat.Nat.eq_dec kid__p8_times_n 32 with
+     | left Heq_kid__p8_times_n  => stm_let "data" (ty.bvec 32)
+                                      (stm_exp (sail_cast (fun kid__p8_times_n => ty.bvec kid__p8_times_n) Heq_kid__p8_times_n (exp_var "data")))
+                                      body
+     | right _                   => stm_fail τ "unreachable: ..."
+     end
+
+   Only the variables that are parameters of the function (the type-level identifiers in scope)
+   are decided: the others appear in no muSail type. The body is already substituted.
+   If the result type mentions a decided variable, the body's value is cast back.
+*)
+and pp_specialize
+    ~(equalities  : (Ast.Identifier.t * Z.t) list   )
+    ~(rebinds     : (Ast.Identifier.t * Ast.Type.t) list)
+    ~(result_type : Ast.Type.t                      )
+    ~(body        : Ast.Statement.t                 ) : PP.t GC.t
+  =
+  let* bound = GC.get_bound_type_level_identifiers
+  in
+  let decided : (Ast.Identifier.t * Z.t) list =
+    match bound with
+    | None       -> []
+    | Some bound -> List.filter equalities ~f:(fun (identifier, _) -> Ast.Identifier.Set.mem bound identifier)
+  in
+  let mentions (typ : Ast.Type.t) (identifier : Ast.Identifier.t) : bool =
+    List.exists (TypeLevelParameters.of_type typ) ~f:(fun (identifier', _) -> Ast.Identifier.equal identifier identifier')
+  in
+  let substitute_one ((identifier, value) : Ast.Identifier.t * Z.t) (typ : Ast.Type.t) : Ast.Type.t =
+    Ast.Type.simplify @@ Ast.Type.substitute_numeric_expression_identifier (Ast.Numeric.size_variable_substitution [ (identifier, value) ]) typ
+  in
+  let proof_name (identifier : Ast.Identifier.t) : PP.t =
+    PP.string @@ "Heq_" ^ Ast.Identifier.to_string identifier
+  in
+  (*
+     Casts expression, of type typ, to typ with the decided variables replaced by their values,
+     one variable at a time (backwards: the other way around, with eq_sym):
+
+       sail_cast (fun kid__n => <typ, with the earlier variables replaced>) Heq_kid__n expression
+  *)
+  let pp_cast_chain ~(backwards : bool) (typ : Ast.Type.t) (expression : PP.t) : PP.t GC.t =
+    let steps : (Ast.Identifier.t * Ast.Type.t) list =
+      let _, steps =
+        List.fold decided ~init:(typ, []) ~f:(fun (partially_substituted, steps) (identifier, value) ->
+            let steps =
+              if mentions partially_substituted identifier
+              then (identifier, partially_substituted) :: steps
+              else steps
+            in
+            (substitute_one (identifier, value) partially_substituted, steps)
+          )
+      in
+      if backwards then steps else List.rev steps
+    in
+    GC.fold_left steps ~init:expression ~f:(fun expression (identifier, partially_substituted) ->
+        let* pp_family = Type.pp_type partially_substituted
+        in
+        let pp_proof =
+          if backwards
+          then PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ PP.string "eq_sym"; proof_name identifier ]
+          else proof_name identifier
+        in
+        GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [
+          PP.string "sail_cast";
+          PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ PP.string "fun"; Identifier.pp identifier; PP.string "=>"; pp_family ];
+          pp_proof;
+          expression;
+        ]
+      )
+  in
+  let substitute_all (typ : Ast.Type.t) : Ast.Type.t =
+    List.fold decided ~init:typ ~f:(fun typ equality -> substitute_one equality typ)
+  in
+  let pp_let_statement ~(binder : PP.t) ~(typ : Ast.Type.t) ~(bound_value : PP.t) ~(body : PP.t) : PP.t GC.t =
+    let* pp_typ = Type.pp_type typ
+    in
+    GC.return @@ MuSail.Statement.pp_let ~bound_identifier:binder ~bound_value_type:pp_typ ~bound_value ~body
+  in
+  let* pp_body = pp_statement body
+  in
+  (* the value of the body, cast back if the result type mentions a decided variable *)
+  let* pp_body =
+    if
+      List.exists decided ~f:(fun (identifier, _) -> mentions result_type identifier)
+    then
+      let binder = PP.string "ж_specialized"
+      in
+      let* pp_cast = pp_cast_chain ~backwards:true result_type (PP.(surround parens) @@ MuSail.Expression.pp_variable binder)
+      in
+      pp_let_statement ~binder ~typ:(substitute_all result_type) ~bound_value:pp_body ~body:(MuSail.Statement.pp_expression pp_cast)
+    else
+      GC.return pp_body
+  in
+  (* the variables whose type mentions a decided variable, rebound at the substituted type *)
+  let* pp_body =
+    GC.fold_left (List.rev rebinds) ~init:pp_body ~f:(fun pp_body (identifier, typ) ->
+        if
+          List.exists decided ~f:(fun (identifier', _) -> mentions typ identifier')
+        then
+          let binder = Identifier.pp identifier
+          in
+          let* pp_cast = pp_cast_chain ~backwards:false typ (PP.(surround parens) @@ MuSail.Expression.pp_variable binder)
+          in
+          pp_let_statement ~binder ~typ:(substitute_all typ) ~bound_value:(MuSail.Statement.pp_expression pp_cast) ~body:pp_body
+        else
+          GC.return pp_body
+      )
+  in
+  let* pp_fail =
+    let* pp_result_type = Type.pp_type result_type
+    in
+    let message =
+      Printf.sprintf "unreachable: Sail's typing fixes %s here"
+        (String.concat ~sep:", " @@ List.map decided ~f:(fun (identifier, value) -> Printf.sprintf "%s = %s" (Ast.Identifier.to_string identifier) (Z.to_string value)))
+    in
+    GC.return @@ MuSail.Statement.pp_fail pp_result_type (Coq.pp_string message)
+  in
+  GC.return begin
+    PP.annotate [%here] begin
+      List.fold_right decided ~init:pp_body ~f:(fun (identifier, value) pp_inner ->
+          PP.(surround parens) begin
+            Coq.pp_match
+              (PP.separate_horizontally ~separator:PP.space [ PP.string "PeanoNat.Nat.eq_dec"; Identifier.pp identifier; PP.string (Z.to_string value) ])
+              [
+                (PP.separate_horizontally ~separator:PP.space [ PP.string "left"; proof_name identifier ], pp_inner);
+                (PP.string "right _", pp_fail);
+              ]
+          end
+        )
+    end
+  end
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
   GC.pp_annotate [%here] begin
     match statement with
@@ -776,5 +911,9 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
     | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
     | Fail (typ, message)                       -> pp_fail typ message
     | Unconstrained typ                         -> pp_unconstrained typ
+    | Specialize { equalities;
+                   rebinds;
+                   result_type;
+                   body }                       -> pp_specialize ~equalities ~rebinds ~result_type ~body
     | Located (location, inner_statement)       -> GC.with_sail_location location @@ pp_statement inner_statement
   end

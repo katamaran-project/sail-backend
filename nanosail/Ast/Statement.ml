@@ -48,6 +48,17 @@ type t =
   *)
   | Unconstrained     of Type.t
   (*
+    A branch in which Sail's flow typing fixes size variables (if width == 4 ... gives 'n == 4).
+    The body is already translated with each fixed variable replaced by its value.
+    The generated Rocq decides each equality (Nat.eq_dec), rebinds the variables whose
+    (outer) type mentions a fixed variable with a cast, and fails in the arm that Sail's
+    typing makes unreachable. result_type is the type of the branch outside.
+  *)
+  | Specialize        of { equalities  : (Identifier.t * Z.t) list   ;
+                           rebinds     : (Identifier.t * Type.t) list ;
+                           result_type : Type.t                       ;
+                           body        : t                            }
+  (*
     Embellish a statement with its Sail code location.
     Used in error message production.
   *)
@@ -471,6 +482,20 @@ let rec equal
       | _ -> false
     end
 
+  | Specialize data_1 -> begin
+      match statement_2 with
+      | Specialize data_2 -> begin
+          List.equal (fun (i1, v1) (i2, v2) -> Identifier.equal i1 i2 && Z.equal v1 v2) data_1.equalities data_2.equalities
+          &&
+          List.equal (fun (i1, t1) (i2, t2) -> Identifier.equal i1 i2 && Type.equal t1 t2) data_1.rebinds data_2.rebinds
+          &&
+          Type.equal data_1.result_type data_2.result_type
+          &&
+          equal data_1.body data_2.body
+        end
+      | _ -> false
+    end
+
   (* Unreachable: Located is stripped above. Handled correctly for safety. *)
   | Located (_, inner_statement_1) -> equal inner_statement_1 statement_2
 
@@ -767,6 +792,17 @@ let rec to_fexpr (statement : t) : FExpr.t =
       assigned_value
     }                            -> assign_variable_to_fexpr variable_identifier assigned_value
   | Located (location, statement) -> located_to_fexpr location statement
+  | Specialize { equalities; rebinds; result_type; body } -> begin
+      let keyword =
+        [
+          ("equalities" , FExpr.mk_list @@ List.map equalities ~f:(fun (i, v) -> FExpr.mk_list [ Identifier.to_fexpr i; FExpr.mk_string (Z.to_string v) ]));
+          ("rebinds"    , FExpr.mk_list @@ List.map rebinds ~f:(fun (i, t) -> FExpr.mk_list [ Identifier.to_fexpr i; Type.to_fexpr t ]));
+          ("result_type", Type.to_fexpr result_type);
+          ("body"       , to_fexpr body);
+        ]
+      in
+      FExpr.mk_application ~keyword "Stm:Specialize"
+    end
 
 
 (*
@@ -904,6 +940,7 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | Fail _                                               -> Identifier.Set.empty
   | Unconstrained _                                      -> Identifier.Set.empty
   | Located (_, statement)                               -> free_variables statement
+  | Specialize { rebinds; body; _ }                      -> Identifier.Set.union (free_variables body) (Identifier.Set.of_list @@ List.map ~f:fst rebinds)
 
 
 (*
@@ -930,6 +967,34 @@ let rec assigned_variables (statement : t) : Identifier.Set.t =
   | Fail _                                                             -> Identifier.Set.empty
   | Unconstrained _                                                    -> Identifier.Set.empty
   | Located (_, statement)                                             -> assigned_variables statement
+  | Specialize { body; _ }                                             -> assigned_variables body
+
+
+(*
+  Whether a statement contains a Specialize (a branch that Sail's flow typing specialises).
+*)
+let rec contains_specialize (statement : t) : bool =
+  match statement with
+  | Match (MatchList { when_cons = (_, _, when_cons); when_nil; _ })   -> contains_specialize when_cons || contains_specialize when_nil
+  | Match (MatchProduct { body; _ })                                   -> contains_specialize body
+  | Match (MatchSum { when_left = (_, when_left); when_right = (_, when_right); _ }) -> contains_specialize when_left || contains_specialize when_right
+  | Match (MatchTuple { body; _ })                                     -> contains_specialize body
+  | Match (MatchBool { when_true; when_false; _ })                     -> contains_specialize when_true || contains_specialize when_false
+  | Match (MatchEnum { cases; _ })                                     -> List.exists ~f:contains_specialize @@ Identifier.Map.data cases
+  | Match (MatchVariant { cases; _ })                                  -> List.exists ~f:(fun (_, clause) -> contains_specialize clause) @@ Identifier.Map.data cases
+  | Expression _                                                       -> false
+  | Call (_, _)                                                        -> false
+  | Let { binding_statement; body_statement; _ }                       -> contains_specialize binding_statement || contains_specialize body_statement
+  | DestructureRecord { destructured_record; body; _ }                 -> contains_specialize destructured_record || contains_specialize body
+  | Seq (left, right)                                                  -> contains_specialize left || contains_specialize right
+  | ReadRegister _                                                     -> false
+  | WriteRegister _                                                    -> false
+  | AssignVariable { assigned_value; _ }                               -> contains_specialize assigned_value
+  | Cast (statement, _)                                                -> contains_specialize statement
+  | Fail _                                                             -> false
+  | Unconstrained _                                                    -> false
+  | Specialize _                                                       -> true
+  | Located (_, statement)                                             -> contains_specialize statement
 
 
 class virtual ['a] visitor =
@@ -956,6 +1021,7 @@ class virtual ['a] visitor =
     method virtual visit_seq                : left : t -> right : t -> 'a
     method virtual visit_write_register     : register_identifier : Identifier.t -> written_value : Identifier.t -> 'a
     method virtual visit_assign_variable    : variable_identifier : Identifier.t -> assigned_value : t -> 'a
+    method virtual visit_specialize         : equalities : (Identifier.t * Z.t) list -> rebinds : (Identifier.t * Type.t) list -> result_type : Type.t -> body : t -> 'a
   end
 
 
@@ -984,6 +1050,7 @@ class identity_rewriter =
       | Fail (typ, message)                                                                                 -> self#visit_fail ~typ ~message
       | Unconstrained typ                                                                                   -> self#visit_unconstrained ~typ
       | Located (location, statement)                                                                       -> Located (location, self#visit statement)
+      | Specialize { equalities; rebinds; result_type; body }                                               -> self#visit_specialize ~equalities ~rebinds ~result_type ~body
 
     method visit_match ~(pattern : match_pattern) : t =
       match pattern with
@@ -1182,6 +1249,19 @@ class identity_rewriter =
     method visit_unconstrained ~(typ : Type.t) : t =
       Unconstrained (self#foreign_visit_type typ)
 
+    method visit_specialize
+        ~(equalities  : (Identifier.t * Z.t) list   )
+        ~(rebinds     : (Identifier.t * Type.t) list)
+        ~(result_type : Type.t                      )
+        ~(body        : t                           ) : t
+      =
+      Specialize {
+        equalities;
+        rebinds     = List.map rebinds ~f:(fun (identifier, typ) -> (identifier, self#foreign_visit_type typ));
+        result_type = self#foreign_visit_type result_type;
+        body        = self#visit body;
+      }
+
     (*
        The method visit_expression operates on Statement values.
        This method operates on Expression values.
@@ -1234,7 +1314,7 @@ let simplify_unused_let_binder (statement : t) : t =
     | Located (_, statement)                        -> is_call statement
     | Cast (statement, _)                           -> is_call statement
     | Match _ | Expression _ | Let _ | DestructureRecord _ | Seq (_, _) | ReadRegister _
-    | WriteRegister _ | AssignVariable _ | Fail (_, _) | Unconstrained _ -> false
+    | WriteRegister _ | AssignVariable _ | Fail (_, _) | Unconstrained _ | Specialize _ -> false
   in
   let rewriter =
     object(self)

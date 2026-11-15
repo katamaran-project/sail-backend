@@ -8,13 +8,19 @@ module GC = struct
 end
 
 
-(* The type-level parameters of a function's signature (see TypeLevelParameters) *)
+(* The type-level parameters and hypothesis of a function's signature (see TypeLevelParameters) *)
+let signature (function_definition : Ast.Definition.Function.t) : TypeLevelParameters.signature =
+  TypeLevelParameters.of_signature
+    ~types:begin
+      List.append
+        (List.map ~f:snd function_definition.function_type.parameters)
+        [ function_definition.function_type.return_type ]
+    end
+    ~constraints:function_definition.type_constraints
+
+
 let type_level_parameters (function_definition : Ast.Definition.Function.t) : (Ast.Identifier.t * Ast.Kind.t) list =
-  TypeLevelParameters.of_types begin
-    List.append
-      (List.map ~f:snd function_definition.function_type.parameters)
-      [ function_definition.function_type.return_type ]
-  end
+  (signature function_definition).parameters
 
 
 let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
@@ -56,7 +62,7 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
     in
     (* widths and type variables of the signature become implicit arguments (see TypeLevelParameters) *)
     let pp_parameters =
-      TypeLevelParameters.pp_binders @@ type_level_parameters function_definition
+      TypeLevelParameters.pp_signature_binders @@ signature function_definition
     in
     GC.return (
       PP.annotate [%here] name,
@@ -137,6 +143,38 @@ let pp_unconstrained_inhabitant () : PP.t =
   ]
 
 
+(*
+   For functions with hypotheses (Sail's constraints on their size variables, see TypeLevelParameters)
+   and branches that Sail's flow typing specialises (Ast.Statement.Specialize):
+
+   - sail_constraint proves an IsTrue side condition from the IsTrue hypotheses and equalities in scope,
+     by lia; Katamaran's own hint only computes closed booleans. Both run during type class search,
+     for the hypotheses of a callee and for side conditions such as uop.vector_subrange's.
+   - sail_cast casts an expression along an equality of size variables (F is the type as a function of it).
+*)
+let pp_hypothesis_support () : PP.t =
+  PP.vertical @@ List.map ~f:PP.string [
+    "Ltac sail_constraint :=";
+    "  repeat match goal with H : IsTrue _ |- _ => apply IsTrue.from, Is_true_eq_true in H end;";
+    "  constructor; apply Is_true_eq_left;";
+    "  repeat rewrite ?Bool.andb_true_iff, ?Bool.orb_true_iff, ?Bool.negb_true_iff, ?Z.leb_le, ?Z.ltb_lt, ?Z.eqb_eq, ?Z.eqb_neq,";
+    "                 ?Nat.leb_le, ?Nat.ltb_lt, ?Nat.eqb_eq, ?Nat.eqb_neq in *;";
+    "  lia.";
+    "";
+    "#[export] Hint Extern 20 (IsTrue _) => sail_constraint : typeclass_instances.";
+    "";
+    "Definition sail_cast {Γ : LCtx} (F : nat -> Ty) {m n : nat} (H : m = n) (e : Exp Γ (F m)) : Exp Γ (F n) :=";
+    "  match H with eq_refl => e end.";
+  ]
+
+
+let needs_hypothesis_support (function_definitions : Ast.Definition.Function.t list) : bool =
+  List.exists function_definitions ~f:(fun (function_definition : Ast.Definition.Function.t) ->
+      not (List.is_empty (signature function_definition).hypotheses)
+      || Ast.Statement.contains_specialize function_definition.function_body
+    )
+
+
 let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   GC.generation_block [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
@@ -158,9 +196,12 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
       ]
     in
     GC.return begin
-      PP.paragraphs [
-        pp_unconstrained_inhabitant ();
-        Coq.pp_section (PP.string "FunDeclKit") contents
-      ]
+      PP.paragraphs begin
+        List.build_list (fun { add; _ } ->
+            add @@ pp_unconstrained_inhabitant ();
+            if needs_hypothesis_support function_definitions then add @@ pp_hypothesis_support ();
+            add @@ Coq.pp_section (PP.string "FunDeclKit") contents
+          )
+      end
     end
   end

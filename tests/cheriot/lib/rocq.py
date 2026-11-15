@@ -162,6 +162,30 @@ def import_end(lines: list[str]) -> int:
 
 
 BINDFREE_PROOF = re.compile(r'^(\s*)Proof\. destruct f; now vm_compute\. Qed\.\s*$')
+BINDFREE_LEMMA = re.compile(r'^\s*Lemma fundef_bindfree\b')
+ADMITTED = 'Admitted. (* tests/cheriot: some bodies are the NYI axiom *)'
+
+
+def admit_bindfree(lines: list[str]) -> list[str]:
+    """
+    The proof of fundef_bindfree admitted, keeping the number of lines: the one-line proof, or the
+    proof from Proof. to Qed. (which case-splits on the branches Sail's flow typing specialises).
+    """
+    result = [BINDFREE_PROOF.sub(r'\1' + ADMITTED, line) for line in lines]
+    lemma = next((index for index, line in enumerate(result) if BINDFREE_LEMMA.match(line)), None)
+    if lemma is None:
+        return result
+    start = next((index for index in range(lemma + 1, min(lemma + 4, len(result))) if result[index].strip() == 'Proof.'), None)
+    if start is None:
+        return result
+    end = next((index for index in range(start, len(result)) if result[index].strip() == 'Qed.'), None)
+    if end is None:
+        return result
+    indentation = result[start][:len(result[start]) - len(result[start].lstrip())]
+    result[start:end + 1] = [indentation + ADMITTED] + [''] * (end - start)
+    return result
+
+
 FUN_DEFINITION_START = re.compile(r'^\s*Definition fun_[A-Za-z0-9_#]+\b')
 
 
@@ -199,7 +223,7 @@ def axiomatise_function_bodies_with_holes(lines: list[str]) -> list[str]:
         index = body_end + 1
     if result != lines:
         # fundef_bindfree computes stm_bindfree of every body, which is stuck on the axiom
-        result = [BINDFREE_PROOF.sub(r'\1Admitted. (* tests/cheriot: some bodies are the NYI axiom *)', line) for line in result]
+        result = admit_bindfree(result)
     return result
 
 
