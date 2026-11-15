@@ -22,6 +22,87 @@ let pp_function_call_using_configured_syntax
     MuSail.Statement.pp_call function_name arguments
 
 
+(*
+   If the function is an extern that can be a foreign function (see ForeignFunctions),
+   the call as a foreign call: stm_foreign f args. The extern gets a constructor of FunX.
+*)
+let try_foreign_call
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t option GC.t
+  =
+  let* foreign_function = ForeignFunctions.find function_identifier
+  in
+  match foreign_function with
+  | None                  -> GC.return None
+  | Some foreign_function -> begin
+      let* () = GC.use_foreign_function foreign_function.identifier
+      in
+      let* pp_arguments =
+        GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+      in
+      GC.return @@ Some (PP.annotate [%here] @@ MuSail.Statement.pp_foreign_call (Identifier.pp foreign_function.identifier) pp_arguments)
+    end
+
+
+(*
+   A call that is translated as a call: a foreign call if the function is an extern, a stm_call otherwise.
+*)
+let translate_call
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
+  =
+  let* foreign_call = try_foreign_call function_identifier arguments
+  in
+  match foreign_call with
+  | Some pp_foreign_call -> GC.return pp_foreign_call
+  | None                 -> begin
+      let* pp_arguments =
+        GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+      in
+      GC.return @@ pp_function_call_using_configured_syntax (Identifier.pp function_identifier) pp_arguments
+    end
+
+
+(*
+   A call that the translator cannot turn into a muSail operation: a foreign call if the function
+   is an extern, a hole (NYI) otherwise.
+*)
+let translate_call_or_hole
+    ~(message            : string               )
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
+  =
+  let* foreign_call = try_foreign_call function_identifier arguments
+  in
+  match foreign_call with
+  | Some pp_foreign_call -> GC.return pp_foreign_call
+  | None                 -> GC.not_yet_implemented ~message [%here]
+
+
+(*
+   The width of a bitvector expression, if it is known at compile time (looking through aliases).
+*)
+let constant_bitvector_width (expression : Ast.Expression.t) : Z.t option =
+  match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type expression with
+  | Bitvector (Constant width) -> Some width
+  | _                          -> None
+
+
+(*
+   Whether the width of a bitvector expression mentions a size variable (kid__n), such as the width
+   parameter of a size-polymorphic function (see TypeLevelParameters). muSail operations whose
+   side conditions mention the width (IsTrue (n <=? m)) cannot be proved for it without Sail's constraints.
+*)
+let width_depends_on_size_variable (expression : Ast.Expression.t) : bool =
+  match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type expression with
+  | Bitvector width -> begin
+      List.exists (TypeLevelParameters.numeric_identifiers width) ~f:(fun identifier ->
+          String.is_prefix (Ast.Identifier.to_string identifier) ~prefix:"kid__"
+        )
+    end
+  | _ -> false
+
+
 let report_incorrect_argument_count
     (original_function_name : Ast.Identifier.t )
     (expected_operand_count : int              )
@@ -194,6 +275,7 @@ let rec extract_compile_time_integer (expression : Ast.Expression.t) : Z.t optio
       (* not locally bound: fall back on the top level value definitions *)
       | None       -> try_lookup_integer_value_bound_to identifier
     end
+  | TopLevelValue (identifier, _typ)     -> try_lookup_integer_value_bound_to identifier
   | _                                    -> GC.return None
 
 
@@ -205,6 +287,7 @@ let extract_compile_time_string (expression : Ast.Expression.t) : string option 
   match expression with
   | Value (Ast.Value.String value) -> GC.return @@ Some value
   | Variable (identifier, _typ)    -> try_lookup_string_value_bound_to identifier
+  | TopLevelValue (identifier, _)  -> try_lookup_string_value_bound_to identifier
   | _                              -> GC.return None
 
 
@@ -229,7 +312,10 @@ let translate_sail_zeros (arguments : Ast.Expression.t list) : PP.t GC.t =
             pp_zeros (Z.to_int number_of_bits)
           end
         end
-      | None -> GC.fail [%here] "sail_zeros expects compile time known integer argument"
+      | None -> begin
+          (* The width is not known at compile time: a foreign call (sail_zeros is an extern), whose semantics is bv.zero *)
+          translate_call_or_hole ~message:"sail_zeros with a width not known at compile time" (Ast.Identifier.mk "sail_zeros") arguments
+        end
     end
   | _ -> begin
       let message =
@@ -260,7 +346,10 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.t GC.t =
             pp_ones (Z.to_int number_of_bits)
           end
         end
-      | None -> GC.fail [%here] "sail_ones expects compile time known integer argument"
+      | None -> begin
+          (* The width is not known at compile time: a call to sail_ones (a Sail function, not_vec(sail_zeros(n))) *)
+          translate_call (Ast.Identifier.mk "sail_ones") arguments
+        end
     end
   | _ -> begin
       let message =
@@ -275,6 +364,8 @@ let translate_sail_ones (arguments : Ast.Expression.t list) : PP.t GC.t =
    turn it into a value of the singleton type itself('n). muSail has no counterpart
    for this, and none is needed: the wrapper does not change the value, so we
    translate a call to make_the_value as its argument.
+   The same holds for size_itself_int, its inverse, which turns a value of type
+   itself('n) back into an int('n) (e.g., the implicit size argument of a function).
 *)
 let translate_make_the_value (arguments : Ast.Expression.t list) : PP.t GC.t =
   match arguments with
@@ -293,7 +384,7 @@ let translate_make_the_value (arguments : Ast.Expression.t list) : PP.t GC.t =
     end
   | _ -> begin
       let message =
-        Printf.sprintf "expected make_the_value to receive exactly one argument; instead got %d" (List.length arguments)
+        Printf.sprintf "expected make_the_value or size_itself_int to receive exactly one argument; instead got %d" (List.length arguments)
       in
       GC.fail [%here] message
     end
@@ -320,9 +411,12 @@ let translate_unit_equality () : PP.t GC.t =
      If n is known at compile time, it is passed as an integer literal, for the same reason
      as above.
 *)
-let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
-  let sail_name = "add_bits_int"
-  in
+let translate_bits_int_operation
+    ~(sail_name : string               )
+    ~(infix     : PP.t                 )
+    ~(name      : PP.t                 )
+    (arguments  : Ast.Expression.t list) : PP.t GC.t
+  =
   let pp_bitvector_addition
       (pp_bitvector_argument : PP.t)
       (pp_bitvector_addend   : PP.t) : PP.t GC.t
@@ -330,8 +424,8 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
     GC.pp_annotate [%here] begin
       translate_binary_operator (* todo support infix notation *)
         (Ast.Identifier.mk sail_name)
-        ~infix:(Some (PP.string "+ᵇ"))
-        ~name:(Some (PP.string "bop.bvadd"))
+        ~infix:(Some infix)
+        ~name:(Some name)
         [ PP.(surround parens) pp_bitvector_argument; PP.(surround parens) pp_bitvector_addend ]
     end
   in
@@ -386,6 +480,10 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
+let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
+  translate_bits_int_operation ~sail_name:"add_bits_int" ~infix:(PP.string "+ᵇ") ~name:(PP.string "bop.bvadd") arguments
+
+
 (*
    Sail definition:
 
@@ -399,13 +497,19 @@ let translate_add_bits_int (arguments : Ast.Expression.t list) : PP.t GC.t =
 
 
    In other words, the parameter types differ.
-   We currently support only cases where the second parameter is a integer literal in the Sail code.
+
+   If the shift amount is known at compile time, it becomes a bitvector literal.
+   Otherwise, it is converted at run time with uop.get_slice_int (bv.of_Z, i.e., modulo 2^n) into a bitvector
+   as wide as the shifted one, so that amounts below 2^width, all those that do not shift out every bit, are exact.
+   This needs the width of the shifted bitvector.
 *)
 let translate_shift
-    ~(sail_name   : string               )
-    ~(musail_name : PP.t                 )
-    ~(arguments   : Ast.Expression.t list) : PP.t GC.t
+    ~(function_identifier : Ast.Identifier.t     )
+    ~(musail_name         : PP.t                 )
+    ~(arguments           : Ast.Expression.t list) : PP.t GC.t
   =
+  let sail_name = Ast.Identifier.to_string function_identifier
+  in
   let pp_shift
       (bitvector_argument : Ast.Expression.t)
       (shift_argument     : Z.t             ) : PP.t GC.t
@@ -420,8 +524,9 @@ let translate_shift
         (*
            pick the smallest bitvector size that can hold integer_value
            it should also be at least 1
+           (Z.log2up was one bit short for powers of two: 2 became [bv 2] of width 1)
         *)
-        Z.log2up (Z.max (Z.of_int 2) shift_argument)
+        Int.max 1 (Z.numbits shift_argument)
       in
       PP.(surround parens) @@ MuSail.Expression.pp_bitvector ~size ~value:shift_argument
     in
@@ -438,26 +543,58 @@ let translate_shift
       in
       match shift_argument_value with
       | Some bit_count -> pp_shift bitvector_argument bit_count
-      | None           -> GC.fail [%here] @@ Printf.sprintf "only calls to %s supported where second argument's value is known at compile time" sail_name
+      | None           -> begin
+          match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type bitvector_argument with
+          | Bitvector width -> begin
+              let* pp_bitvector_argument =
+                GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression bitvector_argument
+              and* pp_width =
+                Numeric.Expression.pp_argument width
+              and* pp_shift_argument =
+                Expressions.pp_expression shift_argument
+              in
+              let pp_converted_shift_argument =
+                PP.(surround parens) begin
+                  Coq.pp_application
+                    (PP.string "exp_unop")
+                    [
+                      PP.(surround parens) @@ PP.horizontal [ PP.string "uop.get_slice_int (n := "; pp_width; PP.string ")" ];
+                      PP.(surround parens) pp_shift_argument;
+                    ]
+                end
+              in
+              GC.pp_annotate [%here] begin
+                translate_binary_operator_using_function_notation
+                  (Ast.Identifier.mk sail_name)
+                  musail_name
+                  [ pp_bitvector_argument; pp_converted_shift_argument ]
+              end
+            end
+          | _ -> translate_call_or_hole ~message:(Printf.sprintf "%s with a shift amount not known at compile time needs the width of the shifted bitvector" sail_name) function_identifier arguments
+        end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
-let translate_shift_left (arguments : Ast.Expression.t list) : PP.t GC.t =
-  let sail_name   = "sail_shiftleft"
-  and musail_name = PP.string "bop.shiftl"
+let translate_shift_left
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
+  =
+  let musail_name = PP.string "bop.shiftl"
   in
   GC.pp_annotate [%here] begin
-    translate_shift ~sail_name ~musail_name ~arguments
+    translate_shift ~function_identifier ~musail_name ~arguments
   end
 
 
-let translate_shift_right (arguments : Ast.Expression.t list) : PP.t GC.t =
-  let sail_name   = "sail_shiftright"
-  and musail_name = PP.string "bop.shiftr"
+let translate_shift_right
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
+  =
+  let musail_name = PP.string "bop.shiftr"
   in
   GC.pp_annotate [%here] begin
-    translate_shift ~sail_name ~musail_name ~arguments
+    translate_shift ~function_identifier ~musail_name ~arguments
   end
 
 
@@ -466,6 +603,8 @@ let translate_extend
     ~(musail_name : string               )
     ~(arguments   : Ast.Expression.t list) : PP.t GC.t
   =
+  let function_identifier = Ast.Identifier.mk sail_name
+  in
   (* "Raw" version of pp_zero_extend that takes arguments in PP.t form *)
   let pp_zero_extend_raw
       (bitvector    : PP.t)
@@ -503,24 +642,43 @@ let translate_extend
   | [ bitvector_argument; bit_size_argument ] -> begin
       let* bit_size_value = extract_compile_time_integer bit_size_argument
       in
-      match bit_size_value with
-      | Some new_bit_size -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
-      | None              -> begin
-          let* pp_bitvector =
-            let* doc =
-              Expressions.pp_expression bitvector_argument
-            in
-            GC.return @@ PP.(surround parens) doc
+      match bit_size_value, width_depends_on_size_variable bitvector_argument with
+      | Some new_bit_size, false -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
+      | Some new_bit_size, true  -> begin
+          (*
+             The width of the extended bitvector is not a constant (a size parameter, kid__n):
+             muSail's uop.zext/sext would need a proof that it is at most the new width, which only Sail's
+             constraints give. A foreign call to the extern has the same value and needs none.
+          *)
+          let* foreign_call = try_foreign_call function_identifier arguments
           in
-          let message =
-            Printf.sprintf
-              "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
-              sail_name
-              (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
+          match foreign_call with
+          | Some pp_foreign_call -> GC.return pp_foreign_call
+          | None                 -> pp_zero_extend bitvector_argument (Z.to_int new_bit_size)
+        end
+      | None, _           -> begin
+          (* The new width is not known at compile time: a foreign call if sail_name is an extern *)
+          let* foreign_call = try_foreign_call function_identifier arguments
           in
-          let* pp_new_bit_size = GC.not_yet_implemented ~message [%here]
-          in
-          pp_zero_extend_raw pp_bitvector pp_new_bit_size
+          match foreign_call with
+          | Some pp_foreign_call -> GC.return pp_foreign_call
+          | None                 -> begin
+              let* pp_bitvector =
+                let* doc =
+                  Expressions.pp_expression bitvector_argument
+                in
+                GC.return @@ PP.(surround parens) doc
+              in
+              let message =
+                Printf.sprintf
+                  "only calls to %s supported where second argument's value is known at compile time; was given %s instead"
+                  sail_name
+                  (FExpr.to_string @@ Ast.Expression.to_fexpr bit_size_argument)
+              in
+              let* pp_new_bit_size = GC.not_yet_implemented ~message [%here]
+              in
+              pp_zero_extend_raw pp_bitvector pp_new_bit_size
+            end
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
@@ -531,6 +689,51 @@ let translate_zero_extend (arguments : Ast.Expression.t list) : PP.t GC.t =
   and musail_name = "zext"
   in
   translate_extend ~sail_name ~musail_name ~arguments
+
+
+(*
+   Sail
+
+     val truncate : forall 'm 'n, 'm >= 0 & 'm <= 'n. (bits('n), int('m)) -> bits('m)
+
+   becomes muSail's uop.truncate m, which keeps the m least significant bits.
+   The new width must be known at compile time.
+*)
+let translate_truncate (arguments : Ast.Expression.t list) : PP.t GC.t =
+  let sail_name = "truncate"
+  in
+  match arguments with
+  | [ bitvector_argument; width_argument ] -> begin
+      let* width = extract_compile_time_integer width_argument
+      in
+      match width, width_depends_on_size_variable bitvector_argument with
+      | Some _, true -> begin
+          (* as for sail_zero_extend: uop.truncate would need a proof that only Sail's constraints give *)
+          translate_call (Ast.Identifier.mk sail_name) arguments
+        end
+      | None, _ -> begin
+          (* The new width is not known at compile time: a call (a foreign call, as truncate is an extern) *)
+          translate_call (Ast.Identifier.mk sail_name) arguments
+        end
+      | Some width, false -> begin
+          let* pp_bitvector_argument =
+            GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression bitvector_argument
+          in
+          GC.pp_annotate [%here] begin
+            GC.return begin
+              MuSail.Statement.pp_expression begin
+                Coq.pp_application
+                  (PP.string "exp_unop")
+                  [
+                    PP.string @@ Printf.sprintf "(uop.truncate %s)" (Z.to_string width);
+                    pp_bitvector_argument
+                  ]
+              end
+            end
+          end
+        end
+    end
+  | _ -> GC.fail [%here] @@ Printf.sprintf "wrong number of parameters for %s; should never occur" sail_name
 
 
 let translate_sign_extend (arguments : Ast.Expression.t list) : PP.t GC.t =
@@ -711,6 +914,104 @@ let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
 
+(*
+   A call to an extern (see ForeignFunctions).
+   Externs that correspond to muSail operations become those operations, when their arguments allow it;
+   all other calls become foreign calls (stm_foreign). The externs are recognised by their binding.
+
+     shiftl, shiftr (bits, int)              bop.shiftl, bop.shiftr (see translate_shift)
+     shift_bits_left, shift_bits_right       bop.shiftl, bop.shiftr
+     sub_vec                                 bop.bvsub
+     sub_vec_int (bits, int)                 bop.bvsub, the integer converted as in add_bits_int
+     eq_anything                             bop.relop bop.eq
+     vector_access (bits, i)                 uop.vector_subrange i 1 (a bit is a bitvector(1));
+                                             i and the width must be known at compile time
+     get_slice_int (w, n, 0)                 uop.get_slice_int (n := w); w must be known at compile time
+     sail_truncateLSB (v, m)                 uop.vector_subrange (|v| - m) m; m and |v| must be known at compile time
+*)
+let translate_extern_call
+    (foreign_function : ForeignFunctions.t   )
+    (arguments        : Ast.Expression.t list)
+    (pp_arguments     : PP.t list            ) : PP.t GC.t
+  =
+  let function_identifier = foreign_function.identifier
+  in
+  let foreign_call () : PP.t GC.t =
+    translate_call function_identifier arguments
+  in
+  let pp_unop (operator : PP.t) (pp_operand : PP.t) : PP.t =
+    MuSail.Statement.pp_expression @@ Coq.pp_application (PP.string "exp_unop") [ PP.(surround parens) operator; PP.(surround parens) pp_operand ]
+  in
+  GC.pp_annotate [%here] begin
+    match ForeignFunctions.binding_key foreign_function with
+    | "shiftl"           -> translate_shift_left function_identifier arguments
+    | "shiftr"           -> translate_shift_right function_identifier arguments
+    | "shift_bits_left"  -> translate_binary_operator_using_function_notation function_identifier (PP.string "bop.shiftl") pp_arguments
+    | "shift_bits_right" -> translate_binary_operator_using_function_notation function_identifier (PP.string "bop.shiftr") pp_arguments
+    | "sub_vec"          -> begin
+        translate_binary_operator
+          function_identifier
+          ~infix:(Some MuSail.Operator.Infix.Bitvector.subtraction)
+          ~name:(Some MuSail.Operator.Name.bitvector_subtraction)
+          pp_arguments
+      end
+    | "sub_vec_int"      -> begin
+        translate_bits_int_operation
+          ~sail_name:(Ast.Identifier.to_string function_identifier)
+          ~infix:MuSail.Operator.Infix.Bitvector.subtraction
+          ~name:MuSail.Operator.Name.bitvector_subtraction
+          arguments
+      end
+    | "eq_anything"      -> begin
+        translate_binary_operator
+          function_identifier
+          ~infix:(Some MuSail.Operator.Infix.bool_equality)
+          ~name:(Some MuSail.Operator.Name.bool_equality)
+          pp_arguments
+      end
+    | "vector_access"    -> begin
+        match arguments, pp_arguments with
+        | [ bitvector; index ], [ pp_bitvector; _ ] -> begin
+            let* index = extract_compile_time_integer index
+            in
+            (* the result is a bit, i.e., a bitvector(1) *)
+            match index, constant_bitvector_width bitvector with
+            | Some index, Some _ -> GC.return @@ pp_unop (PP.string @@ Printf.sprintf "uop.vector_subrange %s 1" (Z.to_string index)) pp_bitvector
+            | _, _ -> foreign_call ()
+          end
+        | _, _ -> foreign_call ()
+      end
+    | "get_slice_int"    -> begin
+        match arguments, pp_arguments with
+        | [ width; _; start ], [ _; pp_integer; _ ] -> begin
+            let* width = extract_compile_time_integer width
+            and* start = extract_compile_time_integer start
+            in
+            match width, start with
+            | Some width, Some start when Z.equal start Z.zero -> begin
+                GC.return @@ pp_unop (PP.string @@ Printf.sprintf "uop.get_slice_int (n := %s)" (Z.to_string width)) pp_integer
+              end
+            | _, _ -> foreign_call ()
+          end
+        | _, _ -> foreign_call ()
+      end
+    | "sail_truncateLSB" -> begin
+        match arguments, pp_arguments with
+        | [ bitvector; kept ], [ pp_bitvector; _ ] -> begin
+            let* kept = extract_compile_time_integer kept
+            in
+            match kept, constant_bitvector_width bitvector with
+            | Some kept, Some width when Z.leq kept width -> begin
+                GC.return @@ pp_unop (PP.string @@ Printf.sprintf "uop.vector_subrange %s %s" (Z.to_string (Z.sub width kept)) (Z.to_string kept)) pp_bitvector
+              end
+            | _, _ -> foreign_call ()
+          end
+        | _, _ -> foreign_call ()
+      end
+    | _ -> foreign_call ()
+  end
+
+
 let translate
     (function_identifier : Ast.Identifier.t     )
     (arguments           : Ast.Expression.t list) : PP.t GC.t
@@ -784,22 +1085,30 @@ let translate
     | "unsigned"             -> translate_unary_operator function_identifier (PP.string "uop.unsigned") pp_arguments
     | "eq_unit"              -> translate_unit_equality ()
     | "make_the_value"       -> translate_make_the_value arguments
+    | "size_itself_int"      -> translate_make_the_value arguments
     | "add_bits_int"         -> translate_add_bits_int arguments
     | "sail_zeros"           -> translate_sail_zeros arguments
     | "sail_ones"            -> translate_sail_ones arguments
-    | "sail_shiftleft"       -> translate_shift_left arguments
-    | "sail_shiftright"      -> translate_shift_right arguments
+    | "sail_shiftleft"       -> translate_shift_left function_identifier arguments
+    | "sail_shiftright"      -> translate_shift_right function_identifier arguments
     | "sail_zero_extend"     -> translate_zero_extend arguments
+    | "truncate"             -> translate_truncate arguments
     | "sail_sign_extend"     -> translate_sign_extend arguments
     | "sail_assert"          -> translate_assertion arguments
     | "bitvector_concat"     -> translate_bitvector_concatenation arguments
     | "subrange_bits"        -> translate_bitvector_slicing arguments
     | "update_subrange_bits" -> translate_bitvector_update_subrange arguments
     | _ -> begin
-        GC.return begin
-          pp_function_call_using_configured_syntax
-            (Identifier.pp function_identifier)
-            pp_arguments
-        end
+        let* foreign_function = ForeignFunctions.find function_identifier
+        in
+        match foreign_function with
+        | Some foreign_function -> translate_extern_call foreign_function arguments pp_arguments
+        | None                  -> begin
+            GC.return begin
+              pp_function_call_using_configured_syntax
+                (Identifier.pp function_identifier)
+                pp_arguments
+            end
+          end
       end
   end

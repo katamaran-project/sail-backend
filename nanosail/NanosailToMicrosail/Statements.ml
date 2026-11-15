@@ -32,11 +32,12 @@ let rec extract_compile_time_integer_from_statement (statement : Ast.Statement.t
   | Cast (inner, _typ)    -> extract_compile_time_integer_from_statement inner
   | Expression expression -> FunctionCalls.extract_compile_time_integer expression
   (*
-     make_the_value is introduced by Sail's atoms_to_singletons rewrite;
-     as far as the value is concerned, it is the identity.
+     make_the_value is introduced by Sail's atoms_to_singletons rewrite, size_itself_int is its inverse;
+     as far as the value is concerned, both are the identity.
   *)
   | Call (function_identifier, [ argument ])
-    when Ast.Identifier.equal function_identifier (Ast.Identifier.mk "make_the_value") -> begin
+    when Ast.Identifier.equal function_identifier (Ast.Identifier.mk "make_the_value")
+      || Ast.Identifier.equal function_identifier (Ast.Identifier.mk "size_itself_int") -> begin
       FunctionCalls.extract_compile_time_integer argument
     end
   (*
@@ -532,7 +533,14 @@ and pp_let
   *)
   let* pp_binding_statement      = pp_statement binding_statement
   and* pp_binding_statement_type = Type.pp_type binding_statement_type
-  and* compile_time_value        = extract_compile_time_integer_from_statement binding_statement
+  and* compile_time_value        =
+    (* A mutable variable (one the body assigns to) has no fixed value *)
+    if
+      Ast.Identifier.Set.mem (Ast.Statement.assigned_variables body_statement) binder
+    then
+      GC.return None
+    else
+      extract_compile_time_integer_from_statement binding_statement
   in
   (*
      The body, on the other hand, does see the binder. Binding it to None when its
@@ -574,12 +582,45 @@ and pp_sequence
   =
   let* pp_left  = parenthesize @@ pp_statement left
   and* pp_right = parenthesize @@ pp_statement right
+  and* discarded_type_is_ambiguous = calls_function_with_ambiguous_result_type left
   in
   GC.return begin
       PP.annotate [%here] begin
-          MuSail.Statement.pp_sequence pp_left pp_right
+          if
+            discarded_type_is_ambiguous
+          then
+            (* the value is discarded and nothing determines its type: any type will do *)
+            MuSail.Statement.pp_sequence ~left_type:(Some (PP.string "ty.unit")) pp_left pp_right
+          else
+            MuSail.Statement.pp_sequence pp_left pp_right
         end
     end
+
+
+(*
+   Whether the statement is a call to a function whose result type mentions a type variable that
+   its parameter types do not (such as internal_error : forall ('a : Type). (string, int, string) -> 'a).
+   Rocq cannot infer the type of such a call when its value is discarded (see TypeLevelParameters).
+*)
+and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bool GC.t =
+  match statement with
+  | Located (_, inner) -> calls_function_with_ambiguous_result_type inner
+  | Call (function_identifier, _) -> begin
+      let* function_definition = GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ function_definition_named function_identifier)
+      in
+      match function_definition with
+      | None                     -> GC.return false
+      | Some function_definition -> begin
+          let in_parameters = TypeLevelParameters.of_types @@ List.map ~f:snd function_definition.function_type.parameters
+          and in_result     = TypeLevelParameters.of_type function_definition.function_type.return_type
+          in
+          GC.return @@ List.exists in_result ~f:(fun (identifier, _) ->
+              not (List.exists in_parameters ~f:(fun (identifier', _) -> Ast.Identifier.equal identifier identifier'))
+            )
+        end
+    end
+  | Expression _ | Match _ | Let _ | Seq _ | ReadRegister _ | WriteRegister _ | AssignVariable _
+  | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ -> GC.return false
 
 
 and pp_read_register (register_identifier : Ast.Identifier.t) : PP.t GC.t =
@@ -602,6 +643,26 @@ and pp_write_register_statement
           MuSail.Statement.pp_write_register
             ~register_identifier:pp_register_identifier
             ~value_identifier:pp_written_value
+        end
+  end
+
+
+(*
+   Assignment to a mutable local variable:
+
+     stm_assign "x" (s)
+*)
+and pp_assign_variable
+      ~(variable_identifier : Ast.Identifier.t)
+      ~(assigned_value      : Ast.Statement.t ) : PP.t GC.t
+  =
+  let* pp_assigned_value = pp_statement assigned_value
+  in
+  GC.return begin
+      PP.annotate [%here] begin
+          MuSail.Statement.pp_assign
+            ~variable_identifier:(Identifier.pp variable_identifier)
+            ~assigned_value:pp_assigned_value
         end
   end
 
@@ -664,6 +725,18 @@ and pp_fail
   GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_fail pp_typ pp_message
 
 
+(*
+   An unconstrained value of type σ is a call to the foreign function (unconstrained σ),
+   which the generated program declares (see ProgramModule.FunDeclKit and ForeignKit):
+
+     stm_foreign (unconstrained (ty.bvec 32)) env.nil
+*)
+and pp_unconstrained (typ : Ast.Type.t) : PP.t GC.t =
+  let* pp_typ = Type.pp_type typ
+  in
+  GC.return @@ PP.annotate [%here] @@ MuSail.Statement.pp_unconstrained pp_typ
+
+
 and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
   GC.pp_annotate [%here] begin
     match statement with
@@ -685,6 +758,10 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
                       written_value }           -> pp_write_register_statement
                                                      ~register_identifier
                                                      ~written_value
+    | AssignVariable { variable_identifier;
+                       assigned_value }         -> pp_assign_variable
+                                                     ~variable_identifier
+                                                     ~assigned_value
     | DestructureRecord
         { record_type_identifier;
           field_identifiers;
@@ -698,5 +775,6 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
                                                      ~body
     | Cast (statement_to_be_cast, target_type)  -> pp_cast statement_to_be_cast target_type
     | Fail (typ, message)                       -> pp_fail typ message
+    | Unconstrained typ                         -> pp_unconstrained typ
     | Located (location, inner_statement)       -> GC.with_sail_location location @@ pp_statement inner_statement
   end

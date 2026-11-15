@@ -50,19 +50,6 @@ let pp_reg_inductive_type (register_definitions : Ast.Definition.Register.t list
   end
 
 
-let pp_no_confusion_for_reg () : PP.t GC.t =
-  GC.generation_block [%here] "No Confusion for Reg" begin
-    GC.return begin
-      Coq.pp_section (PP.string "TransparentObligations") (
-        PP.(vertical [
-            string "Local Set Transparent Obligations.";
-            string "Derive Signature NoConfusion for Reg."
-          ])
-      )
-    end
-  end
-
-
 let pp_reg_definition () : PP.t GC.t =
   GC.block begin
       GC.return @@ PP.annotate [%here] @@ PP.string "Definition 𝑹𝑬𝑮 : Ty -> Set := Reg."
@@ -157,59 +144,13 @@ let pp_regname_inductive_type (register_definitions : (Sail.sail_definition * As
   end
 
 
+(*
+   EqDec instance for sigT Reg (see EqDec.pp_register_instance).
+*)
 let pp_instance_reg_eq_dec (register_names : PP.t list) : PP.t GC.t =
-  let cases =
-    let cs =
-      List.map ~f:(fun register_name ->
-          let rn_str = register_name in
-          (
-            (
-              PP.annotate [%here] @@ rn_str,
-              PP.annotate [%here] @@ rn_str
-            ),
-            PP.annotate [%here] @@ PP.string "left eq_refl"
-          )
-        )
-        register_names
-    and wildcard_case =
-      PP.(
-        (
-          PP.annotate [%here] @@ string "_",
-          PP.annotate [%here] @@ string "_"
-        ),
-        PP.annotate [%here] @@ string "right _"
-      )
-    in
-    List.build_list (fun { add; addall; _ } ->
-        addall cs;
-        if List.length cs > 1
-        then add wildcard_case;
-      )
-  in
-  let id1 = Ast.Identifier.mk_generated "x"
-  and id2 = Ast.Identifier.mk_generated "y"
-  in
-  let pp_id1 = PP.annotate [%here] @@ Identifier.pp id1
-  and pp_id2 = PP.annotate [%here] @@ Identifier.pp id2
-  in
   GC.block begin
     GC.generation_block [%here] "REG_eq_dec Instance" begin
-      GC.return begin
-        PP.(
-          vertical [
-            string "#[export,refine] Instance 𝑹𝑬𝑮_eq_dec : EqDec (sigT Reg) :=";
-            horizontal [
-              string "  fun '(existT σ ";
-              pp_id1;
-              string ") '(existT τ ";
-              pp_id2;
-              string ") =>";
-            ];
-            indent @@ horizontal [ Coq.pp_match_pair (pp_id1, pp_id2) cases; Coq.eol ];
-            string "Proof. all: transparent_abstract (intros H; depelim H). Defined."
-          ]
-        )
-      end
+      GC.return @@ PP.annotate [%here] @@ EqDec.pp_register_instance register_names
     end
   end
 
@@ -267,7 +208,6 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
   let* section_contents =
     let* items = GC.sequence [
       pp_reg_inductive_type @@ Ast.Definition.Select.drop_sail_definitions register_definitions;
-      pp_no_confusion_for_reg ();
       pp_reg_definition ();
       pp_instance_reg_eq_dec register_names;
       pp_obligation_tactic ();
@@ -283,14 +223,6 @@ let pp_regdeclkit (register_definitions : (Sail.sail_definition * Ast.Definition
       end
     end
   end
-
-
-let extra_eqdec_identifiers () : Ast.Identifier.t list =
-  [ regname_inductive_type_identifier ]
-
-
-let extra_no_confusion_identifiers () : Ast.Identifier.t list =
-  [ regname_inductive_type_identifier ]
 
 
 let pp_register_finiteness (register_definitions : (Sail.sail_definition * Ast.Definition.Register.t) list) : PP.t GC.t =

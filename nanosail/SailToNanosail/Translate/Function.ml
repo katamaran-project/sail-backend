@@ -66,6 +66,50 @@ let create_if_statement
   end
 
 
+(*
+   Translates a reference to an identifier that Sail considers local (Local in lvar).
+   Sail also uses Local for references to top-level lets: those are translated
+   as references to the top-level value (exp_val <type> <identifier> in muSail).
+*)
+let expression_of_local_identifier
+    (identifier : Ast.Identifier.t)
+    (typ        : Ast.Type.t      )
+    (location   : S.l             ) : Ast.Expression.t TC.t
+  =
+  let* refers_to_top_level_value = TC.refers_to_top_level_value identifier
+  in
+  match refers_to_top_level_value with
+  | Some true  -> TC.return @@ Ast.Expression.TopLevelValue (identifier, typ)
+  | Some false -> TC.return @@ Ast.Expression.Variable (identifier, typ)
+  | None       -> begin
+      let message =
+        Printf.sprintf
+          "%s is both a top-level value and a local variable of this function (shadowing)"
+          (Ast.Identifier.to_string identifier)
+      in
+      TC.not_yet_implemented ~message [%here] location
+    end
+
+
+(*
+   Translates a read of the register with the given identifier and (Sail) type.
+   A register that the configuration excludes (exclude-registers) is not in Reg:
+   reading it yields an unconstrained value of its type instead.
+*)
+let statement_of_register_read
+    (identifier : Ast.Identifier.t)
+    (typ        : S.typ           ) : Ast.Statement.t TC.t
+  =
+  if
+    Configuration.is_excluded_register (Ast.Identifier.to_string identifier)
+  then
+    let* typ' = Type.translate_type typ
+    in
+    TC.return @@ Ast.Statement.Unconstrained typ'
+  else
+    TC.return @@ Ast.Statement.ReadRegister identifier
+
+
 let statement_of_lvar
     (identifier : Ast.Identifier.t     )
     (lvar       : S.typ S.Ast_util.lvar)
@@ -75,9 +119,11 @@ let statement_of_lvar
   | Local (_mutability, typ) -> begin
       let* typ' = Type.translate_type typ
       in
-      TC.return @@ Ast.Statement.Expression (Ast.Expression.Variable (identifier, typ'))
+      let* expression = expression_of_local_identifier identifier typ' location
+      in
+      TC.return @@ Ast.Statement.Expression expression
     end
-  | Register _   -> TC.return @@ Ast.Statement.ReadRegister identifier
+  | Register typ -> statement_of_register_read identifier typ
   | Enum _       -> TC.not_yet_implemented [%here] location
   | Unbound _    -> TC.not_yet_implemented [%here] location
 
@@ -216,9 +262,17 @@ let rec expression_of_aval
         let translation_expressions = List.map ~f:(fun (x, _, _) -> x) translation_triples
         and translation_types       = List.map ~f:(fun (_, x, _) -> x) translation_triples
         and translation_statements  = List.map ~f:(fun (_, _, x) -> x) translation_triples
-        and make_pair x y           = Ast.Expression.BinaryOperation (Pair, x, y)
         in
-        let resulting_expression    = List.reduce ~f:make_pair translation_expressions
+        (*
+           A pair is muSail's bop.pair (ty.prod); a longer tuple is exp_tuple (ty.tuple), as its type says.
+           (Longer tuples used to be nested pairs, of type ty.prod (ty.prod ...), which did not match ty.tuple.)
+        *)
+        let resulting_expression : Ast.Expression.t option =
+          match translation_expressions with
+          | []       -> None
+          | [ x ]    -> Some x
+          | [ x; y ] -> Some (Ast.Expression.BinaryOperation (Pair, x, y))
+          | elements -> Some (Ast.Expression.Tuple elements)
         in
         let* expression_type =
           match translation_types with
@@ -226,7 +280,9 @@ let rec expression_of_aval
           | [_]      -> TC.fail [%here] "should not occur"
           | _        -> TC.return @@ Ast.Type.Tuple translation_types
         in
-        TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
+        match resulting_expression with
+        | Some resulting_expression -> TC.return (resulting_expression, expression_type, flatten_named_statements translation_statements)
+        | None                      -> TC.fail [%here] "should not occur"
       end
 
   and expression_of_literal
@@ -262,7 +318,10 @@ let rec expression_of_aval
         let* typ' =
           Type.translate_type typ
         in
-        TC.return (Ast.Expression.Variable (id', typ'), typ', [])
+        let* expression =
+          expression_of_local_identifier id' typ' location
+        in
+        TC.return (expression, typ', [])
       end
     | Register typ -> begin
         let* typ' = Type.translate_type typ
@@ -272,12 +331,14 @@ let rec expression_of_aval
           in
           TC.generate_unique_identifier ~prefix ()
         in
+        let* statement = statement_of_register_read id' typ
+        in
         let named_statements : named_statement list =
           [
             {
               identifier = unique_id;
               typ        = typ';
-              statement  = Ast.Statement.ReadRegister id';
+              statement;
             }
           ]
         in
@@ -380,8 +441,13 @@ let rec expression_of_aval
       TC.return (values', types', named_statements')
     in
     let* expression' =
+      (* In Sail, bit is bitvector(1), so elements can also have the type bitvector(1) *)
       let is_bit (t : Ast.Type.t) : bool =
+        let t = Ast.Type.simplify @@ Ast.Type.strip_aliases t
+        in
         Ast.Type.equal t Ast.Type.Bit
+        ||
+        Ast.Type.equal t (Ast.Type.Bitvector (Ast.Numeric.Expression.Constant Z.one))
       in
       if
         List.for_all ~f:is_bit value_types'
@@ -541,8 +607,34 @@ let with_destructured_record
       in
       match t with
       | Typ_id record_type_identifier -> begin
+          (* The record's type can be an alias of the record type (e.g., type regtype = Capability) *)
           let* record_type_identifier =
-            Identifier.translate_identifier [%here] record_type_identifier
+            let* translated_record_type_identifier =
+              Identifier.translate_identifier [%here] record_type_identifier
+            and* translated_type =
+              Type.translate_type (S.Typ_aux (t, _loc))
+            in
+            match Ast.Type.strip_aliases translated_type with
+            | Record record_type_identifier -> TC.return record_type_identifier
+            | Int _
+            | Bool
+            | String
+            | Bit
+            | List _
+            | Unit
+            | Enum _
+            | Bitvector _
+            | Tuple _
+            | Sum (_, _)
+            | Variant _
+            | Application (_, _)
+            | Alias (_, _)
+            | Range (_, _)
+            | Function _
+            | TypeVariable _
+            | Nat
+            | Vector (_, _)
+            | Implicit _                    -> TC.return translated_record_type_identifier
           in
           let* record_type_definition =
             TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
@@ -597,6 +689,14 @@ let with_destructured_record
 
 
 (*
+   Whether a called function is the builtin early_return, to which Sail's early_return rewrite
+   turns the returns that it cannot remove (see statement_of_application).
+*)
+let is_early_return (function_identifier : S.id) : bool =
+  String.equal (Libsail.Ast_util.string_of_id function_identifier) "early_return"
+
+
+(*
    Translate Sail expression to statements.
 
    The expression_type parameter is the type of the expression, if it is known.
@@ -640,6 +740,86 @@ let rec statement_of_aexp
           ...
         }
    *)
+  (*
+     A call to a bitfield setter with a register reference, as Sail generates for
+
+       mstatus->MIE() = v
+
+     namely
+
+       _set_Mstatus_MIE(ref mstatus, v)
+
+     where Sail defines the setter as
+
+       function _set_Mstatus_MIE (r_ref, v) = { let r = __deref(r_ref); ( *r_ref) = _update_Mstatus_MIE(r, v) }
+
+     muSail has no register references, but the register is known at the call, so the call is inlined:
+
+       let r  = read_register mstatus in
+       let r' = _update_Mstatus_MIE(r, v) in
+       write_register mstatus r';
+       ()
+
+     Other functions that take a register reference are not supported.
+  *)
+  let statement_of_register_setter_call
+      (setter_identifier   : S.id        )
+      (register_identifier : S.id        )
+      (register_type       : S.typ       )
+      (value               : S.typ S.aval) : Ast.Statement.t TC.t
+    =
+    let setter_name = Libsail.Ast_util.string_of_id setter_identifier
+    in
+    match String.chop_prefix setter_name ~prefix:"_set_" with
+    | None -> TC.not_yet_implemented ~message:("register reference passed to " ^ setter_name) [%here] location
+    | Some field_path -> begin
+        let update_identifier = Ast.Identifier.mk ("_update_" ^ field_path)
+        in
+        let* update_definition =
+          TC.lookup_definition_opt (Ast.Definition.Select.function_definition_named update_identifier)
+        in
+        match update_definition with
+        | None -> TC.not_yet_implemented ~message:("register reference passed to " ^ setter_name ^ ", whose update function is not translated") [%here] location
+        | Some _ -> begin
+            let* register_identifier' = Identifier.translate_identifier [%here] register_identifier
+            and* register_type'       = Type.translate_type register_type
+            and* value_expression, _value_type, value_named_statements = expression_of_aval location value
+            in
+            let* read_identifier    = TC.generate_unique_identifier ()
+            and* updated_identifier = TC.generate_unique_identifier ()
+            in
+            let* read_statement = statement_of_register_read register_identifier' register_type
+            in
+            let write_statement : Ast.Statement.t =
+              if
+                Configuration.is_excluded_register (Ast.Identifier.to_string register_identifier')
+              then
+                (* The register is excluded by the configuration (exclude-registers): the value is not written anywhere *)
+                Expression (Value Unit)
+              else
+                Seq (
+                  WriteRegister { register_identifier = register_identifier'; written_value = updated_identifier },
+                  Expression (Value Unit)
+                )
+            in
+            let statement : Ast.Statement.t =
+              Let {
+                binder                 = read_identifier;
+                binding_statement_type = register_type';
+                binding_statement      = read_statement;
+                body_statement         = Let {
+                    binder                 = updated_identifier;
+                    binding_statement_type = register_type';
+                    binding_statement      = Call (update_identifier, [ Variable (read_identifier, register_type'); value_expression ]);
+                    body_statement         = write_statement;
+                  }
+              }
+            in
+            TC.return @@ wrap_in_named_statements_context value_named_statements statement
+          end
+      end
+  in
+
   let statement_of_match
       (matched     : S.typ S.aval                                     )
       (cases       : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
@@ -780,11 +960,43 @@ let rec statement_of_aexp
         The code below checks if a function call is actually a variant constructor,
         and translates it to a specialized expression.
       *)
-      let* variant_definition =
-        TC.lookup_variant_by_constructor receiver_identifier'
+      let* variant_construction : (Ast.Identifier.t * Ast.Identifier.t) option =
+        let* union_instances = TC.union_instances
+        in
+        if
+          UnionInstances.is_constructor_of_specialised_union union_instances receiver_identifier'
+        then begin
+          (*
+             A constructor of a union with type parameters: the type of the constructed value
+             determines which monomorphic copy of the union is constructed (see UnionInstances).
+          *)
+          let* constructed_type = Type.translate_type typ
+          in
+          match Ast.Type.strip_aliases constructed_type with
+          | Variant instance_identifier -> begin
+              let constructor_identifier = UnionInstances.constructor_in union_instances instance_identifier receiver_identifier'
+              in
+              TC.return @@ Some (instance_identifier, constructor_identifier)
+            end
+          | Int _ | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Record _
+          | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> begin
+              let message =
+                Printf.sprintf "expected constructor %s to produce a value of a union, got %s instead"
+                  (Ast.Identifier.to_string receiver_identifier')
+                  (Ast.Type.to_string constructed_type)
+              in
+              TC.fail [%here] message
+            end
+        end
+        else begin
+          let* variant_definition =
+            TC.lookup_variant_by_constructor receiver_identifier'
+          in
+          TC.return @@ Option.map variant_definition ~f:(fun (variant_definition : Ast.Definition.Type.Variant.t) -> (variant_definition.identifier, receiver_identifier'))
+        end
       in
-      match variant_definition with
-      | Some variant_definition -> begin
+      match variant_construction with
+      | Some (variant_identifier, constructor_identifier) -> begin
           (*
              We identified receiver_identifier as a constructor for a variant.
              Function call needs to be translated to variant value construction.
@@ -797,7 +1009,7 @@ let rec statement_of_aexp
                    ()        : unit
                    x         : x
                    (x, y)    : Pair(x, y)
-                   (x, y, z) : Pair(Pair(x, y), z)
+                   (x, y, z) : Tuple [x; y; z]
 
                  flatten_fields extracts the different arguments from these potentially nested pairs.
                  We probably do not deal correctly with the case that one of the fields is an actual pair.
@@ -807,6 +1019,7 @@ let rec statement_of_aexp
               let rec flatten_fields (expression : Ast.Expression.t) =
                 match expression with
                 | Value Unit                   -> []
+                | Tuple elements               -> elements
                 | BinaryOperation (Pair, x, y) -> List.concat [flatten_fields x; flatten_fields y]
                 | _                            -> [expression]
               in
@@ -815,8 +1028,8 @@ let rec statement_of_aexp
               in
               let variant : Ast.Expression.t =
                 Variant {
-                  type_identifier        = variant_definition.identifier;
-                  constructor_identifier = receiver_identifier';
+                  type_identifier        = variant_identifier;
+                  constructor_identifier = constructor_identifier;
                   fields                 = fields;
                 }
               in
@@ -916,6 +1129,64 @@ let rec statement_of_aexp
         end
     in
 
+    (*
+       A call to a function that the configuration excludes (exclude-functions-as-no-op and the like):
+       the arguments are computed, and the call is replaced as the configuration says.
+    *)
+    let statement_of_excluded_function_call (exclusion : Configuration.FunctionExclusion.t) : Ast.Statement.t TC.t =
+      let receiver_name = Libsail.Ast_util.string_of_id receiver_identifier
+      in
+      let* result_type = translate_return_type typ
+      in
+      match exclusion with
+      | NoOp -> begin
+          match Ast.Type.strip_aliases result_type with
+          | Unit -> TC.return @@ wrap @@ Ast.Statement.Expression (Value Unit)
+          | Int _ | Bool | String | Bit | List _ | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Record _ | Variant _
+          | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> begin
+              let message =
+                Printf.sprintf
+                  "%s is excluded by %s, but this call to it has type %s instead of unit"
+                  receiver_name
+                  (Configuration.FunctionExclusion.slang_function_name exclusion)
+                  (Ast.Type.to_string result_type)
+              in
+              TC.fail [%here] message
+            end
+        end
+      | Failure -> begin
+          let message =
+            Printf.sprintf "%s is excluded by the configuration" receiver_name
+          in
+          TC.return @@ wrap @@ Ast.Statement.Fail (result_type, message)
+        end
+      | Unconstrained -> TC.return @@ wrap @@ Ast.Statement.Unconstrained result_type
+      | Value value -> begin
+          (* replace_calls_by_values replaces these calls before the ANF conversion; this one could not be replaced *)
+          let message =
+            Printf.sprintf
+              "%s is excluded by %s, but its replacement %s does not parse, or does not type-check at the type of this call, %s"
+              receiver_name
+              (Configuration.FunctionExclusion.slang_function_name exclusion)
+              value
+              (Ast.Type.to_string result_type)
+          in
+          TC.fail [%here] message
+        end
+    in
+
+    (*
+       Sail's early_return rewrite (see sail_plugin/Rewrites.ml) removes the returns after which
+       nothing else runs, and turns each remaining return into a call to the builtin early_return,
+       which it declares as an extern. Translating that call as a call (a foreign call, as for any
+       extern) would let the rest of the function run after the return, so it is not supported.
+    *)
+    if is_early_return receiver_identifier
+    then TC.not_yet_implemented ~message:"early return that Sail's early_return rewrite could not remove" [%here] location
+    else
+    match Configuration.function_exclusion (Libsail.Ast_util.string_of_id receiver_identifier) with
+    | Some exclusion -> statement_of_excluded_function_call exclusion
+    | None ->
     match Ast.Identifier.to_string receiver_identifier' with
     | "sail_cons" -> statement_of_binary_operation Cons
     | "add_atom"  -> statement_of_binary_operation Plus
@@ -1087,7 +1358,33 @@ let rec statement_of_aexp
         in
         let* is_register = TC.is_register id_in_lhs
         in
-        if is_register
+        if
+          Configuration.is_excluded_register (Ast.Identifier.to_string id_in_lhs)
+        then begin
+          (*
+             The register is excluded by the configuration (exclude-registers):
+             the written value is computed, but not written anywhere.
+
+               r1 = expr
+
+             becomes
+
+               let x : τ = expr in ()
+
+             The let's type fixes the implicit widths of a size-polymorphic call in expr.
+          *)
+          let* rhs_identifier = TC.generate_unique_identifier ()
+          and* translated_rhs = statement_of_aexp None rhs
+          and* rhs_type       = Type.translate_type lhs_type
+          in
+          TC.return @@ Ast.Statement.Let {
+            binder                 = rhs_identifier;
+            binding_statement_type = rhs_type;
+            binding_statement      = translated_rhs;
+            body_statement         = Expression (Value Unit);
+          }
+        end
+        else if is_register
         then begin
           (*
                r1 = expr
@@ -1127,10 +1424,25 @@ let rec statement_of_aexp
           end
         end
         else begin
-            let message =
-              Printf.sprintf "assignment to local variable (nonregister) %s" (Ast.Identifier.to_string id_in_lhs)
-            in
-            TC.not_yet_implemented ~message [%here] location
+          (*
+               x = expr
+
+             where x is a mutable local variable (var x = ...) becomes
+
+               stm_assign "x" expr;
+               ()
+
+             muSail's local variables are mutable: stm_assign updates the variable bound by the enclosing stm_let.
+             As for registers, the explicit unit keeps Sail's type of the assignment (stm_assign's value is the assigned value).
+          *)
+          let* translated_rhs = statement_of_aexp None rhs
+          in
+          TC.return begin
+            Ast.Statement.Seq (
+              AssignVariable { variable_identifier = id_in_lhs; assigned_value = translated_rhs },
+              Expression (Value Unit)
+            )
+          end
         end
       end
     | AL_addr (_, _)  -> TC.not_yet_implemented [%here] location
@@ -1246,6 +1558,7 @@ let rec statement_of_aexp
   let* translated_statement =
     match unwrapped_expression with
     | AE_val value                                                  -> statement_of_value value
+    | AE_app (id, [ AV_ref (register_identifier, Register register_type); value ], _typ) -> statement_of_register_setter_call (Sail.id_of_function_id id) register_identifier register_type value
     | AE_app (id, avals, typ)                                       -> statement_of_application (Sail.id_of_function_id id) avals typ
     | AE_let (mutability, name, typ1, expression, body, typ2)       -> statement_of_let mutability (Sail.id_of_name name) typ1 expression body typ2
     | AE_if (condition, then_clause, else_clause, typ)              -> statement_of_if condition then_clause else_clause typ
@@ -1272,6 +1585,9 @@ type sail_function_parts =
     parameter_bindings : Sail.type_annotation Libsail.Ast.pat;
     body               : Libsail.Ast.typ Libsail.Anf.aexp;
     return_type        : Libsail.Ast.typ;
+
+    (* Identifiers bound in the parameters and body (see TC.refers_to_top_level_value) *)
+    locally_bound_identifiers : Ast.Identifier.Set.t;
   }
 
 
@@ -1380,6 +1696,383 @@ let drop_run_time_assert_messages (expression : Sail.type_annotation S.exp) : Sa
 (*
    Helper function that extracts all relevant data from Sail's AST.
 *)
+(*
+   Identifiers bound in an expression: in patterns (let, match, ...), as loop variables, and by var.
+*)
+let locally_bound_sail_identifiers (expression : Sail.type_annotation S.exp) : Libsail.Ast_compare.IdSet.t =
+  let open Libsail.Rewriter
+  in
+  let module IdSet = Libsail.Ast_compare.IdSet
+  in
+  let pat_alg =
+    {
+      (pure_pat_alg IdSet.empty IdSet.union) with
+      p_id = IdSet.singleton;
+      p_as = (fun (ids, id) -> IdSet.add id ids)
+    }
+  in
+  let exp_alg =
+    {
+      (pure_exp_alg IdSet.empty IdSet.union) with
+      pat_alg;
+      e_for  = (fun (id, from, until, step, _order, body) -> IdSet.add id (IdSet.union (IdSet.union from until) (IdSet.union step body)));
+      le_id  = IdSet.singleton;
+      le_typ = (fun (_typ, id) -> IdSet.singleton id);
+    }
+  in
+  fold_exp exp_alg expression
+
+
+(* The called function and the arguments, if the expression is a function call *)
+let sail_application_of (expression : Sail.type_annotation S.exp) : (string * Sail.type_annotation S.exp list) option =
+  let S.E_aux (unwrapped_expression, _) = expression
+  in
+  match unwrapped_expression with
+  | E_app (identifier, arguments) -> Some (Libsail.Ast_util.string_of_id identifier, arguments)
+  | E_lit _                  -> None
+  | E_vector _               -> None
+  | E_block _                -> None
+  | E_id _                   -> None
+  | E_typ (_, _)             -> None
+  | E_tuple _                -> None
+  | E_if (_, _, _)           -> None
+  | E_loop (_, _, _, _)      -> None
+  | E_for (_, _, _, _, _, _) -> None
+  | E_vector_append (_, _)   -> None
+  | E_list _                 -> None
+  | E_cons (_, _)            -> None
+  | E_struct (_, _)          -> None
+  | E_struct_update (_, _)   -> None
+  | E_field (_, _)           -> None
+  | E_match (_, _)           -> None
+  | E_let (_, _, _)          -> None
+  | E_assign (_, _)          -> None
+  | E_sizeof _               -> None
+  | E_return _               -> None
+  | E_exit _                 -> None
+  | E_config _               -> None
+  | E_ref _                  -> None
+  | E_throw _                -> None
+  | E_try (_, _)             -> None
+  | E_assert (_, _)          -> None
+  | E_var (_, _, _)          -> None
+  | E_undef                  -> None
+  | E_internal_plet (_, _, _)-> None
+  | E_internal_return _      -> None
+  | E_internal_value _       -> None
+  | E_internal_assume (_, _) -> None
+  | E_constraint _           -> None
+
+
+(* The value of a numeric expression that simplifies to a constant *)
+let constant_of_sail_numeric_expression (numeric_expression : S.nexp) : Z.t option =
+  let S.Nexp_aux (unwrapped_numeric_expression, _) = Libsail.Ast_util.nexp_simp numeric_expression
+  in
+  match unwrapped_numeric_expression with
+  | Nexp_constant constant -> Some constant
+  | Nexp_id _              -> None
+  | Nexp_var _             -> None
+  | Nexp_app (_, _)        -> None
+  | Nexp_if (_, _, _)      -> None
+  | Nexp_times (_, _)      -> None
+  | Nexp_sum (_, _)        -> None
+  | Nexp_minus (_, _)      -> None
+  | Nexp_exp _             -> None
+  | Nexp_neg _             -> None
+
+
+(* The width of a bitvector expression, if it is known at compile time *)
+let sail_bitvector_width (expression : Sail.type_annotation S.exp) : Z.t option =
+  let module TypeCheck = Libsail.Type_check
+  in
+  Option.bind
+    (TypeCheck.destruct_bitvector (TypeCheck.env_of expression) (TypeCheck.typ_of expression))
+    ~f:constant_of_sail_numeric_expression
+
+
+(* The value of an integer expression, if its type says what it is at compile time *)
+let sail_integer_value (expression : Sail.type_annotation S.exp) : Z.t option =
+  let module TypeCheck = Libsail.Type_check
+  in
+  Option.bind
+    (TypeCheck.destruct_atom_nexp (TypeCheck.env_of expression) (TypeCheck.typ_of expression))
+    ~f:constant_of_sail_numeric_expression
+
+
+(* A call to a function, without type annotations (to be type checked) *)
+let untyped_sail_call (name : string) (arguments : Libsail.Ast_util.uannot S.exp list) : Libsail.Ast_util.uannot S.exp =
+  Libsail.Ast_util.mk_exp (S.E_app (Libsail.Ast_util.mk_id name, arguments))
+
+
+(*
+   Truncation of a bitvector padded with zeros of run-time length.
+
+     truncate(X @ zeros(n), w)
+
+   has an intermediate bitvector of width |X| + n, which is only known at run time when n is,
+   and muSail bitvector types need widths known in Rocq. CHERIoT's getCapBoundsBits does this:
+
+     truncate((a_top + c_b) @ c.B @ zeros(E), cap_addr_width)     with E = unsigned(c.E)
+
+   The low w bits of X * 2^n are those of resize(X, w) * 2^n, so this is rewritten to
+
+     sail_shiftleft(resize(X, w), n)
+
+   where resize is truncate if w <= |X| and sail_zero_extend otherwise.
+   It requires |X| and w to be known; the concatenation may be nested either way.
+   The rewritten expression is type checked again in the environment of the original; if that fails,
+   the original is kept.
+*)
+let rewrite_truncated_zero_padding (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  (* The operands of a (nested) concatenation, most significant first *)
+  let rec concatenated (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp list =
+    match sail_application_of expression with
+    | Some ("bitvector_concat", [ left; right ]) -> concatenated left @ concatenated right
+    | Some _                                     -> [ expression ]
+    | None                                       -> [ expression ]
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    let rewritten : Sail.type_annotation S.exp option =
+      let open Monads.OptionNotation
+      in
+      let=? concatenation, target_width_expression =
+        match sail_application_of original with
+        | Some ("truncate", [ concatenation; target_width_expression ]) -> Some (concatenation, target_width_expression)
+        | Some _ -> None
+        | None   -> None
+      in
+      let=? prefix, padding_length =
+        match List.rev (concatenated concatenation) with
+        | last :: (_ :: _ as reversed_prefix) -> begin
+            match sail_application_of last with
+            | Some (("sail_zeros" | "zeros_implicit"), [ padding_length ]) -> begin
+                match sail_integer_value padding_length with
+                | None   -> Some (List.rev reversed_prefix, padding_length)  (* only when the length is not known *)
+                | Some _ -> None
+              end
+            | Some _ -> None
+            | None   -> None
+          end
+        | [ _ ] -> None
+        | []    -> None
+      in
+      let=? prefix_width =
+        Option.map ~f:(List.fold ~init:Z.zero ~f:Z.add) @@ Option.all @@ List.map ~f:sail_bitvector_width prefix
+      in
+      let=? target_width = sail_integer_value target_width_expression
+      in
+      let untyped (expression : Sail.type_annotation S.exp) : Libsail.Ast_util.uannot S.exp =
+        TypeCheck.strip_exp expression
+      and call = untyped_sail_call
+      in
+      let=? untyped_prefix =
+        let rec concatenate (elements : Libsail.Ast_util.uannot S.exp list) : Libsail.Ast_util.uannot S.exp option =
+          match elements with
+          | []                  -> None
+          | [ element ]         -> Some element
+          | element :: rest     -> Option.map (concatenate rest) ~f:(fun rest -> call "bitvector_concat" [ element; rest ])
+        in
+        concatenate (List.map ~f:untyped prefix)
+      in
+      let resized =
+        let resize = if Z.leq target_width prefix_width then "truncate" else "sail_zero_extend"
+        in
+        call resize [ untyped_prefix; untyped target_width_expression ]
+      in
+      let replacement = call "sail_shiftleft" [ resized; untyped padding_length ]
+      in
+      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
+      with _ -> None
+    in
+    Option.value rewritten ~default:original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
+   A mask of the n low bits of a bitvector, with n known only at run time.
+
+     zero_extend(m, ones(n))          (sail-riscv's zero_extend takes the width first)
+     sail_zero_extend(ones(n), m)
+
+   has the intermediate bitvector ones(n), whose width n is only known at run time,
+   and muSail bitvector types need widths known in Rocq. CHERIoT's setCapBounds does this:
+
+     maskLo : CapLenBits = zero_extend(ones(e_sat))     with e_sat : range(0, cap_max_E)
+
+   For 0 <= n <= m, the n low bits are set and the others clear in not(ones(m) << n), so this is rewritten to
+
+     not_vec(sail_shiftleft(sail_ones(m), n))
+
+   (sail_ones(m) is written sail_ones(make_the_value(m)), as Sail does; n <= m is a constraint of the zero extension). It requires m to be known.
+   ones(n) is ones or sail_ones; zero_extend is sail-riscv's zero_extend or sail_zero_extend.
+   The rewritten expression is type checked again in the environment of the original; if that fails,
+   the original is kept.
+*)
+let rewrite_zero_extended_ones (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    let rewritten : Sail.type_annotation S.exp option =
+      let open Monads.OptionNotation
+      in
+      let=? ones, target_width_expression =
+        match sail_application_of original with
+        | Some ("zero_extend", [ target_width_expression; ones ])      -> Some (ones, target_width_expression)
+        | Some ("sail_zero_extend", [ ones; target_width_expression ]) -> Some (ones, target_width_expression)
+        | Some _                                                      -> None
+        | None                                                        -> None
+      in
+      (* sail_ones takes its length as make_the_value(n) : itself('n); the length is then n *)
+      let rec integer_of_itself (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+        let S.E_aux (unwrapped_expression, _) = expression
+        in
+        match unwrapped_expression with
+        | E_typ (_, inner_expression)   -> integer_of_itself inner_expression
+        | E_app (identifier, arguments) -> begin
+            match Libsail.Ast_util.string_of_id identifier, arguments with
+            | "make_the_value", [ integer ] -> integer
+            | _, _                          -> expression
+          end
+        | E_lit _                       -> expression
+        | E_vector _                    -> expression
+        | E_block _                     -> expression
+        | E_id _                        -> expression
+        | E_tuple _                     -> expression
+        | E_if (_, _, _)                -> expression
+        | E_loop (_, _, _, _)           -> expression
+        | E_for (_, _, _, _, _, _)      -> expression
+        | E_vector_append (_, _)        -> expression
+        | E_list _                      -> expression
+        | E_cons (_, _)                 -> expression
+        | E_struct (_, _)               -> expression
+        | E_struct_update (_, _)        -> expression
+        | E_field (_, _)                -> expression
+        | E_match (_, _)                -> expression
+        | E_let (_, _, _)               -> expression
+        | E_assign (_, _)               -> expression
+        | E_sizeof _                    -> expression
+        | E_return _                    -> expression
+        | E_exit _                      -> expression
+        | E_config _                    -> expression
+        | E_ref _                       -> expression
+        | E_throw _                     -> expression
+        | E_try (_, _)                  -> expression
+        | E_assert (_, _)               -> expression
+        | E_var (_, _, _)               -> expression
+        | E_undef                       -> expression
+        | E_internal_plet (_, _, _)     -> expression
+        | E_internal_return _           -> expression
+        | E_internal_value _            -> expression
+        | E_internal_assume (_, _)      -> expression
+        | E_constraint _                -> expression
+      in
+      let=? mask_length =
+        match sail_application_of ones with
+        | Some (("ones" | "sail_ones"), [ mask_length ]) -> begin
+            let mask_length = integer_of_itself mask_length
+            in
+            match sail_integer_value mask_length with
+            | None   -> Some mask_length  (* only when the length is not known *)
+            | Some _ -> None
+          end
+        | Some _ -> None
+        | None   -> None
+      in
+      let=? _target_width = sail_integer_value target_width_expression
+      in
+      let untyped (expression : Sail.type_annotation S.exp) : Libsail.Ast_util.uannot S.exp =
+        TypeCheck.strip_exp expression
+      and call = untyped_sail_call
+      in
+      let replacement =
+        call "not_vec" [
+          call "sail_shiftleft" [
+            call "sail_ones" [ call "make_the_value" [ untyped target_width_expression ] ];
+            untyped mask_length
+          ]
+        ]
+      in
+      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
+      with _ -> None
+    in
+    Option.value rewritten ~default:original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
+   Replaces each call to a function that the configuration excludes with a value
+   (exclude-functions-as-value) with that value: a Sail expression, parsed and then
+   type-checked at the type of the call, in the call's environment.
+
+     f(x, read_reg())        with  (exclude-functions-as-value '(("f" "None()")))
+
+   becomes
+
+     let excluded_call_arguments = read_reg() in None()
+
+   Arguments with an effect are still computed; the others are dropped.
+   A replacement that does not parse or type-check leaves the call as it is;
+   its translation then fails with an error (see statement_of_application).
+*)
+let replace_calls_by_values (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux     )
+      (annotation           : Sail.type_annotation S.annot       ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    match unwrapped_expression with
+    | S.E_app (identifier, arguments) -> begin
+        match Configuration.function_exclusion (Libsail.Ast_util.string_of_id identifier) with
+        | Some (Value value) -> begin
+            try
+              let value_expression =
+                Libsail.Initial_check.exp_of_string Libsail.Initial_check.initial_ctx value
+              in
+              let replacement =
+                let effectful_arguments =
+                  List.filter arguments ~f:(fun argument -> Libsail.Ast_util.effectful (Libsail.Type_check.effect_of argument))
+                in
+                let untyped = TypeCheck.strip_exp
+                (* not a wildcard: the translation does not support let _ = ... (Match.ml) *)
+                and unused_binder = Libsail.Ast_util.mk_pat (S.P_id (Libsail.Ast_util.mk_id "excluded_call_arguments"))
+                in
+                match effectful_arguments with
+                | []         -> value_expression
+                | [ single ] -> Libsail.Ast_util.mk_exp (S.E_let (unused_binder, untyped single, value_expression))
+                | several    -> begin
+                    let tuple = Libsail.Ast_util.mk_exp (S.E_tuple (List.map ~f:untyped several))
+                    in
+                    Libsail.Ast_util.mk_exp (S.E_let (unused_binder, tuple, value_expression))
+                  end
+              in
+              TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation)
+            with _ -> original
+          end
+        | Some (NoOp | Failure | Unconstrained) -> original
+        | None                                  -> original
+      end
+    | _ -> original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
@@ -1404,14 +2097,23 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf body_without_messages
+       let body        = S.anf @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
+       in
+       let* locally_bound_identifiers =
+         let sail_identifiers =
+           Libsail.Ast_compare.IdSet.union
+             (Libsail.Ast_util.pat_ids parameter_bindings)
+             (locally_bound_sail_identifiers raw_body)
+         in
+         TC.map ~f:(Identifier.translate_identifier [%here]) (Libsail.Ast_compare.IdSet.elements sail_identifiers)
        in
        TC.return @@ {
          identifier;
          parameter_bindings;
          body;
-         return_type
+         return_type;
+         locally_bound_identifiers = Ast.Identifier.Set.of_list locally_bound_identifiers;
        }
      end
 
@@ -1687,8 +2389,10 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | Seq (left, right)     -> Seq (rewrite left, rewrite right)
     | ReadRegister _        -> statement
     | WriteRegister _       -> statement
+    | AssignVariable { variable_identifier; assigned_value } -> AssignVariable { variable_identifier; assigned_value = rewrite assigned_value }
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
+    | Unconstrained _       -> statement
     | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
   in
   rewrite statement
@@ -1725,7 +2429,7 @@ let translate_function_definition
         let* function_name = Identifier.translate_identifier [%here] parts.identifier
         and* parameters    = translate_parameter_bindings parts.parameter_bindings
         and* return_type   = translate_return_type parts.return_type
-        and* function_body = translate_body parts.body parts.return_type
+        and* function_body = TC.with_locally_bound_identifiers parts.locally_bound_identifiers (translate_body parts.body parts.return_type)
         in
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt

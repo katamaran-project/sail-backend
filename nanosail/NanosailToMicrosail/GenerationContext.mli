@@ -56,5 +56,14 @@ val log : Lexing.position -> (Lexing.position -> PP.t lazy_t -> unit) -> PP.t la
 
 val get_program : Ast.Program.t t
 
+(* The externs that calls were translated into foreign calls to (see ForeignFunctions) *)
+val use_foreign_function   : Ast.Identifier.t -> unit t
+val used_foreign_functions : Ast.Identifier.Set.t t
+
+(* The type-level variables (kid__n) bound by the signature of the function definition being generated,
+   if any (see TypeLevelParameters and Numeric.Expression.pp) *)
+val with_bound_type_level_identifiers : Ast.Identifier.Set.t -> 'a t -> 'a t
+val get_bound_type_level_identifiers  : Ast.Identifier.Set.t option t
+
 val select_definitions    : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a list t
 val lookup_definition_opt : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector -> 'a option t

@@ -10,8 +10,11 @@ module Value = struct
   let pp_integer (value : Z.t) : PP.t =
     Coq.pp_z_integer value
 
+  (* Sail's bit is bitvector(1) (type bit = bitvector(1) in Sail's library) *)
   let pp_bit (value : bool) : PP.t =
-    Coq.pp_bool value
+    Coq.pp_explicit_application
+      (PP.string "bv.mk")
+      [ PP.string "1"; PP.string (if value then "1" else "0"); PP.string "I" ]
 
 
   let pp_bitvector (size : int) (value : Z.t) : PP.t =
@@ -264,14 +267,16 @@ module Expression = struct
 
 
   (*
-    exp_val (ty.bvec 32) (@Bitvector.bv.one 32)
+    exp_val (ty.bvec 32) (@Bitvector.bv.ones 32)
+
+    Katamaran's bv.ones n has all n bits set; bv.one is the number 1.
   *)
   let pp_ones_bitvector_using_function (number_of_bits : int) : PP.t =
     PP.annotate [%here] begin
       let typ =
         Coq.pp_application (PP.string "ty.bvec") [ PP.integer number_of_bits ]
       and value =
-        Coq.pp_explicit_application (PP.string "Bitvector.bv.one") [ PP.integer number_of_bits ]
+        Coq.pp_explicit_application (PP.string "Bitvector.bv.ones") [ PP.integer number_of_bits ]
       in
       pp_value ~typ ~value
     end
@@ -302,6 +307,16 @@ module Statement = struct
 
   let pp_fail (typ : PP.t) (message : PP.t) : PP.t =
     Coq.pp_application (PP.string "stm_fail") [ PP.(surround parens) typ; message ]
+
+
+  (* A call to the foreign function that produces an unconstrained value of the given type *)
+  let pp_unconstrained (typ : PP.t) : PP.t =
+    Coq.pp_application
+      (PP.string "stm_foreign")
+      [
+        PP.(surround parens) @@ Coq.pp_application (PP.string "unconstrained") [ PP.(surround parens) typ ];
+        PP.string "env.nil"
+      ]
 
 
   let pp_assert
@@ -525,6 +540,42 @@ module Statement = struct
 
 
   (*
+     env.snoc (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2) (_::_) arg3
+  *)
+  let pp_call_arguments (arguments : PP.t list) : PP.t =
+    let add_snoc tail argument =
+      Coq.pp_hanging_application
+        (PP.string "env.snoc")
+        [
+          PP.(surround parens) tail;
+          PP.string "(_::_)";
+          Coq.pp_scope ~scope:(PP.string "exp") argument
+        ]
+    in
+    List.fold_left
+      arguments
+      ~init:(PP.string "env.nil")
+      ~f:add_snoc
+
+
+  (*
+     stm_foreign <function_name> (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2)
+  *)
+  let pp_foreign_call
+      (function_name : PP.t     )
+      (arguments     : PP.t list) : PP.t
+    =
+    PP.annotate [%here] begin
+      Coq.pp_application
+        (PP.string "stm_foreign")
+        [
+          function_name;
+          PP.(surround parens) @@ pp_call_arguments arguments
+        ]
+    end
+
+
+  (*
      stm_call <function_name> (env.snoc (env.snoc (env.snoc env.nil (_::_) arg1) (_::_) arg2) (_::_) arg3)
   *)
   let pp_call
@@ -581,12 +632,18 @@ module Statement = struct
             <right>
   *)
   let pp_sequence
-        (left  : PP.t)
-        (right : PP.t) : PP.t
+        ?(left_type : PP.t option = None)
+        (left       : PP.t)
+        (right      : PP.t) : PP.t
     =
+    let stm_seq =
+      match left_type with
+      | None           -> PP.string "stm_seq"
+      | Some left_type -> PP.(surround parens @@ horizontal [ string "@stm_seq _ _ "; surround parens left_type ])
+    in
     PP.annotate [%here] begin
         Coq.pp_hanging_application
-          (PP.string "stm_seq")
+          stm_seq
           [
             left;
             right;
@@ -650,6 +707,23 @@ module Statement = struct
             PP.(surround parens) bound_value_type;
             PP.(surround parens) bound_value;
             PP.(surround parens) body;
+          ]
+      end
+
+
+  (*
+    stm_assign "<variable_identifier>" (<assigned_value>)
+  *)
+  let pp_assign
+        ~(variable_identifier : PP.t)
+        ~(assigned_value      : PP.t) : PP.t
+    =
+    PP.annotate [%here] begin
+        Coq.pp_hanging_application
+          (PP.string "stm_assign")
+          [
+            PP.(surround dquotes) variable_identifier;
+            PP.(surround parens) assigned_value;
           ]
       end
 

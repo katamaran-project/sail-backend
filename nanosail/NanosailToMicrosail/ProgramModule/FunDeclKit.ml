@@ -8,8 +8,17 @@ module GC = struct
 end
 
 
+(* The type-level parameters of a function's signature (see TypeLevelParameters) *)
+let type_level_parameters (function_definition : Ast.Definition.Function.t) : (Ast.Identifier.t * Ast.Kind.t) list =
+  TypeLevelParameters.of_types begin
+    List.append
+      (List.map ~f:snd function_definition.function_type.parameters)
+      [ function_definition.function_type.return_type ]
+  end
+
+
 let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
-  let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t) GC.t =
+  let pp_function_declaration (function_definition : Ast.Definition.Function.t) : (PP.t * PP.t * PP.t) GC.t =
     let name =
       Identifier.pp function_definition.function_name
     in
@@ -45,8 +54,13 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
         )
       end
     in
+    (* widths and type variables of the signature become implicit arguments (see TypeLevelParameters) *)
+    let pp_parameters =
+      TypeLevelParameters.pp_binders @@ type_level_parameters function_definition
+    in
     GC.return (
       PP.annotate [%here] name,
+      PP.annotate [%here] pp_parameters,
       PP.annotate [%here] function_type
     )
   in
@@ -61,37 +75,92 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
           then
             (* function is polymorhic and has monomorphs; add all monomorphs associated with it *)
             GC.iter function_definition.monomorphs ~f:(fun (monomorph_definition : Ast.Definition.Function.t) ->
-                let* name, function_type = pp_function_declaration monomorph_definition
+                let* name, parameters, function_type = pp_function_declaration monomorph_definition
                 in
-                add_constructor ~typ:function_type name
+                add_constructor ~parameters ~typ:function_type name
               )
           else
-            let* name, function_type = pp_function_declaration function_definition
+            let* name, parameters, function_type = pp_function_declaration function_definition
             in
-            add_constructor ~typ:function_type name
+            add_constructor ~parameters ~typ:function_type name
         )
     end
   end
+
+
+(*
+   The foreign functions:
+
+     unconstrained σ
+
+   produces an unconstrained value of type σ. The uses of definitions that the configuration
+   excludes become calls to it (Configuration.FunctionExclusion.Unconstrained, Configuration.is_excluded_register).
+   Its implicit argument, a value of σ, only shows that σ has a value
+   (ForeignProgress needs one); see pp_unconstrained_inhabitant.
+
+   Then one constructor for each extern that a call was translated into a foreign call to
+   (see ForeignFunctions), with the extern's signature; for example
+
+     | popcount {kid__n : nat} : FunX [ "arg1" ∷ ty.bvec (kid__n) ] (ty.int)
+
+   Their semantics is in ForeignKit.
+*)
+let pp_foreign_function_inductive_type () : PP.t GC.t =
+  let* foreign_functions = ForeignFunctions.used ()
+  in
+  GC.pp_inductive_type (PP.string "FunX") (PP.string "PCtx -> Ty -> Set") @@ fun add_constructor -> begin
+    let* () =
+      add_constructor ~typ:(PP.string "FunX ctx.nil σ") ~parameters:(PP.string "(σ : Ty) {inhabitant : Unconstrained σ}") (PP.string "unconstrained")
+    in
+    GC.iter foreign_functions ~f:(fun (foreign_function : ForeignFunctions.t) ->
+        let* name, parameters, typ = ForeignFunctions.pp_constructor foreign_function
+        in
+        add_constructor ~parameters ~typ name
+      )
+  end
+
+
+(*
+   Rocq finds the inhabitant of (unconstrained σ) by type class search: the hint below builds
+   a value of a concrete type σ with the first constructor of each inductive type it meets
+   (bv.zero for bitvectors). The value plays no part in the semantics.
+   This is outside the FunDeclKit section, so that the hint holds in the rest of the module.
+*)
+let pp_unconstrained_inhabitant () : PP.t =
+  PP.vertical @@ List.map ~f:PP.string [
+    "Class Unconstrained (σ : Ty) : Set := unconstrained_inhabitant : Val σ.";
+    "";
+    "Ltac construct_inhabitant :=";
+    "  cbn; first [ exact bv.zero | constructor; construct_inhabitant ].";
+    "";
+    "#[export] Hint Extern 1 (Unconstrained _) => unfold Unconstrained; construct_inhabitant : typeclass_instances.";
+  ]
 
 
 let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   GC.generation_block [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
     in
+    let* pp_foreign_function_inductive_type = pp_foreign_function_inductive_type ()
+    in
     let pp_definitions : PP.t =
       PP.vertical @@ List.map ~f:PP.string [
         "Definition 𝑭  : PCtx -> Ty -> Set := Fun.";
-        "Definition 𝑭𝑿 : PCtx -> Ty -> Set := fun _ _ => Empty_set.";
+        "Definition 𝑭𝑿 : PCtx -> Ty -> Set := FunX.";
         "Definition 𝑳  : PCtx -> Set := fun _ => Empty_set.";
       ]
     in
     let contents =
       PP.vertical [
         pp_fun_inductive_type;
+        pp_foreign_function_inductive_type;
         pp_definitions
       ]
     in
     GC.return begin
-      Coq.pp_section (PP.string "FunDeclKit") contents
+      PP.paragraphs [
+        pp_unconstrained_inhabitant ();
+        Coq.pp_section (PP.string "FunDeclKit") contents
+      ]
     end
   end

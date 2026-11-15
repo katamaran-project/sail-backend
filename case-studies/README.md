@@ -1,11 +1,11 @@
 # Case studies
 
-Sail models that are translated with the plugin as a whole, as opposed to the small end-to-end tests in `tests/coq-tests`.
-The CHERIoT case study is not here: it lives in the katamaran repository (`case_study/Cheriot`), see `HACKING.md`.
+Whole Sail models translated with the plugin, as opposed to the small end-to-end tests in `tests/coq-tests`.
 
-| directory | model | how to run | status (13 Nov 2026) |
+| directory | model | how to run | status |
 |---|---|---|---|
-| `msp430/` | the MSP430 Sail model | `gmake -C case-studies/msp430` (calls `sail` from `PATH`) | translates completely; `coqc base.v` then fails at `UNTRANSLATED_DEFINITIONS`, because some definitions are left untranslated, and `machine.v` has 2 `NYI`s |
-| `minimal-caps/` | a small capability machine (MinimalCaps) | `make minimal-caps` (`make mc`) from the repository root | not maintained since June 2024: its Makefile passes `-katamaran_config`, an old spelling of this plugin's configuration option that the current plugin does not register (it is now `--katamaran-config`), and its configuration uses options that no longer exist |
+| [`cheriot/`](cheriot/README.md) | the CHERIoT core ([cheriot-sail](https://github.com/microsoft/cheriot-sail)) | `gmake cheriot CHERIOT_SAIL_DIR=...` from the repository root | work in progress; see [progress](cheriot/docs/progress.md) |
+| `msp430/` | the MSP430 Sail model | `gmake -C case-studies/msp430` (calls `sail` from `PATH`) | translates; `coqc base.v` stops at `UNTRANSLATED_DEFINITIONS` (some definitions are untranslated), `machine.v` has 2 `NYI`s |
+| `minimal-caps/` | a small capability machine (MinimalCaps) | `make minimal-caps` (`make mc`) | not maintained: its Makefile passes the old option spelling `-katamaran_config` (now `--katamaran-config`), and its configuration uses removed options |
 
-`tests/msp430-tests` contains a separate, smaller set of MSP430 tests (`make msp430-tests`).
+- `tests/msp430-tests` holds a separate, smaller set of MSP430 tests (`make msp430-tests`).

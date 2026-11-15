@@ -84,6 +84,9 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t 
       return @@ Expression.Variable (identifier, typ)
     end
 
+  (* Top-level values are global: they are never renamed *)
+  | TopLevelValue (_, _) -> return expression
+
   | List elements -> begin
       let* elements =
         map ~f:rename_in_expression elements
@@ -379,6 +382,18 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
       end
     end
 
+  | AssignVariable { variable_identifier; assigned_value } -> begin
+      let* variable_identifier = rename variable_identifier
+      and* assigned_value      = rename_in_statement assigned_value
+      in
+      return begin
+        Statement.AssignVariable {
+          variable_identifier;
+          assigned_value;
+        }
+      end
+    end
+
   | Cast (statement, typ) -> begin
       let* statement = rename_in_statement statement
       in
@@ -389,6 +404,7 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
 
   | ReadRegister _ -> return statement
   | Fail _         -> return statement
+  | Unconstrained _ -> return statement
 
   | Located (location, statement) -> begin
       let* new_statement = rename_in_statement statement

@@ -1,0 +1,6 @@
+# The input versions that the loop's numbers refer to. run.py records the
+# actual commits in run.json and warns when they differ from these.
+# Update a pin in the same commit that moves the baseline to a new version.
+
+[cheriot-sail]
+commit = "518813e"

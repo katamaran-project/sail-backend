@@ -25,6 +25,12 @@ type state          = {
      scope but its value is unknown; this shadows any outer binding of the same
      name, so that a stale value can never leak through. *)
   compile_time_integers : Z.t option Ast.Identifier.Map.t list ;
+  (* The externs that calls have been translated into foreign calls (stm_foreign) to;
+     they get a constructor of FunX (see ForeignFunctions). *)
+  foreign_functions     : Ast.Identifier.Set.t        ;
+  (* While a function definition is generated: the type-level variables (kid__n) its signature binds
+     (see TypeLevelParameters); None elsewhere. *)
+  bound_type_level_identifiers : Ast.Identifier.Set.t option;
 }
 
 module Monad        = Monads.StateResult.Make (struct type t = state end) (Error)
@@ -50,6 +56,10 @@ let sail_context          : (state, string list               ) Monads.Accessors
 let compile_time_integers : (state, Z.t option Ast.Identifier.Map.t list) Monads.Accessors.accessor =
   ((fun s -> s.compile_time_integers), (fun s x -> { s with compile_time_integers = x }))
 
+let foreign_functions     : (state, Ast.Identifier.Set.t      ) Monads.Accessors.accessor = ((fun s -> s.foreign_functions    ), (fun s x -> { s with foreign_functions     = x }))
+let bound_type_level_identifiers : (state, Ast.Identifier.Set.t option) Monads.Accessors.accessor =
+  ((fun s -> s.bound_type_level_identifiers), (fun s x -> { s with bound_type_level_identifiers = x }))
+
 let top_frame   : (state, frame          ) Monads.Accessors.accessor = Monads.Accessors.List.head   frames
 let annotations : (state, annotation list) Monads.Accessors.accessor = Monads.Accessors.Pair.first  top_frame
 let comments    : (state, comment    list) Monads.Accessors.accessor = Monads.Accessors.Pair.second top_frame
@@ -72,6 +82,8 @@ let mk_initial_state (program : Ast.Program.t) : state =
     current_sail_location = None   ;
     sail_context          = []     ;
     compile_time_integers = []     ;
+    foreign_functions     = Ast.Identifier.Set.empty;
+    bound_type_level_identifiers = None;
   }
 
 
@@ -621,6 +633,32 @@ let pp_annotate'
 
 let get_program : Ast.Program.t t =
   get program
+
+
+(* Records that a call to the extern was translated into a foreign call *)
+let use_foreign_function (identifier : Ast.Identifier.t) : unit t =
+  update foreign_functions (fun used -> Ast.Identifier.Set.add used identifier)
+
+
+let used_foreign_functions : Ast.Identifier.Set.t t =
+  get foreign_functions
+
+
+(* Runs the computation (the generation of a function definition) with the given type-level variables bound *)
+let with_bound_type_level_identifiers (identifiers : Ast.Identifier.Set.t) (computation : 'a t) : 'a t =
+  let* outer = get bound_type_level_identifiers
+  in
+  let* () = put bound_type_level_identifiers (Some identifiers)
+  in
+  let* result = computation
+  in
+  let* () = put bound_type_level_identifiers outer
+  in
+  return result
+
+
+let get_bound_type_level_identifiers : Ast.Identifier.Set.t option t =
+  get bound_type_level_identifiers
 
 
 let select_definitions (selector : (Sail.sail_definition * Ast.Definition.t, 'a) Ast.Definition.Select.selector) : 'a list t =

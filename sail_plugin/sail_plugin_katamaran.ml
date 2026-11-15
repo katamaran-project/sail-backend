@@ -59,7 +59,7 @@ let katamaran_target
       in
       (* translate the Sail code into nanosail *)
       let translation : Nanosail.Ast.Program.t =
-        Nanosail.SailToNanosail.translate ast
+        Nanosail.SailToNanosail.translate ast state.env
       in
       Stdio.print_endline "Done with translation from Sail to nanoSail";
       Stdio.print_endline "Starting translation from nanoSail to muSail";

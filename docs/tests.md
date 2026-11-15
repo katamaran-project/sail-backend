@@ -16,6 +16,15 @@ $ make test
 * When running the tests, the verbosity level is set to quiet, thereby suppressing all logging.
   It is, however, possible to override this by setting the verbosity level explicitly using `VERBOSE`.
 
+## CHERIoT Loop
+
+`tests/cheriot` translates the CHERIoT core with this checkout's plugin, compiles it with `coqc` and reports progress; see [the loop's manual](../case-studies/cheriot/docs/loop.md).
+
+```bash
+$ gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
+$ make cheriot-lib-tests        # unit tests of tests/cheriot/lib and run.py, on a small fixture run
+```
+
 ## End to End Tests
 
 These tests translate a Sail model into Coq code and have Coq check its validity.
@@ -129,6 +138,7 @@ tests/coq-tests/test-output/<timestamp>-<commit>[-dirty]/
 
 where `-dirty` indicates that there were uncommitted changes at the time of the run.
 `test-output/latest` is a symbolic link to the most recent run.
+Only the 5 newest runs are kept; `--keep-runs N` changes that (0 keeps all).
 
 A run directory contains
 

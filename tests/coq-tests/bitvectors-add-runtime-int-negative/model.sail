@@ -8,7 +8,7 @@ $include <prelude.sail>
    the correction c_b is 0 or -1.
 
    a_hi is annotated with int: without it, its type is int(if high then 1 else 0),
-   an `if` inside a numeric type, which is a separate gap (inventory pile P11)
+   an `if` inside a numeric type, which is a separate gap
    and which getCapBoundsBits itself also has.
 */
 

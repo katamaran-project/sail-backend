@@ -216,7 +216,27 @@ let katamaran_rewrites =
     ("move_termination_measures", []);
     ("const_prop_mutrec", [R.String_arg "coq"]);
     ("exp_lift_assign", []);
-    (* ("early_return", []);                                              (\* From Coq backend *\) *)
+    (*
+      Pulls early returns out of the positions after which nothing else runs
+      (the last expression of a block, both branches of an if, all arms of a match,
+      the body of a let or var), so that the function body computes the result directly.
+      An if with a return in one branch takes the rest of the block as its other branch.
+
+        function f(x) = {
+          if x < 0 then return 0;
+          let y = x + 1;
+          return y
+        }
+
+      becomes
+
+        function f(x) = if x < 0 then 0 else { let y = x + 1; y }
+
+      A return that cannot be pulled out becomes a call to the builtin early_return,
+      which the translator does not support (see Function.statement_of_application).
+      Functions without return are left alone.
+    *)
+    ("early_return", []);                                              (* From Coq backend *)
     ("recheck_defs", []);
 
     (*

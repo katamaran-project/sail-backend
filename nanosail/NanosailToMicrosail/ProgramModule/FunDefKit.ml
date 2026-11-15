@@ -73,6 +73,7 @@ let rec pp_function_definition
     (* in this branch, the function is monomorphic, so we generate the
       rocq code. *)
     GC.generation_block [%here] (Printf.sprintf "Function Definition %s" @@ Ast.Identifier.to_string function_definition.function_name) begin
+      GC.with_bound_type_level_identifiers (Ast.Identifier.Set.of_list @@ List.map ~f:fst @@ FunDeclKit.type_level_parameters function_definition) begin
       GC.block begin
         (* log that we're generating code for the current function. *)
         let* () =
@@ -173,6 +174,7 @@ let rec pp_function_definition
             PP.annotate [%here] begin
               Coq.pp_definition
                 ~identifier:pp_identifier
+                ~implicit_parameters:(TypeLevelParameters.as_definition_parameters @@ FunDeclKit.type_level_parameters function_definition)
                 ~result_type:pp_result_type
                 pp_body
             end
@@ -195,6 +197,7 @@ let rec pp_function_definition
         in
         (* return the rocq definition  *)
         GC.return coq_definition
+      end
       end
     end
   end
@@ -261,9 +264,12 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
         PP.string "f in Fun Δ τ return Stm Δ τ"
       and cases =
         let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
+          let parameters =
+            FunDeclKit.type_level_parameters function_definition
+          in
           (
-            Identifier.pp function_definition.function_name,
-            Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+            TypeLevelParameters.pp_explicit_application (Identifier.pp function_definition.function_name) parameters,
+            TypeLevelParameters.pp_explicit_application (Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name) parameters
           )
         in
         List.map ~f:case_of_function_definition function_definitions

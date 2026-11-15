@@ -1,0 +1,31 @@
+[DEBUG] nanosail/SailToNanosail/Translation.ml:75
+        Entering Processing definition
+                  $[complete]
+                  function bool_to_bits x = [bool_to_bit(x)]
+[ERROR] nanosail/SailToNanosail/Translation.ml:156
+        Assertion error at nanosail/SailToNanosail/Translate/Function.ml line 394
+        Message: Elements of bit vector should all be bits; they were Type:Bitvector[1]
+        Sail code: $[complete]
+                   function bool_to_bits x = [bool_to_bit(x)]
+[DEBUG] nanosail/SailToNanosail/Translation.ml:75
+        Entering Processing definition
+                   val undefined_bool : unit -> bool
+[INFO] nanosail/SailToNanosail/Translation.ml:60
+       Skipping this definition
+       $[never_fold]
+       val undefined_bool = monadic {_: "undefined_bool"}: unit -> bool
+[DEBUG] nanosail/SailToNanosail/Translation.ml:75
+        Entering Processing definition
+                   val __id : forall ('n : Int). int('n) -> int('n)
+[WARNING] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:53
+          Encountered polymorphic top level type constraint __id without requests for monomorphization
+[INFO] nanosail/SailToNanosail/Translate/TopLevelTypeConstraint.ml:123
+       Translated top level type constraint __id
+[DEBUG] nanosail/NanosailToMicrosail/Translation.ml:10
+        Generating code for function sail_mask
+[WARNING] nanosail/NanosailToMicrosail/Statements.ml:651
+          Ignored cast
+Error occurred during generation: (nanosail/NanosailToMicrosail/FunctionCalls.ml:358) only calls to add_bits_int supported where second argument's value is known at compile time
+  at model.sail:418
+  in call to add_bits_int
+  in body of function getCapBoundsBits

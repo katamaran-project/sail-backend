@@ -2061,8 +2061,36 @@ let test_simplify_swap =
   |} >:: test
 
 
+let test_simplify_numeric_expressions =
+  let n = Ast.Numeric.Expression.Id (Ast.Identifier.mk "kid__n")
+  and c (k : int) = Ast.Numeric.Expression.Constant (Z.of_int k)
+  in
+  let check (input : Ast.Numeric.Expression.t) (expected : Ast.Numeric.Expression.t) : unit =
+    assert_equal
+      ~cmp:Ast.Numeric.Expression.equal
+      ~printer:Ast.Numeric.Expression.to_string
+      expected
+      (Ast.Numeric.Expression.simplify input)
+  in
+  let test _ =
+    (* a negation or power of an expression that is not constant is kept *)
+    check (Neg n) (Neg n);
+    check (PowerOf2 n) (PowerOf2 n);
+    check (Neg (BinaryOperation (Add, c 1, c 2))) (c (-3));
+    (* (8 * n) / 8 and (n * 8) / 8 are n *)
+    check (BinaryOperation (Div, BinaryOperation (Mul, c 8, n), c 8)) n;
+    check (BinaryOperation (Div, BinaryOperation (Mul, n, c 8), c 8)) n;
+    (* (8 * n) / 4 stays *)
+    check (BinaryOperation (Div, BinaryOperation (Mul, c 8, n), c 4)) (BinaryOperation (Div, BinaryOperation (Mul, c 8, n), c 4));
+    (* (8 * n) mod 8 stays *)
+    check (BinaryOperation (Mod, BinaryOperation (Mul, c 8, n), c 8)) (BinaryOperation (Mod, BinaryOperation (Mul, c 8, n), c 8))
+  in
+  "simplify numeric expressions" >:: test
+
+
 let test_suite =
   "simplification" >::: [
+    test_simplify_numeric_expressions;
     test_simplify_unused_let_binder;
     test_simplify_unused_let_binder_2;
     test_simplify_unused_let_binder_3;

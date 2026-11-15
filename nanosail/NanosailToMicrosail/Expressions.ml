@@ -55,13 +55,17 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
             end
           end
         | Bit b -> begin
-            GC.return begin
-                if b
-                then MuSail.Expression.pp_true ()
-                else MuSail.Expression.pp_false ()
-              end
+            (* Sail's bit is bitvector(1) *)
+            GC.return @@ MuSail.Expression.pp_value ~typ:(PP.string "ty.bvec 1") ~value:(MuSail.Value.pp_bit b)
           end
         | Bitvector _ -> GC.not_yet_implemented [%here]
+        | Record _
+        | Enum _ as v -> begin
+            let* pp_value_type = Type.pp_type (Ast.Value.type_of_value v)
+            and* pp_value'     = ValueDefinitions.pp_value v
+            in
+            GC.return @@ MuSail.Expression.pp_value ~typ:pp_value_type ~value:pp_value'
+          end
       end
 
   and pp_binary_operation
@@ -108,6 +112,22 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
             MuSail.Expression.pp_variable @@ Identifier.pp identifier
           end
       end
+
+  (*
+     exp_val <type> <identifier>, where <identifier> is the Rocq definition of the top-level value
+  *)
+  and pp_top_level_value
+      (identifier : Ast.Identifier.t)
+      (typ        : Ast.Type.t      ) : PP.t GC.t
+    =
+    let* pp_value_type = Type.pp_type typ
+    and* rocq_name     = ValueDefinitions.rocq_name_of_top_level_value identifier
+    in
+    GC.return begin
+      PP.annotate [%here] begin
+        MuSail.Expression.pp_value ~typ:pp_value_type ~value:(Identifier.pp rocq_name)
+      end
+    end
 
   and pp_unary_operation
       (operator : Ast.UnaryOperator.t)
@@ -300,17 +320,67 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
       (PP.string "exp_tuple")
       [Coq.pp_list pp_elements]
 
+  (*
+     A bitvector built from single bits, most significant bit first (Sail's [e1, ..., en]).
+
+     If all bits are known at compile time, it becomes a bitvector literal.
+     Otherwise, each element that is not known is a bitvector of length 1 (in Sail, bit is bitvector(1)),
+     and the whole is the concatenation of the elements, where runs of known bits form one literal:
+
+       [b, 0b1, 0b0, c]   becomes   (b @ 0b10) @ c
+
+     Concatenation is bop.bvapp, whose first operand holds the least significant bits:
+     x @ y is generated as exp_binop (@bop.bvapp _ |y| |x|) y x (see FunctionCalls.translate_bitvector_concatenation).
+  *)
   and pp_bitvector (elements : Ast.Expression.t list) : PP.t GC.t =
     (*
-       We currently one support bitvector expressions whose elements are all known at compile-time.
+       Bit literals (bitone, 0b1) are themselves translated as bitvectors of one bit (see Function.expression_of_literal);
+       their bits are spliced in.
     *)
-    let compile_time_digits : bool list option =
-      (* Returns the bit (as Some bit) if it's known at compile time, otherwise None *)
-      let get_compile_time_digit (expression : Ast.Expression.t) : bool option =
+    let elements =
+      let rec flatten (expression : Ast.Expression.t) : Ast.Expression.t list =
         match expression with
-        | Value (Ast.Value.Bit bit) -> Some bit
-        | _                         -> None
+        | Bitvector inner_elements -> List.concat_map ~f:flatten inner_elements
+        | Variable _
+        | TopLevelValue _
+        | Value _
+        | List _
+        | UnaryOperation _
+        | BinaryOperation _
+        | Record _
+        | Enum _
+        | Variant _
+        | Injection _
+        | Tuple _                  -> [ expression ]
       in
+      List.concat_map ~f:flatten elements
+    in
+    (* Returns the bit if it is known at compile time *)
+    let get_compile_time_digit (expression : Ast.Expression.t) : bool option =
+      match expression with
+      | Value (Ast.Value.Bit bit)         -> Some bit
+      | Value (Ast.Value.Bitvector [bit]) -> Some bit
+      | Value (Ast.Value.Bitvector _)     -> None
+      | Value (Ast.Value.Unit)            -> None
+      | Value (Ast.Value.Bool _)          -> None
+      | Value (Ast.Value.Int _)           -> None
+      | Value (Ast.Value.String _)        -> None
+      | Value (Ast.Value.Prod _)          -> None
+      | Value (Ast.Value.Record _)        -> None
+      | Value (Ast.Value.Enum _)          -> None
+      | Variable _
+      | TopLevelValue _
+      | List _
+      | UnaryOperation _
+      | BinaryOperation _
+      | Record _
+      | Enum _
+      | Variant _
+      | Injection _
+      | Tuple _
+      | Bitvector _                       -> None
+    in
+    let compile_time_digits : bool list option =
       Option.all @@ List.map ~f:get_compile_time_digit elements
     in
     match compile_time_digits with
@@ -328,12 +398,83 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
             ~value
         end
       end
-    | None -> GC.not_yet_implemented ~message:"bitvectors with compile-time unknown elements not supported yet" [%here]
+    | None -> begin
+        (*
+           Chunks of the bitvector, most significant first, with their length:
+           a run of known bits, or a single element of length 1.
+        *)
+        let* chunks : (PP.t * int) list =
+          let pp_known_bits (bits : bool list) : PP.t * int =
+            let size = List.length bits
+            in
+            (MuSail.Expression.pp_bitvector ~size ~value:(Util.convert_bits_to_z bits), size)
+          in
+          let rec chunk
+              (known_bits : bool list            )  (* run of known bits seen so far, in reverse *)
+              (elements   : Ast.Expression.t list) : (PP.t * int) list GC.t
+            =
+            let flush (chunks : (PP.t * int) list) : (PP.t * int) list =
+              match known_bits with
+              | []     -> chunks
+              | _ :: _ -> pp_known_bits (List.rev known_bits) :: chunks
+            in
+            match elements with
+            | [] -> GC.return @@ flush []
+            | element :: rest -> begin
+                match get_compile_time_digit element with
+                | Some bit -> chunk (bit :: known_bits) rest
+                | None     -> begin
+                    let* pp_element = pp_expression element
+                    and* rest       = chunk [] rest
+                    in
+                    GC.return @@ flush ((pp_element, 1) :: rest)
+                  end
+              end
+          in
+          chunk [] elements
+        in
+        let concatenate
+            ((low,  low_size ) : PP.t * int)
+            ((high, high_size) : PP.t * int) : PP.t * int
+          =
+          let operator =
+            PP.(surround parens) begin
+              Coq.pp_explicit_application
+                (PP.string "bop.bvapp")
+                [
+                  PP.string "_";
+                  PP.string @@ Int.to_string low_size;
+                  PP.string @@ Int.to_string high_size;
+                ]
+            end
+          in
+          let concatenation =
+            Coq.pp_application
+              (PP.string "exp_binop")
+              [
+                operator;
+                PP.(surround parens) low;
+                PP.(surround parens) high;
+              ]
+          in
+          (concatenation, low_size + high_size)
+        in
+        (* Fold from the least significant chunk: each more significant chunk is appended on the high side *)
+        match List.rev chunks with
+        | []                   -> GC.fail [%here] "empty bitvector"
+        | least :: more        -> begin
+            let (result, _size) =
+              List.fold more ~init:least ~f:concatenate
+            in
+            GC.return @@ PP.annotate [%here] result
+          end
+      end
 
   in
   GC.pp_annotate [%here] begin
     match expression with
     | Variable (identifier, _typ)                       -> pp_variable identifier
+    | TopLevelValue (identifier, typ)                   -> pp_top_level_value identifier typ
     | Value value                                       -> pp_value value
     | UnaryOperation (operator, operand)                -> pp_unary_operation operator operand
     | BinaryOperation (op, e1, e2)                      -> pp_binary_operation op e1 e2

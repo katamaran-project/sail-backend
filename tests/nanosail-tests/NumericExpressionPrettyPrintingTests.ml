@@ -53,6 +53,10 @@ let test_formatting =
       (sub (c 1) (sub (c 2) (c 3)), "1 - (2 - 3)");
       (sub (sub (c 1) (c 2)) (c 3), "1 - 2 - 3");
       (mul (mul (c 1) (c 2)) (mul (c 3) (c 4)), "1 * 2 * 3 * 4");
+      (mul (c 8) (BinaryOperation (Div, id "n", c 8)), "8 * (n / 8)");
+      (BinaryOperation (Div, mul (c 8) (id "n"), c 8), "8 * n / 8");
+      (BinaryOperation (Div, c 1, BinaryOperation (Div, c 2, c 3)), "1 / (2 / 3)");
+      (BinaryOperation (Mod, c 1, mul (c 2) (c 3)), "1 mod (2 * 3)");
       (mul (add (c 1) (c 2)) (add (c 3) (c 4)), "(1 + 2) * (3 + 4)");
       (mul (sub (c 1) (c 2)) (sub (c 3) (c 4)), "(1 - 2) * (3 - 4)");
       (mul

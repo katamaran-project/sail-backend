@@ -30,6 +30,57 @@ type sum_union =
   }
 
 
+(*
+   What the uses of a function that the configuration excludes become.
+   See the Slang functions exclude-functions-as-no-op, exclude-functions-as-failure
+   and exclude-functions-as-unconstrained below.
+*)
+module FunctionExclusion = struct
+  type t =
+    | NoOp            (* a call becomes the unit value; only for functions returning unit *)
+    | Failure         (* a call becomes stm_fail: the call must be unreachable *)
+    | Unconstrained   (* a call becomes an unconstrained value of the call's type *)
+    | Value of string (* a call becomes this Sail expression, type-checked at the call's type *)
+
+  let equal (x : t) (y : t) : bool =
+    match x, y with
+    | NoOp         , NoOp          -> true
+    | Failure      , Failure       -> true
+    | Unconstrained, Unconstrained -> true
+    | Value x      , Value y       -> String.equal x y
+    | NoOp         , (Failure | Unconstrained | Value _)
+    | Failure      , (NoOp | Unconstrained | Value _)
+    | Unconstrained, (NoOp | Failure | Value _)
+    | Value _      , (NoOp | Failure | Unconstrained) -> false
+
+  (* The name of the Slang function that selects this exclusion *)
+  let slang_function_name (exclusion : t) : string =
+    match exclusion with
+    | NoOp          -> "exclude-functions-as-no-op"
+    | Failure       -> "exclude-functions-as-failure"
+    | Unconstrained -> "exclude-functions-as-unconstrained"
+    | Value _       -> "exclude-functions-as-value"
+end
+
+
+(*
+   The semantics of a foreign function, i.e., of a Sail extern that is not translated into a muSail operation.
+   See the Slang functions foreign-function-semantics and foreign-functions-unconstrained below.
+*)
+module ForeignFunctionSemantics = struct
+  type t =
+    | Given of string (* a Rocq term computing the result from the arguments arg1, arg2, ... *)
+    | Unconstrained   (* the result is any value of the result type *)
+
+  let equal (x : t) (y : t) : bool =
+    match x, y with
+    | Given x      , Given y       -> String.equal x y
+    | Unconstrained, Unconstrained -> true
+    | Given _      , Unconstrained
+    | Unconstrained, Given _       -> false
+end
+
+
 module Implementation = struct
   include ConfigLib.BuildContext.Make(struct end)
 
@@ -272,6 +323,26 @@ module Implementation = struct
     let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
     let ignore_top_level_type_constraint_predicate = string_predicate "ignore-top-level-type-constraint-predicate" (Fn.const false)
 
+    (*
+       Names of definitions to ignore in addition to those the predicates above select;
+       see the Slang functions ignore-functions and ignore-values below.
+    *)
+    let ignored_function_names                     = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
+    let ignored_value_names                        = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
+
+    (*
+       Definitions removed together with their uses;
+       see the Slang functions exclude-functions-as-no-op, ..., and exclude-registers below.
+    *)
+    let excluded_functions                         = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : FunctionExclusion.t Base.Map.M(Base.String).t)
+    let excluded_registers                         = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
+
+    (*
+       Semantics of foreign functions given by the configuration, by Sail name;
+       see the Slang functions foreign-function-semantics and foreign-functions-unconstrained below.
+    *)
+    let foreign_function_semantics                 = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
+
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
@@ -372,6 +443,174 @@ module Implementation = struct
       (ConfigLib.Setting.set Exported.ignore_top_level_type_constraint_predicate) predicate
     in
     export_string_predicate_setter exported_function_name setter
+
+
+  (*
+     Slang functions that ignore definitions by name:
+
+       (ignore-functions '("f" "g"))   ignores the function definitions f and g, and their top-level type constraints
+       (ignore-values '("x"))          ignores the top-level let definition x
+
+     The names are ignored in addition to those the ignore predicates select
+     (ignore-function-definition-and-top-level-type-constraints-predicate and
+     ignore-value-definition-predicate), whether the predicate is set before or after.
+     Each call adds to the names of earlier calls.
+
+     The CHERIoT loop (tests/cheriot/run.py) appends such calls to the case study's
+     configuration, for the definitions outside the scope it translates.
+  *)
+  let () =
+    let export_name_adder
+        (export_as : string                        )
+        (setting   : Base.Set.M(Base.String).t ConfigLib.Setting.t) : unit
+      =
+      export_strict_function export_as @@ fun evaluated_arguments -> begin
+        let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+        in
+        ConfigLib.Setting.update setting ~f:(fun ignored -> Base.Set.union ignored (Base.Set.of_list (module Base.String) names))
+      end
+    in
+    export_name_adder "ignore-functions" Exported.ignored_function_names;
+    export_name_adder "ignore-values"    Exported.ignored_value_names
+
+
+  (*
+     Slang functions that exclude definitions together with their uses.
+     Ignoring a function (ignore-functions) only drops its definition, so that its callers
+     call a function that no longer exists. Excluding it also rewrites every call to it:
+
+       (exclude-functions-as-no-op '("f" "g"))
+         Each call becomes the unit value. Only for functions that return unit,
+         such as printing and tracing; a call to one that returns something else is an error.
+
+       (exclude-functions-as-failure '("f"))
+         Each call becomes a failure (muSail's stm_fail), for code that must be unreachable.
+
+       (exclude-functions-as-unconstrained '("f"))
+         Each call becomes an unconstrained value of the call's type: a call to the foreign
+         function (unconstrained σ) of the generated program, whose semantics allows every
+         value of σ, and leaves registers and memory unchanged. A proof about a caller must then
+         hold for every value the call could return: the value is universally quantified.
+         The arguments are still computed, but the result does not depend on them.
+
+       (exclude-functions-as-value '(("f" "None()") ("g" "0")))
+         Each call to f becomes the Sail expression None(), each call to g the expression 0.
+         The expression is type-checked at the type of the call, in the environment of the call,
+         and then translated as if it were written there. Arguments with an effect are still
+         computed (let excluded_call_arguments = <arguments> in <expression>); the others are dropped.
+         For a function whose result is known, such as a platform setting.
+
+       (exclude-registers '("r"))
+         Leaves the register r out of Reg. Each read of r becomes an unconstrained value of its
+         type (as above), each write to r a no-op (the written value is still computed).
+
+     An excluded function's definition and its val specification are left out, as with
+     ignore-functions. A function excluded in two different ways is an error.
+     Each call adds to the names of earlier calls.
+     The names are Sail's names, as in ignore-functions.
+  *)
+  let () =
+    let add_exclusions (exclusions : (string * FunctionExclusion.t) list) : unit =
+      let add
+          (excluded            : FunctionExclusion.t Base.Map.M(Base.String).t)
+          ((name, exclusion)   : string * FunctionExclusion.t                 ) : FunctionExclusion.t Base.Map.M(Base.String).t
+        =
+        match Base.Map.find excluded name with
+        | None                   -> Base.Map.set excluded ~key:name ~data:exclusion
+        | Some earlier_exclusion -> begin
+            if FunctionExclusion.equal earlier_exclusion exclusion
+            then excluded
+            else begin
+              let describe (exclusion : FunctionExclusion.t) : string =
+                match exclusion with
+                | Value value                     -> Printf.sprintf "%s (with %s)" (FunctionExclusion.slang_function_name exclusion) value
+                | NoOp | Failure | Unconstrained  -> FunctionExclusion.slang_function_name exclusion
+              in
+              let message =
+                Printf.sprintf
+                  "Error: %s is excluded twice, by %s and by %s"
+                  name
+                  (describe earlier_exclusion)
+                  (describe exclusion)
+              in
+              failwith message
+            end
+          end
+      in
+      ConfigLib.Setting.update Exported.excluded_functions ~f:(fun excluded -> List.fold exclusions ~init:excluded ~f:add)
+    in
+    let export_function_excluder (exclusion : FunctionExclusion.t) : unit =
+      export_strict_function (FunctionExclusion.slang_function_name exclusion) @@ fun evaluated_arguments -> begin
+        let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+        in
+        add_exclusions @@ List.map names ~f:(fun name -> (name, exclusion))
+      end
+    in
+    export_function_excluder NoOp;
+    export_function_excluder Failure;
+    export_function_excluder Unconstrained;
+    export_strict_function (FunctionExclusion.slang_function_name (Value "")) begin fun evaluated_arguments ->
+      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
+      in
+      add_exclusions @@ List.map pairs ~f:(fun (name, value) -> (name, FunctionExclusion.Value value))
+    end;
+    export_strict_function "exclude-registers" @@ fun evaluated_arguments -> begin
+      let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+      in
+      ConfigLib.Setting.update Exported.excluded_registers ~f:(fun excluded -> Base.Set.union excluded (Base.Set.of_list (module Base.String) names))
+    end
+
+
+  (*
+     Slang functions that set the semantics of foreign functions.
+
+     A Sail extern (a val specification with an extern binding, such as
+     val f = pure {c: "f", _: "f"} : bits(32) -> int, and no Sail body) is translated in one of two ways:
+     a call to an extern that corresponds to a muSail operation (shifts, slices, bitvector subtraction,
+     equality, ...) becomes that operation; any other extern becomes a foreign function: a constructor
+     of FunX with the extern's signature, and each call to it a stm_foreign.
+     The semantics of a foreign function (ForeignCall) never fails and never changes the registers.
+     A pure extern leaves the memory unchanged; a monadic one may change it in any way.
+     Its result is given by a Rocq term, or else unconstrained: any value of the result type,
+     so that a proof about a caller must hold for every value the call could return.
+     Externs of Sail's library with a well-known meaning (integer division and modulus, pow2,
+     min_int, count_leading_zeros, ...) have a default term; the others are unconstrained.
+     See ForeignFunctions in NanosailToMicrosail for the defaults and the translation.
+
+       (foreign-function-semantics '(("f" "Z.gcd arg1 arg2") ("g" "bv.of_Z arg1")))
+         The result of f is the Rocq term Z.gcd arg1 arg2, where arg1, arg2, ... are the arguments,
+         as values (Val σ). The term is the body of a definition whose result type is the
+         extern's (Val τ); its type-level integers (widths) are implicit arguments named kid__n for 'n.
+         bv_width x is the width of the bitvector x.
+
+       (foreign-functions-unconstrained '("f"))
+         The result of f is unconstrained, also if the translator knows a term for it.
+
+     The names are Sail's names. Giving a function two different semantics is an error.
+  *)
+  let () =
+    let add_semantics (pairs : (string * ForeignFunctionSemantics.t) list) : unit =
+      let add
+          (semantics           : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
+          ((name, semantics')  : string * ForeignFunctionSemantics.t                 ) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t
+        =
+        match Base.Map.find semantics name with
+        | None                                                                     -> Base.Map.set semantics ~key:name ~data:semantics'
+        | Some earlier when ForeignFunctionSemantics.equal earlier semantics'      -> semantics
+        | Some _                                                                   -> failwith @@ Printf.sprintf "Error: foreign function %s is given two different semantics" name
+      in
+      ConfigLib.Setting.update Exported.foreign_function_semantics ~f:(fun semantics -> List.fold pairs ~init:semantics ~f:add)
+    in
+    export_strict_function "foreign-function-semantics" begin fun evaluated_arguments ->
+      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
+      in
+      add_semantics @@ List.map pairs ~f:(fun (name, term) -> (name, ForeignFunctionSemantics.Given term))
+    end;
+    export_strict_function "foreign-functions-unconstrained" begin fun evaluated_arguments ->
+      let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
+      in
+      add_semantics @@ List.map names ~f:(fun name -> (name, ForeignFunctionSemantics.Unconstrained))
+    end
 
 
   (*
@@ -504,3 +743,44 @@ let sum_union_for (union_identifier : Ast.Identifier.t) : sum_union option =
 let load_configuration = Implementation.load_configuration
 let get                = ConfigLib.Setting.get
 let set                = ConfigLib.Setting.set
+
+
+(*
+   Whether to ignore the definition with the given name: its ignore predicate
+   selects it, or it is one of the names given to ignore-functions or ignore-values.
+*)
+let should_ignore_function_definition (identifier : string) : bool =
+  get ignore_function_definition_predicate identifier
+  || Base.Set.mem (get ignored_function_names) identifier
+  || Base.Map.mem (get excluded_functions) identifier
+
+let should_ignore_top_level_type_constraint (identifier : string) : bool =
+  get ignore_top_level_type_constraint_predicate identifier
+  || Base.Set.mem (get ignored_function_names) identifier
+  || Base.Map.mem (get excluded_functions) identifier
+
+let should_ignore_value_definition (identifier : string) : bool =
+  get ignore_value_definition_predicate identifier || Base.Set.mem (get ignored_value_names) identifier
+
+
+(*
+   How the uses of the function with the given (Sail) name are translated,
+   if the configuration excludes it; see exclude-functions-as-no-op and the like.
+*)
+let function_exclusion (identifier : string) : FunctionExclusion.t option =
+  Base.Map.find (get excluded_functions) identifier
+
+
+(*
+   Whether the configuration excludes the register with the given (Sail) name; see exclude-registers.
+*)
+let is_excluded_register (identifier : string) : bool =
+  Base.Set.mem (get excluded_registers) identifier
+
+
+(*
+   The semantics the configuration gives to the foreign function with the given (Sail) name, if any;
+   see foreign-function-semantics and foreign-functions-unconstrained.
+*)
+let foreign_function_semantics_for (identifier : string) : ForeignFunctionSemantics.t option =
+  Base.Map.find (get foreign_function_semantics) identifier

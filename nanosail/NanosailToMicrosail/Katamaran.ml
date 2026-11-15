@@ -132,81 +132,90 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
       end
     end
 
+  (*
+     NoConfusion is only derived where Derive EqDec needs it: for records, and for unions
+     with type parameters. Enums and other unions get EqDec instances that do not need it
+     (see EqDec.ml), and nothing else in the generated code uses it.
+  *)
   method pp_no_confusion : PP.t GC.t =
-    let section_identifier : PP.t =
-      PP.string "TransparentObligations"
-    in
-    let section_contents =
-      (*
-        Collect identifiers for which to declare NoConfusion
-        Note: order is important
-      *)
-      let no_confusion_identifiers =
-        let no_confusion_identifier_from_definition _sail_definition (type_definitions : Ast.Definition.Type.t) =
-          match type_definitions with
-          | Abbreviation _                  -> []
-          | Variant      variant_definition -> Types.Variants.no_confusion_identifiers_for variant_definition
-          | Sum          _                  -> []
-          | Enum         enum_definition    -> Types.Enums.no_confusion_identifiers_for enum_definition
-          | Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
-        in
-        let no_confusions_from_definitions =
-          List.concat_map ~f:(Fn.uncurry no_confusion_identifier_from_definition) type_definitions
-        in
-        List.concat [
-          no_confusions_from_definitions;
-          Types.Enums.extra_no_confusion_identifiers ();
-          Types.Variants.extra_no_confusion_identifiers ();
-          Types.Records.extra_no_confusion_identifiers ();
-          Registers.extra_no_confusion_identifiers ();
-        ]
+    let no_confusion_identifiers =
+      let no_confusion_identifier_from_definition _sail_definition (type_definition : Ast.Definition.Type.t) : Ast.Identifier.t list =
+        match type_definition with
+        | Abbreviation _                  -> []
+        | Variant      variant_definition -> if EqDec.variant_has_type_parameters variant_definition then [ variant_definition.identifier ] else []
+        | Sum          _                  -> []
+        | Enum         _                  -> []
+        | Record       record_definition  -> Types.Records.no_confusion_identifiers_for record_definition
       in
-      let transparent_obligations =
-        PP.annotate [%here] @@ PP.string "Local Set Transparent Obligations."
-      and no_confusion_lines =
-        PP.annotate [%here] @@ PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for (List.map ~f:Identifier.pp no_confusion_identifiers)
-      in
-      PP.annotate [%here] @@ PP.paragraphs [ transparent_obligations; no_confusion_lines ]
+      List.concat_map ~f:(Fn.uncurry no_confusion_identifier_from_definition) type_definitions
     in
-    GC.block begin
+    if List.is_empty no_confusion_identifiers
+    then GC.return PP.empty
+    else begin
+      let section_contents =
+        let transparent_obligations =
+          PP.annotate [%here] @@ PP.string "Local Set Transparent Obligations."
+        and no_confusion_lines =
+          PP.annotate [%here] @@ PP.vertical @@ List.map ~f:Coq.pp_derive_no_confusion_for (List.map ~f:Identifier.pp no_confusion_identifiers)
+        in
+        PP.annotate [%here] @@ PP.paragraphs [ transparent_obligations; no_confusion_lines ]
+      in
+      GC.block begin
         GC.generation_block [%here] "No Confusion" begin
-          GC.return @@ Coq.pp_section section_identifier section_contents
+          GC.return @@ Coq.pp_section (PP.string "TransparentObligations") section_contents
         end
       end
+    end
 
+  (*
+     EqDec instances, in the order of the type definitions (an instance can only use the
+     instances before it), followed by the ones of the tag types Enums, Unions, Records
+     and of RegName.
+  *)
   method pp_eqdecs : PP.t GC.t =
-    (*
-      Collect identifiers for which to declare EqDec
-      Note: order is important
-      If EqDecs are in wrong order, Coq will silently fail
-    *)
-    let eqdec_identifiers =
-      let eqdec_identifier_from_definition _sail_definition (type_definition : Ast.Definition.Type.t) =
+    let* instances_from_definitions =
+      let instances_for_definition _sail_definition (type_definition : Ast.Definition.Type.t) : PP.t list GC.t =
         match type_definition with
-        | Abbreviation _                  -> [ ]
-        | Variant      variant_definition -> Types.Variants.eqdec_identifiers_for variant_definition
-        | Sum          _                  -> []
-        | Enum         enum_definition    -> Types.Enums.eqdec_identifiers_for enum_definition
-        | Record       record_definition  -> Types.Records.eqdec_identifiers_for record_definition
+        | Abbreviation _                  -> GC.return []
+        | Sum          _                  -> GC.return []
+        | Enum         enum_definition    -> GC.return [ EqDec.pp_enum_definition_instance enum_definition ]
+        | Variant      variant_definition -> EqDec.pp_variant_definition_instances variant_definition
+        | Record       record_definition  -> GC.return @@ List.map ~f:(Coq.pp_derive_eqdec_for <. Identifier.pp) (Types.Records.eqdec_identifiers_for record_definition)
       in
-      let eqdecs_from_definitions =
-        List.concat_map ~f:(Fn.uncurry eqdec_identifier_from_definition) type_definitions
-      in
-      List.concat [
-        eqdecs_from_definitions;
-        Types.Enums.extra_eqdec_identifiers ();
-        Types.Variants.extra_eqdec_identifiers ();
-        Types.Records.extra_eqdec_identifiers ();
-        Registers.extra_eqdec_identifiers ();
-      ]
+      GC.map ~f:(Fn.uncurry instances_for_definition) type_definitions
     in
-    let coq_lines =
-      List.map ~f:Coq.pp_derive_eqdec_for (List.map ~f:Identifier.pp eqdec_identifiers)
+    let tag_type_instances =
+      let enum_definitions    = Ast.Definition.Select.drop_sail_definitions enum_definitions
+      and variant_definitions = Ast.Definition.Select.drop_sail_definitions variant_definitions
+      and record_definitions  = Ast.Definition.Select.drop_sail_definitions record_definitions
+      and register_identifiers = List.map ~f:(fun (_, (definition : Ast.Definition.Register.t)) -> definition.identifier) register_definitions
+      in
+      let instance (type_identifier : Ast.Identifier.t) (values : Ast.Identifier.t list) : PP.t =
+        EqDec.pp_enum_instance ~type_name:(Identifier.pp type_identifier) ~values:(List.map ~f:Identifier.pp values)
+      in
+      [
+        instance
+          Types.Enums.enums_inductive_type_identifier
+          (Registers.regname_tag :: List.map enum_definitions ~f:(fun (definition : Ast.Definition.Type.Enum.t) -> Identifier.reified_enum_name definition.identifier));
+        instance
+          Types.Variants.variants_inductive_type_identifier
+          (List.map variant_definitions ~f:(fun (definition : Ast.Definition.Type.Variant.t) -> Identifier.reified_variant_name definition.identifier));
+        instance
+          Types.Records.records_inductive_type_identifier
+          (List.map record_definitions ~f:(fun (definition : Ast.Definition.Type.Record.t) -> Identifier.reified_record_name definition.identifier));
+        instance
+          Registers.regname_inductive_type_identifier
+          (List.map ~f:Registers.translate_regname register_identifiers);
+      ]
     in
     GC.block begin
       GC.generation_block [%here] "EqDec" begin
         GC.return begin
-          PP.annotate [%here] @@ PP.vertical coq_lines
+          PP.annotate [%here] @@ PP.paragraphs @@ List.concat [
+            [ EqDec.pp_generic_definitions () ];
+            List.concat instances_from_definitions;
+            tag_type_instances;
+          ]
         end
       end
     end

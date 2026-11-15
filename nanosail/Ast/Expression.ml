@@ -11,6 +11,12 @@ open ExtBase
 
 type t =
   | Variable        of Identifier.t * Type.t
+  (*
+     Reference to a top-level value (a Sail top-level let), with the type of the reference.
+     It is generated as exp_val <type> <identifier>, where <identifier> is the Rocq definition of the value
+     (see NanosailToMicrosail/ValueDefinitions.ml).
+  *)
+  | TopLevelValue   of Identifier.t * Type.t
   | Value           of Value.t
   | List            of t list
   | UnaryOperation  of UnaryOperator.t * t
@@ -41,6 +47,17 @@ let rec equal
   match expression_1, expression_2 with
   | Variable (identifier_1, type_1),
     Variable (identifier_2, type_2) -> begin
+      Identifier.equal
+        identifier_1
+        identifier_2
+      &&
+      Type.equal
+        type_1
+        type_2
+    end
+
+  | TopLevelValue (identifier_1, type_1),
+    TopLevelValue (identifier_2, type_2) -> begin
       Identifier.equal
         identifier_1
         identifier_2
@@ -161,6 +178,7 @@ let rec equal
     end
 
   | Variable _, _                -> false
+  | TopLevelValue _, _           -> false
   | Value _, _                   -> false
   | List _, _                    -> false
   | UnaryOperation _, _          -> false
@@ -179,6 +197,7 @@ exception UnimplementedTypeInference
 let infer_type (expression : t) : Type.t =
   match expression with
    | Variable (_, typ)         -> typ
+   | TopLevelValue (_, typ)    -> typ
    | Value _                   -> raise UnimplementedTypeInference
    | List _                    -> raise UnimplementedTypeInference
    | UnaryOperation (_, _)     -> raise UnimplementedTypeInference
@@ -199,6 +218,12 @@ let rec to_fexpr (expression : t) : FExpr.t =
       (typ        : Type.t      ) : FExpr.t
     =
     FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "Var"
+
+  and top_level_value_to_fexpr
+      (identifier : Identifier.t)
+      (typ        : Type.t      ) : FExpr.t
+    =
+    FExpr.mk_application ~positional:[Identifier.to_fexpr identifier; Type.to_fexpr typ] "TopLevelValue"
 
   and value_to_fexpr (value : Value.t) : FExpr.t =
     FExpr.mk_application ~positional:[Value.to_fexpr value] "Val"
@@ -282,6 +307,7 @@ let rec to_fexpr (expression : t) : FExpr.t =
   in
   match expression with
    | Variable (identifier, typ)                              -> variable_to_fexpr identifier typ
+   | TopLevelValue (identifier, typ)                         -> top_level_value_to_fexpr identifier typ
    | Value value                                             -> value_to_fexpr value
    | List items                                              -> list_to_fexpr items
    | UnaryOperation (operator, operand)                      -> unary_operation_to_fexpr operator operand
@@ -304,6 +330,7 @@ let rec to_fexpr (expression : t) : FExpr.t =
 let rec free_variables (expression : t) : Identifier.Set.t =
   match expression with
    | Variable (identifier, _)                                            -> Identifier.Set.singleton identifier
+   | TopLevelValue _                                                     -> Identifier.Set.empty
    | Value _                                                             -> Identifier.Set.empty
    | List elements                                                       -> Identifier.Set.unions @@ List.map ~f:free_variables elements
    | UnaryOperation (_, operand)                                         -> free_variables operand
@@ -328,6 +355,7 @@ class virtual ['a] visitor =
       method virtual visit_unary_operation : operator : UnaryOperator.t -> operand : t -> 'a
       method virtual visit_value           : value : Value.t -> 'a
       method virtual visit_variable        : identifier : Identifier.t -> typ : Type.t -> 'a
+      method virtual visit_top_level_value : identifier : Identifier.t -> typ : Type.t -> 'a
       method virtual visit_variant         : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> fields : t list -> 'a
       method virtual visit_injection       : side : SumSide.t -> left_type : Type.t -> right_type : Type.t -> value : t -> 'a
   end
@@ -346,6 +374,7 @@ class identity_rewriter =
     method visit (expression : t) : t =
       match expression with
       | Variable (identifier, typ)                                  -> self#visit_variable ~identifier ~typ
+      | TopLevelValue (identifier, typ)                             -> self#visit_top_level_value ~identifier ~typ
       | Value value                                                 -> self#visit_value ~value
       | List elements                                               -> self#visit_list ~elements
       | UnaryOperation (operator, operand)                          -> self#visit_unary_operation ~operator ~operand
@@ -362,6 +391,12 @@ class identity_rewriter =
         ~(typ        : Type.t      ) : t
       =
       Variable (identifier, self#foreign_visit_type typ)
+
+    method visit_top_level_value
+        ~(identifier : Identifier.t)
+        ~(typ        : Type.t      ) : t
+      =
+      TopLevelValue (identifier, self#foreign_visit_type typ)
 
     method visit_value ~(value : Value.t) : t =
       Value value

@@ -19,7 +19,10 @@ let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP
     let generate_field field_identifier field_type =
       let* field_type' = Type.coq_type_of_nanotype field_type
       in
-      GC.return (Identifier.pp field_identifier, field_type')
+      let projection_identifier =
+        Identifier.record_field_projection_name record_definition.identifier field_identifier
+      in
+      GC.return (Identifier.pp projection_identifier, field_type')
     in
     let identifier  = Identifier.pp record_definition.identifier
     and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
@@ -72,13 +75,6 @@ let eqdec_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : A
   [ record_definition.identifier ]
 
 
-let extra_eqdec_identifiers () =
-  [ records_inductive_type_identifier ]
-
-
 let no_confusion_identifiers_for (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =
   [ record_definition.identifier ]
 
-
-let extra_no_confusion_identifiers () =
-  [ records_inductive_type_identifier ]

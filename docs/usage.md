@@ -171,7 +171,7 @@ This can be achieved using
 ```
 
 This causes `foo` to be monomorphized three times into `foo_8_8`, `foo_4_1` and `foo_1_2`.
-See `tests/coq-tests/monomorphize-two-ints`.
+This feature is optional and has no tests at the moment; see [monomorphization](monomorphization.md).
 
 For now, only type-level variables of kind `Int` can be specified.
 
@@ -211,6 +211,146 @@ are translated as follows:
 Nested patterns inside the constructors (e.g., `Some(Foo(x))`) are not supported yet.
 Functions that are polymorphic in types, such as `is_some : forall ('a : Type). option('a) -> bool`, are not supported by Microsail.
 See the `tests/coq-tests/sum-unions-*` tests.
+
+### Ignoring definitions
+
+Ignored definitions are not translated; the log reports each one as skipped.
+Predicates select them by name:
+
+```lisp
+(ignore-function-definition-and-top-level-type-constraints-predicate
+ (lambda (identifier) (string-starts-with? "undefined_" identifier)))
+(ignore-value-definition-predicate (lambda (identifier) (= identifier "initial_regstate")))
+(ignore-type-definition-predicate (lambda (identifier) (= identifier "regstate")))
+(ignore-pragmas (lambda (identifier) (= identifier "file_start")))
+(ignore-all-overloads)
+```
+
+A later call of the same predicate function replaces the earlier predicate.
+To ignore definitions by name in addition to what the predicates select, use
+
+```lisp
+(ignore-functions '("foo" "bar"))   ; function definitions and their top-level type constraints
+(ignore-values '("baz"))            ; top-level let definitions
+```
+
+These names are ignored whether the predicates are set before or after, and each call adds to the names of earlier calls.
+The CHERIoT loop (`tests/cheriot/run.py`) uses them to ignore everything outside its scope.
+See `tests/coq-tests/ignore-functions-by-name`.
+
+### Excluding definitions together with their uses
+
+Ignoring a function only drops its definition: its callers still call it, so they refer to a function that `machine.v` does not define.
+*Excluding* a definition drops it and also rewrites every use of it. The configuration says what a use becomes:
+
+```lisp
+(exclude-functions-as-no-op '("print_reg" "trace_write"))   ; a call becomes the unit value
+(exclude-functions-as-failure '("translate32"))             ; a call becomes stm_fail
+(exclude-functions-as-unconstrained '("pmp_allows"))        ; a call becomes an unconstrained value
+(exclude-functions-as-value '(("pmp_check" "None()")))      ; a call becomes the given Sail expression
+(exclude-registers '("pmpaddr0" "pmpcfg_n"))                 ; left out of Reg
+```
+
+- **No-op**: each call becomes the unit value `stm_exp (exp_val ty.unit tt)`. Only for functions that return `unit`, such as printing and tracing.
+  A call to such a function that has another type stops the translation with an error.
+- **Failure**: each call becomes `stm_fail τ "f is excluded by the configuration"`, for code that must be unreachable.
+  Whether a failure is harmless depends on Katamaran's `fail_rule_pre`: when it is false, a contract must show that the failure cannot happen.
+- **Unconstrained**: each call becomes an unconstrained value of the call's type τ, `stm_foreign (unconstrained τ) env.nil`.
+  The generated program declares one foreign function family, `unconstrained (σ : Ty) : FunX ctx.nil σ`, whose `ForeignCall` semantics allows every value of σ, never fails, and leaves registers and memory unchanged.
+  A proof about a caller must therefore hold for every value the call could return: the value is universally quantified, as undefined values are.
+  The result does not depend on the arguments, and two calls can return different values. The arguments are still computed.
+  (`unconstrained` has an implicit argument, a value of σ, which Rocq finds by type class search. It only shows that σ has a value, which `ForeignProgress` needs; it plays no part in the semantics.)
+- **Value**: each call becomes the given Sail expression, parsed, then type-checked at the type of the call in the call's environment, and translated as if it were written there.
+  Arguments with an effect are still computed (`let excluded_call_arguments = <arguments> in <expression>`); the others are dropped.
+  For a function whose result is known or chosen, such as a platform setting (`sys_pmp_count` is `0`) or a check that is assumed to pass (`pmpCheck` is `None()`).
+  An expression that does not parse or type-check stops the translation with an error. The expression cannot contain a double quote (Slang strings have no escapes).
+- **Registers**: an excluded register is left out of `Reg`. Each read of it becomes an unconstrained value of its type, as above, and each write a no-op (the written value is still computed).
+
+An excluded function's definition and its `val` specification are not translated, as with `ignore-functions`.
+The names are Sail's names. Each call adds to the names of earlier calls; excluding the same function in two different ways is an error.
+The CHERIoT loop generates these calls from the `[policy-excluded]` table of `tests/cheriot/scope.toml` ([loop](../case-studies/cheriot/docs/loop.md#policy-exclusions)).
+See the `tests/coq-tests/exclude-*` tests. `exclude-functions-as-value` takes pairs of the function's name and the expression.
+
+### Externs: muSail operations and foreign functions
+
+A Sail *extern* is a `val` specification with an extern binding and no Sail body, such as
+`val emod_int = pure {ocaml: "modulus", …, _: "emod_int"} : (int, int) -> int`.
+A call to an extern becomes one of two things:
+
+- **A muSail operation**, when the extern corresponds to one and the call's arguments allow it.
+  The translator recognises an extern by its *binding key*: its binding for all targets (`_`), or else its binding for C (`c`), or else its Sail name.
+  So sail-riscv's `val shiftl = pure {_: "shiftl"}` is recognised as Sail's `sail_shiftleft`.
+
+  | binding key | becomes | condition |
+  |---|---|---|
+  | `shiftl`, `shiftr` | `bop.shiftl`, `bop.shiftr` (the amount converted as for `sail_shiftleft`) | amount or width known at compile time |
+  | `shift_bits_left`, `shift_bits_right` | `bop.shiftl`, `bop.shiftr` | |
+  | `sub_vec` | `bop.bvsub` | |
+  | `sub_vec_int` | `bop.bvsub` (the integer converted as for `add_bits_int`) | |
+  | `eq_anything` | `bop.relop bop.eq` | |
+  | `vector_access` on bits | `uop.vector_subrange i 1` | index and width known at compile time |
+  | `get_slice_int` | `uop.get_slice_int (n := w)` | width known, start 0 |
+  | `sail_truncateLSB` | `uop.vector_subrange (n - m) m` | both widths known |
+
+  Sail-named builtins that were already translated as operations (`sail_zero_extend`, `truncate`, `sail_shiftleft`, …) become foreign calls
+  where they used to stay a call to an undefined function or become a hole (for example a width that is not known at compile time).
+- **A foreign function** otherwise: a constructor of `FunX` with the extern's signature, and each call a `stm_foreign`:
+
+  ```coq
+  | popcount {kid__n : nat} : FunX [ "arg1" ∷ ty.bvec (kid__n) ] (ty.int)
+  ...
+  stm_foreign popcount (env.snoc env.nil (_::_) (exp_var "w"))
+  ```
+
+  The parameters are named `arg1`, `arg2`, …; a `unit` parameter stays, as for functions.
+  The type-level integers of bitvector widths (and type variables) become implicit arguments, which Rocq infers at the call.
+  Only the externs that some call is translated into a foreign call to get a constructor.
+  An extern whose signature muSail cannot express (vectors, type applications, a result of a type variable's type) keeps the old translation, a `stm_call` to a function that `machine.v` does not define.
+
+The semantics of a foreign function (`ForeignCall`, in `machine.v`) never fails and never changes the registers.
+A `pure` extern leaves the memory unchanged; a `monadic` one may change it in any way.
+Its result is either given by a Rocq term, or else *unconstrained*: any value of the result type, so that a proof about a caller must hold for every value the call could return (the value is universally quantified, as undefined values are).
+Two calls to an unconstrained foreign function can return different values, even without arguments: a platform setting such as `plat_ram_base` is not a fixed constant unless the configuration gives it a term.
+
+```lisp
+(foreign-function-semantics '(("gcd_int" "Z.gcd arg1 arg2")
+                              ("plat_ram_base" "bv.of_Z 0x80000000")))
+(foreign-functions-unconstrained '("pow2"))
+```
+
+- `foreign-function-semantics` gives the result as a Rocq term, the body of
+  `Definition semantics_<name> {kid__n : nat} (arg1 : Val σ1) … : Val τ := <term>.`
+  The term refers to the arguments as `arg1`, `arg2`, …, to the type-level integers as `kid__n` (for `'n`), and can use `bv_width x`, the width of the bitvector `x`.
+- `foreign-functions-unconstrained` makes the result unconstrained, also when the translator has a default term.
+
+Externs of Sail's library with a well-known meaning have a default term (by binding key; see `default_semantics` in `nanosail/NanosailToMicrosail/ForeignFunctions.ml`):
+`emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`,
+and, for the calls that do not become operations, `zeros` (`sail_zeros`), `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`.
+All other externs (platform settings, memory and tag accesses, `cancel_reservation`, …) are unconstrained.
+No foreign function reads the memory, so its contents cannot be observed; a term that reads it would need the writes to have a semantics too.
+The names are Sail's names; giving a function two different semantics is an error.
+See the tests `tests/coq-tests/externs-foreign-functions` and `externs-operations`.
+
+### Functions polymorphic in a width or a type
+
+A Sail function that is polymorphic in the width of a bitvector, or in a type, becomes one `Fun` constructor with the widths and types as implicit arguments,
+in order of appearance in its signature, and one definition for all of them:
+
+```coq
+| extend_to {kid__n : nat} {kid__m : nat} : Fun [ "m" ∷ ty.int; "v" ∷ ty.bvec (kid__n) ] (ty.bvec (kid__m))
+Definition fun_extend_to {kid__n : nat} {kid__m : nat} : Stm [ ... ] (ty.bvec (kid__m)) := ...
+```
+
+This is what Katamaran's RiscvPmp case study does by hand (`read_ram (bytes : nat)`); a contract can be proved once for all widths.
+Rocq infers the arguments at each call. A width that only appears in an integer type (`int('n)`) needs none: `ty.int` has no index.
+Sail's constraints on the widths are not translated, so inside such a function:
+
+- an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`sail_zero_extend`, …), since µSail's `uop.zext` would need a proof that the widths are ordered;
+- a width that depends on the *value* of a parameter (`val f : forall 'n. (itself('n), …)` with `bits('n)` in its body) or that divides a size variable (`bits(8 * ('n / 8))`) is a hole (`NYI`), with a message that says so;
+- a call to a function whose result type alone mentions a type variable (`internal_error : … -> 'a`), whose value is discarded, gets the type `unit`.
+
+Explicit monomorphisation (`monomorphize`) is unaffected.
+See the test `tests/coq-tests/size-parameters-implicit`.
 
 ### `$include`
 
