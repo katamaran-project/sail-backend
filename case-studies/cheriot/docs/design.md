@@ -95,7 +95,10 @@ val htif_store : forall 'n 'p8_times_n, 0 < 'n <= 8 & 'p8_times_n == 8 * 'n.   /
      | right _ => stm_fail _ "unreachable: Sail's typing fixes kid__p8_times_n = 32 here"
      end) ...
   ```
+  - A branch fact that fixes no value (`'n <= 8` in `mmio_write`, before calling `htif_store`) is decided the same way, with `sail_decide : {IsTrue b} + {~ IsTrue b}`; the `lia` hint uses it.
+  - Both branches of an `if` are considered; only the size variables of the variables in scope (not Sail's existentials) go to Sail's solver.
   - `fundef_bindfree` case-splits on these decisions before `vm_compute`.
+- **Widths Sail proves equal to a size variable**: a let-bound width such as `8 * ('p8_times_n / 8)` (`read_ram`) or `8 * 'n` is replaced by the size variable (`'p8_times_n`) when Sail's solver proves them equal under the constraints; Rocq could not identify them otherwise.
 - **Not changed**: the `ForeignKit` (externs need no hypotheses; their semantics is total), and explicit `monomorphize` (monomorphs are closed).
 - Why: one definition and one contract for all widths, as RiscvPmp's `{H : restrict_bytes bytes}`; the hypotheses are exactly what Sail's type checker assumed.
 - Sail's constraints on the widths become implicit hypotheses (below).

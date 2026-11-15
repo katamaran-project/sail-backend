@@ -2,23 +2,19 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-4 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm` (the memory path).
+4 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm` (`translationMode`; for loads also the read path).
 
 ## Memory path
 
-- **Writes over `bits('p8_times_n)` need Sail's constraints.** The memory-write chain does not type-check in Rocq.
-  ```sail
-  val htif_store : forall 'n, 0 < 'n <= 8. (xlenbits, int('n), bits(8 * 'n)) -> MemoryOpResult(bool)
-  // a slice of data : bits('p8_times_n) needs 16 <= 'p8_times_n;
-  // after `if width == 4`, Sail's flow typing makes data a bits(32)
-  ```
-  - Needs: Sail's constraints (`'p8_times_n == 8 * 'n`, bounds) as Rocq preconditions, as RiscvPmp's `{H : restrict_bytes bytes}`, and flow-typed widths.
-  - Blocks: `STORE`, `StoreCapImm`; the Rocq probe stops at `htif_store`. With the 13 functions over `bits('p8_times_n)` axiomatised, all of `machine.v` compiles.
+- **Writes**: done. Sail's constraints are hypotheses and flow-typed branches are decided in Rocq ([design](design.md#constraints-on-widths-are-implicit-hypotheses)); the whole write chain type-checks with its real bodies.
+  - `STORE`, `StoreCapImm` still wait for `translationMode` (option patterns), `STORE` also for `ext_handle_data_check_error` (below).
 - **Unions at an open type argument**: `MemoryOpResult(bits(8 * 'n))` needs a width-indexed union family (RiscvPmp's `ty_memory_op_result bytes`).
-  - Untranslated: `mem_read`, `mem_read_priv(_meta)`, `mem_read_meta`, `phys_mem_read`, `pmp_mem_read`, `checked_mem_read`, `mmio_read`, `clint_load`, `htif_load`, `uart_load`, `rvfi_read`, `process_load`, `extend_value`, `phys_mem_write`.
-  - Blocks: `LOAD`, `LoadCapImm`, `STORE`, `StoreCapImm`, and `fetch`.
-- **Functions polymorphic in a type**: `MemoryOpResult_add_meta`, `MemoryOpResult_drop_meta` (over `'t`). Need unions indexed by a `Ty`. Block `LOAD`, `LoadCapImm`.
-- **Widths that divide a size variable or depend on a value**: `read_ram`'s `bits(8 * ('p8_times_n / 8))`, `align_down`'s `bits('n)` for `n : itself('n)`. Holes. Block `LOAD`, `LoadCapImm`.
+  - Untranslated: `mem_read`, `mem_read_priv(_meta)`, `mem_read_meta`, `phys_mem_read`, `pmp_mem_read`, `checked_mem_read`, `mmio_read`, `clint_load`, `htif_load`, `uart_load`, `rvfi_read`, `process_load`, `extend_value`.
+  - Needs: a union family indexed by a `nat` (`Umemoryopresult_bits (n : nat)`), shared by the closed instances (`MemoryOpResult(bits(32))` is the family at 32).
+  - Blocks: `LOAD`, `LoadCapImm`, and `fetch`.
+- **Functions polymorphic in a type**: `MemoryOpResult_add_meta`, `MemoryOpResult_drop_meta` (over `'t`). Unions cannot be indexed by a `Ty` in Katamaran (`Ty` is built over the unions). Needs a decision (copies per type, or inlining). Block `LOAD`, `LoadCapImm`.
+- **Widths that depend on a value**: `align_down`'s `bits('n)` for `n : itself('n)`. Holes. Block `LOAD`, `LoadCapImm`.
+  - A width that Sail's solver proves equal to a size variable is that variable (`read_ram`'s `bits(8 * ('p8_times_n / 8))`).
 
 ## Patterns
 

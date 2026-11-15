@@ -5,6 +5,14 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Unions at a flow-typed boolean had no instance
+- Found: `phys_mem_write` untranslated ("union MemoryOpResult with type parameter used at non-closed type arguments `bool('_#result)`").
+- Cause: `let result = MemValue(write_ram(...))` has type `MemoryOpResult(bool('p))`; the union instances were looked up by the type argument as written, and `bool('p)` is not closed.
+- Fix: `bool('p)` and `int('n)` are `bool` and `int` in union type arguments (the translation erases the index anyway). Test `size-constraints-hypotheses` (`flag_result`).
+```sail
+let r = Ok(width > 4)    // r : Res(bool('p)), now the instance Res(bool)
+```
+
 ### Concatenation widths behind type abbreviations were holes
 - Found: the loop's top blocker, `tag_addr_to_addr` (4 instructions); also `ext_data_get_addr`, `execute_CSetHigh`, `writeCSR`.
 - Cause: `@` read each operand's width from its type as is; `tagaddrbits` is `bits(xlen - log2_cap_size)`, `bits(32 - 3)` after Sail's rewrites, not a constant: `NYI` ("expected constant in bitvector type").
