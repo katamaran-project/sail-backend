@@ -56,9 +56,49 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 - Why: one contract and one proof cover all widths.
   Katamaran's hand-written RiscvPmp model does the same (`mem_read (bytes : nat)`, proved once with `vm_reflexivity`).
   Monomorphisation (one copy per width) would need one contract and one proof per copy.
-- Sail's constraints on the widths (`'m >= 'n`, `'p8_times_n == 8 * 'n`) are not translated yet:
-  - an extension or truncation of a bitvector of variable width is a foreign call (`uop.zext` needs a proof of `n <= m`);
+- Not translated yet:
+  - an extension or truncation of a bitvector of variable width is a foreign call (`uop.zext` would need a proof of `n <= m`);
   - a width that depends on a value (`itself('n)`) or divides a size variable is a hole (`NYI`).
+
+## Constraints on widths are implicit hypotheses
+
+```sail
+val htif_store : forall 'n 'p8_times_n, 0 < 'n <= 8 & 'p8_times_n == 8 * 'n.   // after Sail's rewrites
+  (xlenbits, int('n), bits('p8_times_n)) -> MemoryOpResult(bool)
+```
+```coq
+| htif_store {kid__p8_times_n : nat} {kid__n : nat}
+    {H : IsTrue ((0 <? Z.of_nat kid__n) && (Z.of_nat kid__n <=? 8) && (Z.of_nat kid__p8_times_n =? 8 * Z.of_nat kid__n))%Z}
+    : Fun ["paddr" ∷ ty.bvec 32; "width" ∷ ty.int; "data" ∷ ty.bvec kid__p8_times_n] (ty.union Umemoryopresult_bool)
+```
+- **Which constraints**: the conjuncts of the function's quantifier that mention a width parameter.
+  - Their other size variables become parameters too (`kid__n` above, which only `int('n)` mentions); repeated until nothing changes.
+  - One hypothesis `H` per function: Katamaran's `IsTrue` of the conjuncts as a boolean over `Z` (`Z.of_nat` of each parameter), so that Sail's integer semantics (subtraction) is kept.
+  - A conjunct Rocq cannot express (a boolean variable, an `App`) is left out: weaker, so sound; a body that needs it fails in Rocq.
+  - The `Fun` constructor, the definition `fun_f` and the `FunDef` case (`@f kid__p8_times_n kid__n H => @fun_f kid__p8_times_n kid__n H`) take the same parameters.
+- **Discharging them**: by Rocq's type class search, as for Katamaran's own `IsTrue` side conditions (`uop.vector_subrange`):
+  - at concrete widths, Katamaran's hint computes the boolean;
+  - otherwise, a hint in `machine.v` (`sail_constraint`) turns the `IsTrue` hypotheses in scope (the caller's own `H`, branch facts) into arithmetic and calls `lia`.
+  - The same hint proves the side conditions in the body: a slice `data[15 .. 0]` needs `IsTrue (0 + 16 <=? kid__p8_times_n)`.
+- **Parameters Rocq cannot infer** (those only the constraints relate to the types) are passed by name, from the argument of type `int('n)`:
+  ```coq
+  stm_call (htif_store (kid__n := 4)) [paddr; exp_int 4; data]
+  ```
+- **Branch facts** (Sail's flow typing): in a branch where Sail's constraints fix a size variable (`width == 4` gives `'n == 4`, so `'p8_times_n == 32`):
+  - the branch is translated with the variable replaced by its value;
+  - a Rocq match on `Nat.eq_dec` gives the equality, and each variable whose type mentions it is rebound with a cast;
+  - the other arm is unreachable (Sail's typing guarantees `width = n`): `stm_fail`.
+  ```coq
+  stm_if (exp_var "width" = exp_int 4)
+    (match Nat.eq_dec kid__p8_times_n 32 with
+     | left H1 => stm_let "data" (ty.bvec 32) (stm_exp (sail_cast (fun k => ty.bvec k) H1 (exp_var "data"))) ...
+     | right _ => stm_fail _ "unreachable: Sail's typing fixes kid__p8_times_n = 32 here"
+     end) ...
+  ```
+  - `fundef_bindfree` case-splits on these decisions before `vm_compute`.
+- **Not changed**: the `ForeignKit` (externs need no hypotheses; their semantics is total), and explicit `monomorphize` (monomorphs are closed).
+- Why: one definition and one contract for all widths, as RiscvPmp's `{H : restrict_bytes bytes}`; the hypotheses are exactly what Sail's type checker assumed.
+- Sail's constraints on the widths become implicit hypotheses (below).
 - A union with a type parameter becomes one monomorphic copy per *closed* type argument it is used at (`MemoryOpResult_bool`); unions at an open type wait for width-indexed unions ([roadmap](roadmap.md)).
 - The `monomorphize` option still exists but is not used here.
 
