@@ -27,8 +27,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Rocq output
 
-- **Calls to out-of-scope instructions.** `execute` still calls the 86 `execute_<C>` outside the scope, which `machine.v` does not define.
-  Needs: those calls as failures (the dispatcher's out-of-scope arms excluded as `failure`). Blocks plain Rocq of `machine.v`.
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
 
 ## Later

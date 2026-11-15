@@ -10,7 +10,8 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   - Out for now: compressed instructions, bit manipulation (Zb\*), vector.
 - **The scope is computed, not listed**: from the model's call graph (Sail's AST after the rewrites).
   - In scope: the roots (`step`, `fetch`, `ext_decode`, `encdec_backwards`, `init_model`), all registers, and `execute_<C>` for each in-scope instruction `C`.
-  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 86 calls stay in `machine.v` as calls to missing functions.
+  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 86 calls are failures (`exclude-functions-as-failure`):
+    executing an instruction outside the core is unreachable for a proof about the core (a contract must show it, or `fail_rule_pre` makes it vacuous).
   - Everything else is ignored by a generated configuration (`ignore-functions`, `ignore-values`). Types are never ignored: an unused type is harmless.
 - **No virtual memory.** CHERIoT has no S-mode, so `satp` is never written and Sv32 translation is dead code.
   - `translate32`, `translationException`: failures (unreachable while `satp`'s reset mode is 0, which a proof must assume).

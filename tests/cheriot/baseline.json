@@ -59,7 +59,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "21ea087c+dirty",
+ "commit": "8a0d54ab+dirty",
  "date": "2026-11-15",
  "definitions": {
   "CGP_IDX": "ok",
@@ -613,7 +613,7 @@
   "hard failures": 0,
   "instructions clean": 57,
   "instructions generated": 61,
-  "missing calls": 101,
+  "missing calls": 15,
   "untranslated definitions": 35
  },
  "holes": {
@@ -2157,6 +2157,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261115T035032-21ea087c-dirty",
+ "run": "20261115T035403-8a0d54ab-dirty",
  "scope": "607441a76cdf"
 }

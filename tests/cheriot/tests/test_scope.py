@@ -88,12 +88,19 @@ class DispatcherInScopeTests(unittest.TestCase):
         self.assertIn('execute_FOO', self.scope.mentioned)
         self.assertFalse(self.scope.includes('execute_FOO'))
 
+    def test_out_of_scope_instructions_are_failures(self):
+        self.assertEqual(self.scope.undispatched, {'execute_FOO'})
+        self.assertIn("(exclude-functions-as-failure\n  '(\n   \"execute_FOO\"\n  ))\n", scope.configuration(self.scope))
+
     def test_unexpected_calls(self):
+        # execute's call to execute_FOO should have become a failure
         calls = [dangling.DanglingCall('execute_FOO', 1, 'outside the scope', '', ['execute']),
                  dangling.DanglingCall('vector_helper', 2, 'outside the scope', '', ['helper', 'step']),
                  dangling.DanglingCall('truncate', 1, 'extern', '', ['helper'])]
         self.assertEqual(scope.unexpected_calls(calls, self.scope),
-                         ['helper, step call vector_helper, which is outside the scope'])
+                         ['execute still calls execute_FOO, which is the function of an out-of-scope instruction: '
+                          'the translation should have removed the call',
+                          'helper, step call vector_helper, which is outside the scope'])
 
 
 class ConfigurationTests(unittest.TestCase):
