@@ -5,6 +5,17 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### A binder in a `match` on a `bool` was dropped
+- Found: while translating `match` on a `bool` (`encdec_backwards`); the pattern tree logged "ignoring binder while matching bool".
+- Cause: the `Bool` node of the pattern tree keeps no binders, so `s => ... s ...` left `s` unbound.
+- Fix: a binder case becomes a wildcard case whose body starts with `let s = <matched value>`. Test `match-bool-mapping`.
+```sail
+match bool_not_bits_backwards(mapping0#) { s => Some(DIV((rs2, rs1, s))) }    // Sail's rewrite of the DIV encoding
+```
+```coq
+(* after *) stm_let "ga#15" (ty.bool) (stm_call bool_not_bits_backwards ...) (... exp_var "ga#15" ...)
+```
+
 ### Tuple pattern at a tuple type abbreviation untranslated
 - Found: `ext_handle_data_check_error` untranslated ("expected pattern AP_tuple _ while matching type Alias").
 - Cause: patterns and matches were translated by the matched type as is; an abbreviation (`Alias`) was treated as an atomic type, which only a variable or wildcard pattern matches.

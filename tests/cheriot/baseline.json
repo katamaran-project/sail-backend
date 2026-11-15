@@ -59,7 +59,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "8a0d54ab+dirty",
+ "commit": "fc9a4219+dirty",
  "date": "2026-11-15",
  "definitions": {
   "CGP_IDX": "ok",
@@ -275,7 +275,7 @@
   "effective_fence_set": "ok",
   "encCapToBits": "ok",
   "encCapabilityToCapability": "ok",
-  "encdec_backwards": "missing",
+  "encdec_backwards": "ok",
   "encdec_bop_backwards": "ok",
   "encdec_bop_backwards_matches": "ok",
   "encdec_capmode_backwards": "ok",
@@ -609,12 +609,12 @@
  },
  "headline": {
   "NYI holes": 4,
-  "functions generated": 481,
+  "functions generated": 482,
   "hard failures": 0,
   "instructions clean": 57,
   "instructions generated": 61,
-  "missing calls": 15,
-  "untranslated definitions": 35
+  "missing calls": 14,
+  "untranslated definitions": 34
  },
  "holes": {
   "align_down": 3,
@@ -1173,6 +1173,7 @@
     "writeCSR",
     "encdec_capmode_backwards",
     "encdec_compressed_capmode_backwards",
+    "encdec_backwards",
     "encdec_compressed_backwards",
     "execute_WFI",
     "execute_UTYPE",
@@ -2059,6 +2060,7 @@
     "writeCSR",
     "encdec_capmode_backwards",
     "encdec_compressed_capmode_backwards",
+    "encdec_backwards",
     "encdec_compressed_backwards",
     "execute_WFI",
     "execute_UTYPE",
@@ -2157,6 +2159,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261115T035403-8a0d54ab-dirty",
+ "run": "20261115T040122-fc9a4219-dirty",
  "scope": "607441a76cdf"
 }

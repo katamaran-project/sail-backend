@@ -9,21 +9,21 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `8a0d54ab` plus `execute`'s out-of-scope arms as failures; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `fc9a4219` plus matches on a `bool`; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **57 of 61**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSEQX`, `CSR`, `CSeal`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSetHigh`, `CSpecialRW`, `CSub`, `CTestSubset`, `CUnseal`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCE_TSO`, `ITYPE`, `MRET`, `MUL`, `MULW`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `UTYPE`, `WFI` |
 | instructions generated | 61 of 61 |
-| functions generated | 481 of 500 |
-| untranslated definitions | 35 |
+| functions generated | 482 of 500 |
+| untranslated definitions | 34 |
 | `NYI` holes | 4 (`align_down` 3, `read_ram` 1; 3 make previously ill-typed widths explicit: a width that depends on a value, divides a size variable, or is existential) |
 | hard failures | 0 |
-| calls to missing functions | 15, all to untranslated definitions; `execute`'s 86 calls for out-of-scope instructions are failures ([design](design.md#scope)) |
+| calls to missing functions | 14, all to untranslated definitions; `execute`'s 86 calls for out-of-scope instructions are failures ([design](design.md#scope)) |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 39, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2352`: 29 of its 508 definitions, then the first `NYI` hole (`align_down`) |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 370 of its 508 definitions; it stops at `machine.v:15188`, `htif_store`, on the memory path (a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom ([loop](loop.md#rocq)) |
+| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2355`: 29 of its 509 definitions, then the first `NYI` hole (`align_down`) |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 370 of its 509 definitions; it stops at `machine.v:15191`, `htif_store`, on the memory path (a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom ([loop](loop.md#rocq)) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -31,7 +31,6 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 
 - Memory loads and stores (`LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`) are not clean: the size-polymorphic memory path needs Sail's constraints and width-indexed unions.
 - `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
-- The main decoder `encdec_backwards` is untranslated (a `match` on a `bool`).
 - Plain Rocq stops at the first `NYI` hole in `machine.v`.
 - PMP is absent (`sys_pmp_count = 0`) and virtual memory is excluded; see [design](design.md#scope).
 - Details and what each blocks: [roadmap](roadmap.md).
@@ -74,6 +73,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-15 | `8917c700` | core | 61 / 61, 55 clean | 480 / 500 | 36 | 12 | 0 | `machine.v:15174` `htif_store` (369 of 507) | nested patterns inside sum constructors (`Some(RV32)`, `Some(intr, priv)`): `translationMode`, `step`, `dispatchInterrupt` translate; `step` now calls the untranslated `try_execute` (missing calls +1) |
 | 2026-11-15 | merge | core | 61 / 61, 57 clean | 481 / 500 | 35 | 4 | 0 | `machine.v:15188` `htif_store` (370 of 508) | `option-patterns` merged into `e2e-loop`: `translationMode`, `step`, `dispatchInterrupt` translate |
 | 2026-11-15 | `8a0d54ab`+ | core | 61 / 61, 57 clean | 481 / 500 | 35 | 4 | 0 | `machine.v:15188` `htif_store` (370 of 508) | `execute`'s calls for the 86 out-of-scope instructions are failures: missing calls 101 -> 15; with the 13 functions over `bits('p8_times_n)` axiomatised, all of `machine.v` compiles, `execute` included |
+| 2026-11-15 | `fc9a4219`+ | core | 61 / 61, 57 clean | 482 / 500 | 34 | 4 | 0 | `machine.v:15191` `htif_store` (370 of 509) | `match` on a `bool` (binders bound to the matched value): the main decoder `encdec_backwards` translates; with the 13 functions over `bits('p8_times_n)` axiomatised, Rocq gets to it and runs past the 45 s stall limit on it |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

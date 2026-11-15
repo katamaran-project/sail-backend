@@ -22,11 +22,11 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Patterns
 
-- **`match` on a `bool`**: `encdec_backwards` (the main decoder), from `bool_not_bits(s)` in the `DIV` encoding.
-  Blocks decoding; not counted in clean instructions, as decoders are not in their call cones.
+- **A `match` on a bitvector with only a wildcard**: `match head_exp# {_ => false}` in Sail's `*_matches` mapping helpers. Not in scope today.
 
 ## Rocq output
 
+- **Slow decoder**: `coqc` runs longer than the 45 s stall limit on `encdec_backwards` (every definition before it compiles, with the memory-write functions axiomatised).
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
 
 ## Later

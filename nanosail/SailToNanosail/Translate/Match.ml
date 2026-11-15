@@ -3329,6 +3329,59 @@ let translate_enum_match
 
 
 (*
+   A match on a bool, such as the one Sail's mapping rewrites make for bool_not_bits in sail-riscv's decoder:
+
+     match bool_not_bits_backwards(b) { s => Some(DIV(rs2, rs1, rd, s)) }
+
+   The Bool pattern tree node keeps no binders, so a case with a binder becomes a case with a wildcard
+   whose body binds the matched value first:
+
+     match v { _ => let s = v in Some(DIV(rs2, rs1, rd, s)) }
+*)
+let translate_bool_match
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
+  =
+  let bind_binder ((pattern, statement) : Pattern.t * Ast.Statement.t) : Pattern.t * Ast.Statement.t =
+    match pattern with
+    | Binder { identifier; wildcard = false } -> begin
+        let statement =
+          Ast.Statement.Let {
+            binder                 = identifier;
+            binding_statement_type = Ast.Type.Bool;
+            binding_statement      = Ast.Statement.Expression (Ast.Expression.Variable (matched_identifier, Ast.Type.Bool));
+            body_statement         = statement;
+          }
+        in
+        (Pattern.Binder { identifier; wildcard = true }, statement)
+      end
+    | Binder { wildcard = true; _ } -> (pattern, statement)
+    | BoolCase _                    -> (pattern, statement)
+    | ListCons (_, _)               -> (pattern, statement)
+    | ListNil                       -> (pattern, statement)
+    | Tuple _                       -> (pattern, statement)
+    | EnumCase _                    -> (pattern, statement)
+    | VariantCase (_, _)            -> (pattern, statement)
+    | SumCase (_, _)                -> (pattern, statement)
+    | Unit                          -> (pattern, statement)
+  in
+  let* empty_pattern_tree =
+    build_empty_pattern_tree
+      location
+      [ Ast.Type.Bool ]
+  in
+  let* pattern_tree =
+    TC.fold_left
+      (List.map ~f:bind_binder cases)
+      ~f:(fun tree (pattern, statement) -> adorn_pattern_tree location tree [ pattern ] statement)
+      ~init:empty_pattern_tree
+  in
+  build_leveled_match_statements [ matched_identifier ] pattern_tree output_type
+
+
+(*
    Translates a match on matched_identifier, whose cases have been translated to our own patterns.
 *)
 let rec translate_cases
@@ -3347,7 +3400,7 @@ let rec translate_cases
   | Tuple element_types          -> translate_tuple_match location matched_identifier element_types cases output_type
   | Sum (left_type, right_type)  -> translate_sum_match location matched_identifier left_type right_type cases output_type
   | Int _                        -> TC.not_yet_implemented [%here] location
-  | Bool                         -> TC.not_yet_implemented [%here] location
+  | Bool                         -> translate_bool_match location matched_identifier cases output_type
   | String                       -> TC.not_yet_implemented [%here] location
   | Bit                          -> TC.not_yet_implemented [%here] location
   | Bitvector _                  -> TC.not_yet_implemented [%here] location
