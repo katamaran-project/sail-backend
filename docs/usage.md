@@ -343,14 +343,29 @@ Definition fun_extend_to {kid__n : nat} {kid__m : nat} : Stm [ ... ] (ty.bvec (k
 
 This is what Katamaran's RiscvPmp case study does by hand (`read_ram (bytes : nat)`); a contract can be proved once for all widths.
 Rocq infers the arguments at each call. A width that only appears in an integer type (`int('n)`) needs none: `ty.int` has no index.
-Sail's constraints on the widths are not translated, so inside such a function:
 
-- an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`sail_zero_extend`, …), since µSail's `uop.zext` would need a proof that the widths are ordered;
+Sail's constraints on the widths become one implicit hypothesis, a boolean over `Z` under Katamaran's `IsTrue`:
+
+```coq
+| store_bytes {kid__p8_times_n : nat} {kid__n : nat}
+    {H : IsTrue ((2 <=? Z.of_nat kid__n) && (Z.of_nat kid__n <=? 8) && (Z.of_nat kid__p8_times_n =? 8 * Z.of_nat kid__n))%Z}
+    : Fun [ "width" ∷ ty.int; "data" ∷ ty.bvec (kid__p8_times_n) ] (ty.unit)
+```
+
+- Only the conjuncts that mention a width; their other size variables (`kid__n`, only in `int('n)`) become parameters too.
+- Rocq proves the hypothesis at each call by type class search: Katamaran's hint computes it at concrete widths; the generated hint `sail_constraint` proves it with `lia` from the hypotheses in scope. It proves side conditions in the body the same way (a slice `data[15 .. 0]`).
+- A size variable that Rocq cannot infer is passed by name, from the argument of type `int('n)`: `stm_call (store_bytes (kid__n := 4)) ...`.
+- In a branch where Sail's flow typing fixes a size variable (`if width == 4`), the branch is translated at that value:
+  a `match` on `PeanoNat.Nat.eq_dec kid__n 4` gives the equality, each variable whose type mentions it is rebound with `sail_cast`, and the other arm (unreachable for Sail) is `stm_fail`.
+
+Still, inside such a function:
+
+- an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`sail_zero_extend`, …);
 - a width that depends on the *value* of a parameter (`val f : forall 'n. (itself('n), …)` with `bits('n)` in its body) or that divides a size variable (`bits(8 * ('n / 8))`) is a hole (`NYI`), with a message that says so;
 - a call to a function whose result type alone mentions a type variable (`internal_error : … -> 'a`), whose value is discarded, gets the type `unit`.
 
 Explicit monomorphisation (`monomorphize`) is unaffected.
-See the test `tests/coq-tests/size-parameters-implicit`.
+See the tests `tests/coq-tests/size-parameters-implicit` and `tests/coq-tests/size-constraints-hypotheses`.
 
 ### `$include`
 
