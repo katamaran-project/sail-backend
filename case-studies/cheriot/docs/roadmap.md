@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-4 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm` (the memory path).
+6 of 67 instructions are not clean, all on the memory path: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`, `NOT_CAPMODE`, `NOT_C_CAPMODE`.
 
 ## Memory path
 
@@ -26,7 +26,9 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Rocq output
 
-- **Slow decoder**: `coqc` runs longer than the 45 s stall limit on `encdec_backwards` (every definition before it compiles, with the memory-write functions axiomatised).
+- **`execute`'s compressed and Zb\* arms are failures, but reachable** (`haveZb*()` are `true`; `misa.C` is `sys_enable_rvc()`, unconstrained), so a proof says nothing about executions that decode one.
+  Decision pending: make them absent like PMP (`haveZb*`, `sys_enable_rvc` excluded as the value `false`), or keep the failures as a documented assumption.
+- **Slow decoder**: `encdec_backwards` type-checks but takes 608 s in `coqc`, and `End FunDefKit` 72 s, both over the 45 s stall limit (with the memory-write functions axiomatised, all of `machine.v` compiles in 753 s).
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
 
 ## Later

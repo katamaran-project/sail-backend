@@ -64,6 +64,14 @@ class ComputeTests(unittest.TestCase):
     def test_warnings(self):
         self.assertEqual(self.scope.warnings, ['roots that are not definitions of the model: not_a_definition'])
 
+    def test_single_instructions(self):
+        scope_file = scope.ScopeFile.from_text('instruction-files = ["model/insts_base.sail"]\nroots = ["step"]\n'
+                                               'instructions = ["FOO", "ADDI"]\n[dispatchers]\nexecute = "execute_"\n')
+        result = scope.compute(callgraph.CallGraph.from_dump(DUMP), scope_file,
+                               {'model/insts_base.sail': (CHERIOT_SAIL / 'model/insts_base.sail').read_text()})
+        self.assertEqual(result.instructions, ['ADDI', 'FOO'])
+        self.assertEqual(result.dispatched, {'execute_ADDI', 'execute_FOO'})
+
     def test_warning_for_an_instruction_without_its_function(self):
         scope_file = scope.ScopeFile(['model/insts_vector.sail', 'model/insts_base.sail'], ['step'], {'execute': 'run_'})
         sources = {name: (CHERIOT_SAIL / name).read_text() for name in scope_file.instruction_files}

@@ -5,13 +5,14 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 
 ## Scope
 
-- **The core only**: RV32I/E, M, Zicsr and the CHERIoT capability instructions (61 `execute` clauses).
-  - Selected by source file in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml); everything they reach is in scope too.
+- **The core only**: RV32I/E, M, Zicsr, the CHERIoT capability instructions, and the decoders' fallbacks for illegal or reserved encodings (67 `execute` clauses).
+  - Selected by source file, or one by one, in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml); everything they reach is in scope too.
+  - The fallbacks (`ILLEGAL`, `C_ILLEGAL`, `FENCE_RESERVED`, `FENCEI_RESERVED`, `NOT_CAPMODE`, `NOT_C_CAPMODE`) are always reachable: they raise the illegal-instruction trap.
   - Out for now: compressed instructions, bit manipulation (Zb\*), vector.
 - **The scope is computed, not listed**: from the model's call graph (Sail's AST after the rewrites).
   - In scope: the roots (`step`, `fetch`, `ext_decode`, `encdec_backwards`, `init_model`), all registers, and `execute_<C>` for each in-scope instruction `C`.
-  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 86 calls are failures (`exclude-functions-as-failure`):
-    executing an instruction outside the core is unreachable for a proof about the core (a contract must show it, or `fail_rule_pre` makes it vacuous).
+  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 80 calls (compressed, Zb\*) are failures (`exclude-functions-as-failure`).
+    Not unreachable yet: `haveZb*()` are `true` and `misa.C` is the platform setting `sys_enable_rvc()`, so these instructions decode; see [roadmap](roadmap.md#rocq-output).
   - Everything else is ignored by a generated configuration (`ignore-functions`, `ignore-values`). Types are never ignored: an unused type is harmless.
 - **No virtual memory.** CHERIoT has no S-mode, so `satp` is never written and Sv32 translation is dead code.
   - `translate32`, `translationException`: failures (unreachable while `satp`'s reset mode is 0, which a proof must assume).

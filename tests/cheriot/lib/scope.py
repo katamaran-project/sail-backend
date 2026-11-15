@@ -2,7 +2,7 @@
 The scope: which part of the model the loop translates and measures (case-studies/cheriot/docs/loop.md).
 
 tests/cheriot/scope.toml says which instructions are in scope (by the source file
-that declares their constructors) and which other entry points always are. The
+that declares their constructors, or one by one) and which other entry points always are. The
 scope is everything the call graph reaches from those, and is computed rather
 than listed by hand:
 
@@ -72,6 +72,7 @@ class ScopeFile:
     dispatchers: dict[str, str]             # dispatcher -> prefix of the function per instruction
     policy: dict[str, str] = field(default_factory=dict)    # policy-excluded definition -> key of POLICIES
     values: dict[str, str] = field(default_factory=dict)    # under the key value: function -> Sail expression
+    instructions: list[str] = field(default_factory=list)   # single constructors, from files not in scope as a whole
 
     @classmethod
     def load(cls, path: Path) -> 'ScopeFile':
@@ -85,7 +86,8 @@ class ScopeFile:
                    roots=list(data['roots']),
                    dispatchers=dict(data.get('dispatchers', {})),
                    policy=policy_exclusions(table),
-                   values=dict(table.get('value', {})))
+                   values=dict(table.get('value', {})),
+                   instructions=list(data.get('instructions', [])))
 
 
 def policy_exclusions(table: dict[str, Any]) -> dict[str, str]:
@@ -193,6 +195,7 @@ def compute(graph: CallGraph, scope_file: ScopeFile, instruction_sources: dict[s
         if not found:
             warnings.append(f'{name} declares no constructors of ast')
         instructions += found
+    instructions += [constructor for constructor in scope_file.instructions if constructor not in instructions]
     dispatched = set()
     for dispatcher, prefix in scope_file.dispatchers.items():
         if dispatcher not in graph.functions:

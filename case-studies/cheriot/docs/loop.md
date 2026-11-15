@@ -46,6 +46,7 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 
 ```toml
 instruction-files = ["sail-riscv/model/riscv_insts_base.sail", "src/cheri_insts.sail", ...]  # constructors of `ast` declared there
+instructions = ["FENCE_RESERVED", "FENCEI_RESERVED"]                                       # single constructors, from files not in scope as a whole
 roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
 
 [dispatchers]
