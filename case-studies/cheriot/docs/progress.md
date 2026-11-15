@@ -9,31 +9,30 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `8917c700` (nested patterns inside sum constructors); cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on the merge of `option-patterns` into `e2e-loop`; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
-| instructions clean | **55 of 61**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSEQX`, `CSeal`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSpecialRW`, `CSub`, `CTestSubset`, `CUnseal`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCE_TSO`, `ITYPE`, `MRET`, `MUL`, `MULW`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `UTYPE`, `WFI` |
+| instructions clean | **57 of 61**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSEQX`, `CSR`, `CSeal`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSetHigh`, `CSpecialRW`, `CSub`, `CTestSubset`, `CUnseal`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCE_TSO`, `ITYPE`, `MRET`, `MUL`, `MULW`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `UTYPE`, `WFI` |
 | instructions generated | 61 of 61 |
-| functions generated | 480 of 500 |
-| untranslated definitions | 36 |
-| `NYI` holes | 12 (3 make previously ill-typed widths explicit: a width that depends on a value, divides a size variable, or is existential) |
+| functions generated | 481 of 500 |
+| untranslated definitions | 35 |
+| `NYI` holes | 4 (`align_down` 3, `read_ram` 1; 3 make previously ill-typed widths explicit: a width that depends on a value, divides a size variable, or is existential) |
 | hard failures | 0 |
-| calls to missing functions | 103: outside the scope 86 (from `execute`), untranslated 17 |
+| calls to missing functions | 101: outside the scope 86 (from `execute`), untranslated 15 |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
-| policy exclusions | 39, removed with their uses: 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | `base.v:12852`: 1090 of 1091 definitions; only the comment block that lists untranslated definitions fails |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 369 of its 507 definitions; it stops at `machine.v:15174`, `htif_store`, on the memory path (a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom ([loop](loop.md#rocq)) |
+| policy exclusions | 39, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
+| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2352`: 29 of its 508 definitions, then the first `NYI` hole (`align_down`) |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` compiles; in `machine.v`, `Fun`, `FunX`, the `ForeignKit` and 370 of its 508 definitions; it stops at `machine.v:15188`, `htif_store`, on the memory path (a slice of `data : bits('p8_times_n)` needs `16 <= p8_times_n`, and Sail's flow typing makes `data` a `bits(32)` after `width == 4`; both need Sail's constraints). The probe replaces the body of each function with a hole or a call to a missing function by the axiom ([loop](loop.md#rocq)) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Known limitations
 
 - Memory loads and stores (`LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`) are not clean: the size-polymorphic memory path needs Sail's constraints and width-indexed unions.
-- `CSR` and `CSetHigh` have holes: bitvector widths or slice indices not known at compile time.
 - `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
 - The main decoder `encdec_backwards` is untranslated (a `match` on a `bool`).
-- Plain Rocq stops at the untranslated-definitions marker in `base.v`; `machine.v` still calls the 86 out-of-scope `execute_<C>`.
+- Plain Rocq stops at the first `NYI` hole in `machine.v`, which also still calls the 86 out-of-scope `execute_<C>`.
 - PMP is absent (`sys_pmp_count = 0`) and virtual memory is excluded; see [design](design.md#scope).
 - Details and what each blocks: [roadmap](roadmap.md).
 
@@ -66,8 +65,14 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-14 | `da9963ca`+ | core | 61 / 61, 35 clean | 499 / 529 | 46 | 29 | 0 | `machine.v:15088` `htif_store` (391 of 526) | `num_of_ExceptionType`, `num_of_ext_exc_type` translated (the configuration skipped all `num_of_*`); the clean check skips calls into policy-excluded definitions, as the scope does: 15 more instructions clean |
 | 2026-11-14 | `da9963ca`+ | core | 61 / 61, 50 clean | 502 / 529 | 43 | 29 | 0 | `machine.v:15942` `htif_store` (393 of 529) | Sail's `early_return` rewrite enabled; a `return` it cannot remove is refused; `capToEncCap`, `encCapabilityToCapability`, `mem_read_cap_revoked` generated: 15 more instructions clean |
 | 2026-11-14 | `50a76d89`+ | core | 61 / 61, 55 clean | 502 / 529 | 43 | 25 | 0 | `machine.v:15933` `htif_store` (393 of 529) | `zero_extend(ones(n))` with run-time `n` rewritten to a shifted mask; `setCapBounds` without holes |
-| 2026-11-14 | `28524b93`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | PMP absent (policy exclusions); discarded calls keep their type; plain Rocq through `base.v` |
+| 2026-11-14 | `28524b93`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | PMP absent (policy exclusions); discarded calls keep their type; plain Rocq up to the untranslated-definitions marker in `base.v` |
+| 2026-11-15 | `c90a4863`+ | core | 61 / 61, 55 clean | 477 / 500 | 39 | 12 | 0 | `machine.v:15061` `htif_store` (368 of 504) | listing of untranslated definitions escaped, marked by a comment: plain Rocq compiles all of `base.v`, stops at the first hole in `machine.v` |
+| 2026-11-15 | `137304dd`+ | core | 61 / 61, 56 clean | 477 / 500 | 39 | 7 | 0 | `machine.v:15059` `htif_store` (368 of 504) | widths of `@` behind type abbreviations (`tagaddrbits`) resolved: `tag_addr_to_addr`, `ext_data_get_addr`, `execute_CSetHigh` without holes, `writeCSR` 5 -> 3; `CSetHigh` clean |
+| 2026-11-15 | `26e0b943`+ | core | 61 / 61, 56 clean | 477 / 500 | 39 | 7 | 0 | `machine.v:15059` `htif_store` (368 of 504) | `undefined_*` policy-excluded as unconstrained by a pattern in `scope.toml`; no in-scope code reaches one yet, so the numbers are unchanged |
+| 2026-11-15 | `b372ec63`+ | core | 61 / 61, 57 clean | 477 / 500 | 39 | 4 | 0 | `machine.v:15059` `htif_store` (368 of 504) | `zero_extend(m, v[hi .. 0])` with run-time `hi` rewritten to a mask: `writeCSR` (`vstart`) without holes; `CSR` clean; with the 13 functions over `bits('p8_times_n)` axiomatised, all of `machine.v` compiles |
+| 2026-11-15 | `e53999e9`+ | core | 61 / 61, 57 clean | 478 / 500 | 38 | 4 | 0 | `machine.v:15075` `htif_store` (369 of 505) | a match or tuple pattern at a type abbreviation matches the abbreviated type: `ext_handle_data_check_error` translates |
 | 2026-11-15 | `8917c700` | core | 61 / 61, 55 clean | 480 / 500 | 36 | 12 | 0 | `machine.v:15174` `htif_store` (369 of 507) | nested patterns inside sum constructors (`Some(RV32)`, `Some(intr, priv)`): `translationMode`, `step`, `dispatchInterrupt` translate; `step` now calls the untranslated `try_execute` (missing calls +1) |
+| 2026-11-15 | merge | core | 61 / 61, 57 clean | 481 / 500 | 35 | 4 | 0 | `machine.v:15188` `htif_store` (370 of 508) | `option-patterns` merged into `e2e-loop`: `translationMode`, `step`, `dispatchInterrupt` translate |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

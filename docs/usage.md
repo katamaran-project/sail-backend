@@ -397,7 +397,7 @@ The following Slang-functions can prove useful:
 
 * `(generate string)` causes `string` to be generated.
 * `(untranslated-definitions?)` returns `#t` if there were any untranslated definitions.
-* `(untranslated-definitions)` returns a string containing all untranslated definitions.
+* `(untranslated-definitions)` returns a string containing all untranslated definitions (their Sail source and locations), escaped so that it is valid inside a Rocq comment.
 * `(base-translation)` returns a string with translation of the base module.
 * `(program-translation)` returns a string with the translation of the program module.
 

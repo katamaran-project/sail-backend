@@ -4,7 +4,7 @@
 
 (*<
   (if (untranslated-definitions?)
-    (generate "Theorem UNTRANSLATED_DEFINITIONS : False. Qed."))
+    (generate "(* UNTRANSLATED_DEFINITIONS: the Sail definitions below have no translation *)"))
 >*)
 
 (*

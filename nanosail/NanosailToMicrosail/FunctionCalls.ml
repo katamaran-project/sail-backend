@@ -767,10 +767,15 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.t GC.t =
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "bitvector_concat"
   in
+  (*
+     The width as Rocq should see it: behind type abbreviations and simplified (bits(xlen - log2_cap_size)
+     is bits(32 - 3) after Sail's rewrites, so 29); a width that stays symbolic is printed as in types.
+  *)
   let derive_vector_length (expression : Ast.Expression.t) : PP.t GC.t =
-    match Ast.Expression.infer_type expression with
+    match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type expression with
     | Bitvector (Constant n) -> GC.return @@ PP.string @@ Z.to_string n
-    | _                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
+    | Bitvector width        -> Numeric.Expression.pp_argument width
+    | _                      -> GC.not_yet_implemented ~message:"expected a bitvector type" [%here]
   in
   match arguments with
   | [ bv1; bv2 ] -> begin

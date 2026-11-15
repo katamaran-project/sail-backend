@@ -5,6 +5,46 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Tuple pattern at a tuple type abbreviation untranslated
+- Found: `ext_handle_data_check_error` untranslated ("expected pattern AP_tuple _ while matching type Alias").
+- Cause: patterns and matches were translated by the matched type as is; an abbreviation (`Alias`) was treated as an atomic type, which only a variable or wildcard pattern matches.
+- Fix: both match the abbreviated type. Test `match-tuple-type-abbreviation`.
+```sail
+type ext_data_addr_error = (CapEx, capreg_idx)
+function ext_handle_data_check_error(err : ext_data_addr_error) -> unit = {
+  let (capEx, regnum) = err;
+  handle_cheri_cap_exception(capEx, regnum)
+}
+```
+```coq
+(* after *) stm_match_prod (stm_exp (exp_var "err")) "ж10" "ж11" (stm_call handle ...)
+```
+
+### Concatenation widths behind type abbreviations were holes
+- Found: the loop's top blocker, `tag_addr_to_addr` (4 instructions); also `ext_data_get_addr`, `execute_CSetHigh`, `writeCSR`.
+- Cause: `@` read each operand's width from its type as is; `tagaddrbits` is `bits(xlen - log2_cap_size)`, `bits(32 - 3)` after Sail's rewrites, not a constant: `NYI` ("expected constant in bitvector type").
+- Fix: aliases stripped and the width simplified; a width that stays symbolic is printed as in types. Test `bitvectors-concat-width-from-type-constant`.
+```sail
+type tagaddrbits = bits(xlen - log2_cap_size)
+function tag_addr_to_addr(tag_addr : tagaddrbits) -> bits(xlen) = tag_addr @ zeros(log2_cap_size)
+```
+```coq
+(* before *) exp_binop (@bop.bvapp _ 3 NYI[0]) (exp_var "ga#0") (exp_var "tag_addr")
+(* after  *) exp_binop (@bop.bvapp _ 3 29) (exp_var "ga#0") (exp_var "tag_addr")
+```
+
+### Comment listing untranslated definitions is not valid Rocq
+- Found: the loop's plain Rocq stopped in `base.v` at the template's `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.` (fails by design); behind it, the comment with the Sail source of untranslated definitions.
+- Cause: Rocq lexes string literals and nested comments inside comments; an odd number of `"` or a `*)` in the Sail source ends or breaks the comment ("Unterminated comment").
+- Fix: `(untranslated-definitions)` escapes each listing (`( *`, `* )`; all `"` become `'` when their number is odd); the CHERIoT template marks the listing with a comment instead of the theorem. Test `untranslated-listing-comment`.
+```sail
+function guarded() = try { print_endline("an odd \" quote, a *) and a (*"); 1 } catch { Oops() => 0 }
+```
+```coq
+(* before *) print_endline("an odd \" quote, a *) and a (*");    (* inside the listing comment *)
+(* after  *) print_endline('an odd \' quote, a * ) and a ( *');
+```
+
 ### `ones(n)` printed as the number 1
 - Found: while working on `zero_extend(ones(n))`; Rocq accepted the output, so no test caught it.
 - Cause: with `literal-zeros-and-ones` off (the default), `sail_ones(n)` with a known `n` was printed with Katamaran's `bv.one`, which is the number 1.
@@ -186,10 +226,6 @@ Definition fun_tag_addr_to_addr : Stm [...] ... :=
 ```coq
 [1] : Not yet implemented; see nanosail/NanosailToMicrosail/FunctionCalls.ml line 908 (%s's indices should be known at compile time)
 ```
-
-### Comment listing untranslated definitions is not valid Rocq
-- The templates put the Sail source of untranslated definitions in a comment; Rocq lexes strings inside comments, and Sail's unbalanced quotes give "Unterminated comment".
-- Harmless in plain compilation (the `UNTRANSLATED_DEFINITIONS` marker fails first); the probe drops the comment (`73d51ac7`).
 
 ### Function names clash with Katamaran's
 - A Sail function named like a Katamaran definition clashes in `machine.v`; e2e `model-008`.

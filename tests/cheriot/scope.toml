@@ -91,6 +91,10 @@ unconstrained = [
   "get_config_print_mem",
   "get_config_print_platform",
   "get_config_print_reg",
+  # Sail's undefined values: after Sail's rewrites, calls to undefined_<type>. Always
+  # unconstrained (universally quantified), never a fixed default (design.md).
+  # A pattern: the ones in-scope code reaches are excluded by name.
+  "undefined_*",
 ]
 
 registers = [

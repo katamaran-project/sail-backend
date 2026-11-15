@@ -2014,6 +2014,92 @@ let rewrite_zero_extended_ones (expression : Sail.type_annotation S.exp) : Sail.
 
 
 (*
+   The low bits of a bitvector, zero-extended, with the number of bits known only at run time.
+
+     zero_extend(m, v[hi .. 0])          (sail-riscv's zero_extend takes the width first)
+     sail_zero_extend(v[hi .. 0], m)
+
+   has the intermediate bitvector v[hi .. 0], whose width hi + 1 is only known at run time,
+   and muSail bitvector types need widths known in Rocq. sail-riscv's writeCSR does this:
+
+     vstart = zero_extend(16, value[vstart_length - 1 .. 0])     with value : xlenbits
+
+   The hi + 1 low bits of v are kept and the others cleared by v & not(ones(w) << (hi + 1)), w = |v|, so this is rewritten to
+
+     resize(and_vec(v, not_vec(sail_shiftleft(sail_ones(w), hi + 1))), m)
+
+   where resize is truncate if m <= w and sail_zero_extend otherwise (hi + 1 <= m is a constraint
+   of the zero extension, so truncating keeps every kept bit). It requires w and m to be known.
+   v[hi .. 0] is subrange_bits(v, hi, 0); zero_extend is sail-riscv's zero_extend or sail_zero_extend.
+   The rewritten expression is type checked again in the environment of the original; if that fails,
+   the original is kept.
+*)
+let rewrite_zero_extended_low_slice (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    let rewritten : Sail.type_annotation S.exp option =
+      let open Monads.OptionNotation
+      in
+      let=? slice, target_width_expression =
+        match sail_application_of original with
+        | Some ("zero_extend", [ target_width_expression; slice ])      -> Some (slice, target_width_expression)
+        | Some ("sail_zero_extend", [ slice; target_width_expression ]) -> Some (slice, target_width_expression)
+        | Some _                                                       -> None
+        | None                                                         -> None
+      in
+      let=? bitvector, high_index =
+        match sail_application_of slice with
+        | Some ("subrange_bits", [ bitvector; high_index; low_index ]) -> begin
+            match sail_integer_value high_index, sail_integer_value low_index with
+            | None  , Some low when Z.equal low Z.zero -> Some (bitvector, high_index)  (* only when the high index is not known *)
+            | None  , Some _                           -> None
+            | None  , None                             -> None
+            | Some _, _                                -> None
+          end
+        | Some _ -> None
+        | None   -> None
+      in
+      let=? bitvector_width = sail_bitvector_width bitvector
+      in
+      let=? target_width = sail_integer_value target_width_expression
+      in
+      let untyped (expression : Sail.type_annotation S.exp) : Libsail.Ast_util.uannot S.exp =
+        TypeCheck.strip_exp expression
+      and call = untyped_sail_call
+      and integer (value : Z.t) : Libsail.Ast_util.uannot S.exp =
+        Libsail.Ast_util.mk_lit_exp (S.L_num value)
+      in
+      let masked =
+        call "and_vec" [
+          untyped bitvector;
+          call "not_vec" [
+            call "sail_shiftleft" [
+              call "sail_ones" [ call "make_the_value" [ integer bitvector_width ] ];
+              call "add_atom" [ untyped high_index; integer Z.one ]
+            ]
+          ]
+        ]
+      in
+      let replacement =
+        let resize = if Z.leq target_width bitvector_width then "truncate" else "sail_zero_extend"
+        in
+        call resize [ masked; untyped target_width_expression ]
+      in
+      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
+      with _ -> None
+    in
+    Option.value rewritten ~default:original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
    Replaces each call to a function that the configuration excludes with a value
    (exclude-functions-as-value) with that value: a Sail expression, parsed and then
    type-checked at the type of the call, in the call's environment.
@@ -2097,7 +2183,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
+       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
        let* locally_bound_identifiers =

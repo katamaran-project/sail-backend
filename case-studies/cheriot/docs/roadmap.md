@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-6 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`, `CSR`, `CSetHigh`.
+4 of 61 instructions are not clean: `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm` (the memory path).
 
 ## Memory path
 
@@ -22,27 +22,11 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Patterns
 
-- **Tuple pattern at a tuple type abbreviation**: `let (capEx, regnum) = err` with `err : ext_data_addr_error`.
-  Blocks `ext_handle_data_check_error` (`LOAD`, `STORE`).
 - **`match` on a `bool`**: `encdec_backwards` (the main decoder), from `bool_not_bits(s)` in the `DIV` encoding.
   Blocks decoding; not counted in clean instructions, as decoders are not in their call cones.
 
-## Widths not known at compile time
-
-- **Widths from type-level constants**: `tag_addr_to_addr(tag_addr) = tag_addr @ zeros(log2_cap_size)` with `type log2_cap_size : Int = 3`. Hole. Blocks `LOAD`, `STORE`, `LoadCapImm`, `StoreCapImm`.
-- **Run-time widths and slice indices**: `writeCSR` (blocks `CSR`), `execute_CSetHigh`, `ext_data_get_addr` (`LOAD`, `STORE`).
-
-## Undefined values and externs
-
-- **`undefined_*` as unconstrained values.** The configuration skips the `undefined_*` functions; they should become `stm_foreign (unconstrained τ)` ([design](design.md#undefined-values-are-unconstrained)).
-  No in-scope code calls them today, so nothing is blocked yet; needed as soon as one is reached.
-
 ## Rocq output
 
-- **The untranslated-definitions comment in `base.v` is invalid.** The template emits `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.`, then a comment with the Sail source of each untranslated definition.
-  - Plain `coqc base.v` stops there by design, and Rocq's lexer need not accept Sail source in a comment.
-  - Needs: a form that compiles (escaped listing; untranslated definitions as `Parameter`s), with the "is the translation complete?" check done elsewhere.
-  - Blocks: plain Rocq of `base.v` and everything after it (the probe leaves the block out).
 - **Calls to out-of-scope instructions.** `execute` still calls the 86 `execute_<C>` outside the scope, which `machine.v` does not define.
   Needs: those calls as failures (the dispatcher's out-of-scope arms excluded as `failure`). Blocks plain Rocq of `machine.v`.
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
