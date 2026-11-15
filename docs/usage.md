@@ -357,6 +357,8 @@ Sail's constraints on the widths become one implicit hypothesis, a boolean over 
 - A size variable that Rocq cannot infer is passed by name, from the argument of type `int('n)`: `stm_call (store_bytes (kid__n := 4)) ...`.
 - In a branch where Sail's flow typing fixes a size variable (`if width == 4`), the branch is translated at that value:
   a `match` on `PeanoNat.Nat.eq_dec kid__n 4` gives the equality, each variable whose type mentions it is rebound with `sail_cast`, and the other arm (unreachable for Sail) is `stm_fail`.
+  A branch fact that fixes no value (`if width <= 8`) is decided with `sail_decide`, so that `lia` can use it.
+- A let-bound width that Sail's solver proves equal to a size variable (`8 * 'n`, `8 * ('p / 8)` with `'p == 8 * 'n`) is that variable.
 
 Still, inside such a function:
 
