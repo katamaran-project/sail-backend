@@ -7,7 +7,6 @@ All 67 instructions are clean.
 ## Memory path
 
 - **Writes**: done. Sail's constraints are hypotheses and flow-typed branches are decided in Rocq ([design](design.md#constraints-on-widths-are-implicit-hypotheses)); the whole write chain type-checks with its real bodies.
-  - `STORE`, `StoreCapImm` still wait for `translationMode` (option patterns), `STORE` also for `ext_handle_data_check_error` (below).
 - **Reads**: done. Width families for `MemoryOpResult(bits('n))`, copies of `MemoryOpResult_add_meta`/`drop_meta`, tuple matches split on a union column ([design](design.md#unions-at-a-width-families-indexed-by-nat)); `LOAD`, `LoadCapImm` are clean.
   - A width that Sail's solver proves equal to a size variable is that variable (`read_ram`'s `bits(8 * ('p8_times_n / 8))`).
 

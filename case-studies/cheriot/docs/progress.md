@@ -9,29 +9,28 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `83ef37cc` plus slice indices that Sail's solver knows; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `cce22be3` (read path merged with `e2e-loop`); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
-| instructions clean | **65 of 67**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSeal`, `CSEQX`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSetHigh`, `CSpecialRW`, `CSR`, `CSub`, `CTestSubset`, `CUnseal`, `C_ILLEGAL`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCEI_RESERVED`, `FENCE_RESERVED`, `FENCE_TSO`, `ILLEGAL`, `ITYPE`, `MRET`, `MUL`, `MULW`, `NOT_CAPMODE`, `NOT_C_CAPMODE`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `STORE`, `StoreCapImm`, `UTYPE`, `WFI` |
+| instructions clean | **67 of 67** |
 | instructions generated | 67 of 67 |
-| functions generated | 482 of 499 |
-| untranslated definitions | 33 |
+| functions generated | 498 of 499 |
+| untranslated definitions | 1 (`try_execute`: exceptions) |
 | `NYI` holes | 0 |
 | hard failures | 0 |
-| calls to missing functions | 11, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
+| calls to missing functions | 2, both to `try_execute`; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 47, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 9 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:14805`: 383 of its 511 definitions, then the first call to an untranslated definition (`mem_read_cap` calls `mem_read_meta`, on the read path) |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v` and `machine.v` compile, every command within the 45 s limit (slowest: `execute_LoadCapImm` 4.3 s, `encdec_backwards` 3.4 s) |
+| Rocq, plain | all of `base.v`; `machine.v:29095`: 504 of its 527 definitions, then `step`'s call to the untranslated `try_execute` |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` and `machine.v` compile, every command within the 45 s limit (slowest: `execute_LoadCapImm` 5.8 s, `encdec_backwards` 4.9 s) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Known limitations
 
 - PMP, Zb\* and compressed instructions are absent, virtual memory excluded; see [design](design.md#scope).
-- `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
-- Plain Rocq stops at the first call to an untranslated definition (the memory read path).
+- `step` calls `try_execute`, untranslated (`try`; exceptions are deferred); plain Rocq stops there.
 - Details and what each blocks: [roadmap](roadmap.md).
 
 ## History
@@ -82,6 +81,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-16 | `a3b142bb`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | compiles | an `if` whose condition is known at compile time becomes its live branch (`DOUBLE if sizeof(xlen) >= 64` in `execute_STORE`); the probe compiles all of `machine.v`; missing calls 13 -> 11 |
 | 2026-11-16 | `64414328`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 0 | 0 | compiles | `align_down`: an update with an unknown high index has the new value's width as its length (`kid__n`); no holes left; plain Rocq 31 -> 383 definitions; the loop probes a file with calls to missing functions even without holes |
 | 2026-11-16 | `83ef37cc`+ | core + fallbacks | 67 / 67, 65 clean | 482 / 499 | 33 | 0 | 0 | compiles | slice indices and widths that Sail's solver determines (after an `assert`) become constants; with `76415d3d` (words in string literals are not calls in the call graph), `NOT_CAPMODE` and `NOT_C_CAPMODE` are clean |
+| 2026-11-16 | `cce22be3` | core + fallbacks | 67 / 67, 67 clean | 498 / 499 | 1 | 0 | 0 | compiles | read path (`implicit-hypotheses`) merged with `e2e-loop`; a width-family scrutinee keeps its `let` (its type fixes the width); `LOAD`, `LoadCapImm` clean; missing calls 11 -> 2 |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
