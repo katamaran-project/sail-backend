@@ -386,6 +386,26 @@ A union with a type parameter used at a bitvector of open width (`MemoryOpResult
 A function polymorphic in a type that such a union takes (`forall ('t : Type). MemoryOpResult('t) -> ...`) is copied per type it is called at when there are one or two (a single copy keeps its name), and inlined at each call otherwise.
 See the test `tests/coq-tests/unions-width-family`.
 
+A struct with one numeric parameter is a record family indexed by it, as a union width family:
+
+```sail
+struct S('m) = { value : bits(8 * 'm), tag : bool }
+```
+```coq
+Record S (kid__m : nat) : Set := MkS { S_value : bv (8 * kid__m); S_tag : bool }.
+| Rs (kid__m : nat)                                (* in Records; EqDec via N * nat *)
+ty.record (Rs 4)                                   (* S(4) *)
+exp_record (Rs kid__n) [...]                       (* construction gives the index *)
+stm_match_record (Rs _) ...                        (* field access: Rocq infers it *)
+```
+
+- Constructor and projections take the index implicitly (`MkS v t`, `S_value r`).
+- A struct with several parameters, or a type parameter, is not a family.
+- An alias with parameters is expanded: `mybits(8 * 'm)` is `bits(8 * 'm)`.
+- Not yet: a field whose width Sail renamed in a signature (`bits(8 * 'n)` becomes `bits('p8_times_n)` by Sail's `toplevel_nexps`); Rocq sees `bv p` against `bv (8 * n)` and would need a cast.
+
+See the tests `tests/coq-tests/records-width-family` and `tests/coq-tests/bitvectors-variables`.
+
 Explicit monomorphisation (`monomorphize`) is unaffected.
 See the tests `tests/coq-tests/size-parameters-implicit` and `tests/coq-tests/size-constraints-hypotheses`.
 

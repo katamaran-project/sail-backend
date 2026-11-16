@@ -160,6 +160,57 @@ end
 
 
 module Type = struct
+  (*
+     The substitution of the type arguments for the parameters of a type quantifier,
+     e.g., for struct S('m) = { value : bits(8 * 'm) } at 4, bits(8 * 'm) becomes bits(8 * 4).
+     Returns None if the number or the kinds of type arguments do not match the type quantifier.
+  *)
+  let instantiate_types
+      (type_quantifier : TypeQuantifier.t   )
+      (type_arguments  : TypeArgument.t list) : (AstType.t -> AstType.t) option
+    =
+    let TypeQuantifier.TypeQuantifier items = type_quantifier
+    in
+    match List.zip items type_arguments with
+    | Unequal_lengths -> None
+    | Ok pairs        -> begin
+        let check_pair
+            (((identifier, kind), type_argument) : (Identifier.t * Kind.t) * TypeArgument.t) : (Identifier.t * TypeArgument.t) option
+          =
+          match kind, type_argument with
+          | Type, Type _                           -> Some (identifier, type_argument)
+          | Int , NumericExpression _              -> Some (identifier, type_argument)
+          | Bool, Bool _                           -> Some (identifier, type_argument)
+          | Type, (NumericExpression _ | Bool _)   -> None
+          | Int , (Type _ | Bool _)                -> None
+          | Bool, (Type _ | NumericExpression _)   -> None
+        in
+        match Option.all @@ List.map ~f:check_pair pairs with
+        | None          -> None
+        | Some bindings -> begin
+            let find (identifier : Identifier.t) : TypeArgument.t option =
+              List.Assoc.find bindings identifier ~equal:Identifier.equal
+            in
+            let type_substitution (identifier : Identifier.t) : AstType.t option =
+              match find identifier with
+              | Some (Type t)              -> Some t
+              | Some (NumericExpression _) -> None
+              | Some (Bool _)              -> None
+              | None                       -> None
+            and numeric_substitution (identifier : Identifier.t) : NumericExpression.t =
+              match find identifier with
+              | Some (NumericExpression e) -> e
+              | Some (Type _)              -> NumericExpression.Var identifier
+              | Some (Bool _)              -> NumericExpression.Var identifier
+              | None                       -> NumericExpression.Var identifier
+            in
+            Some begin fun (typ : AstType.t) ->
+              AstType.substitute_numeric_expression_identifier numeric_substitution @@
+              AstType.substitute_type_variable type_substitution typ
+            end
+          end
+      end
+
   module Variant = struct
     type t =
       {
@@ -267,48 +318,9 @@ module Type = struct
         (definition     : t                 )
         (type_arguments : TypeArgument.t list) : (AstType.t * AstType.t) option
       =
-      let TypeQuantifier.TypeQuantifier items = definition.type_quantifier
-      in
-      match List.zip items type_arguments with
-      | Unequal_lengths -> None
-      | Ok pairs        -> begin
-          let check_pair
-              (((identifier, kind), type_argument) : (Identifier.t * Kind.t) * TypeArgument.t) : (Identifier.t * TypeArgument.t) option
-            =
-            match kind, type_argument with
-            | Type, Type _                           -> Some (identifier, type_argument)
-            | Int , NumericExpression _              -> Some (identifier, type_argument)
-            | Bool, Bool _                           -> Some (identifier, type_argument)
-            | Type, (NumericExpression _ | Bool _)   -> None
-            | Int , (Type _ | Bool _)                -> None
-            | Bool, (Type _ | NumericExpression _)   -> None
-          in
-          match Option.all @@ List.map ~f:check_pair pairs with
-          | None          -> None
-          | Some bindings -> begin
-              let find (identifier : Identifier.t) : TypeArgument.t option =
-                List.Assoc.find bindings identifier ~equal:Identifier.equal
-              in
-              let type_substitution (identifier : Identifier.t) : AstType.t option =
-                match find identifier with
-                | Some (Type t)              -> Some t
-                | Some (NumericExpression _) -> None
-                | Some (Bool _)              -> None
-                | None                       -> None
-              and numeric_substitution (identifier : Identifier.t) : NumericExpression.t =
-                match find identifier with
-                | Some (NumericExpression e) -> e
-                | Some (Type _)              -> NumericExpression.Var identifier
-                | Some (Bool _)              -> NumericExpression.Var identifier
-                | None                       -> NumericExpression.Var identifier
-              in
-              let instantiate_field_type (field_type : AstType.t) : AstType.t =
-                AstType.substitute_numeric_expression_identifier numeric_substitution @@
-                AstType.substitute_type_variable type_substitution field_type
-              in
-              Some (instantiate_field_type definition.left.field_type, instantiate_field_type definition.right.field_type)
-            end
-        end
+      match instantiate_types definition.type_quantifier type_arguments with
+      | Some instantiate_type -> Some (instantiate_type definition.left.field_type, instantiate_type definition.right.field_type)
+      | None                  -> None
 
     let to_fexpr (sum_definition : t) : FExpr.t =
       let constructor_to_fexpr (constructor : constructor) : FExpr.t =

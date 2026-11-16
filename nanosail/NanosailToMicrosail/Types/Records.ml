@@ -14,6 +14,47 @@ let derive_constructor_from_identifier identifier =
   Identifier.record_constructor_name identifier
 
 
+(*
+   A record family: struct S('m) = { value : bits(8 * 'm) } becomes Record S (kid__m : nat),
+   whose tag in Records takes the parameter too (Rs (kid__m : nat)).
+   Only one numeric parameter, as union width families: Records' EqDec injects into N * nat,
+   and Katamaran's records cannot be indexed by a Ty.
+*)
+let is_family (record_definition : Ast.Definition.Type.Record.t) : bool =
+  let Ast.TypeQuantifier.TypeQuantifier items = record_definition.type_quantifier
+  in
+  match items with
+  | [ (_, Int) ]                        -> true
+  | [ (_, Type) ] | [ (_, Bool) ]       -> false
+  | []                                  -> false
+  | _ :: _ :: _                         -> false
+
+
+let parameter_identifiers (record_definition : Ast.Definition.Type.Record.t) : Ast.Identifier.t list =
+  if is_family record_definition
+  then begin
+    let Ast.TypeQuantifier.TypeQuantifier items = record_definition.type_quantifier
+    in
+    List.map ~f:fst items
+  end
+  else []
+
+
+(* name applied to the parameters of the record: Rs kid__m, S kid__m *)
+let applied_to_parameters (record_definition : Ast.Definition.Type.Record.t) (name : PP.t) : PP.t =
+  PP.separate_horizontally ~separator:PP.space (name :: List.map ~f:Identifier.pp (parameter_identifiers record_definition))
+
+
+(* The tag of the record in Records, as a pattern binding its parameters *)
+let tag_pattern (record_definition : Ast.Definition.Type.Record.t) : PP.t =
+  applied_to_parameters record_definition (Identifier.pp @@ Identifier.reified_record_name record_definition.identifier)
+
+
+(* The Rocq type of the record at the parameters bound by tag_pattern *)
+let denoted_type (record_definition : Ast.Definition.Type.Record.t) : PP.t =
+  applied_to_parameters record_definition (Identifier.pp record_definition.identifier)
+
+
 let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP.t GC.t =
   GC.generation_block [%here] "Record definition" begin
     let generate_field field_identifier field_type =
@@ -26,12 +67,33 @@ let pp_record_definition (record_definition : Ast.Definition.Type.Record.t) : PP
     in
     let identifier  = Identifier.pp record_definition.identifier
     and type_name   = Identifier.pp @@ Ast.Identifier.mk "Set"
-    and constructor = Identifier.pp @@ derive_constructor_from_identifier record_definition.identifier
+    and constructor_identifier = derive_constructor_from_identifier record_definition.identifier
+    and parameters  =
+      List.map (parameter_identifiers record_definition) ~f:(fun parameter ->
+          PP.(surround parens @@ separate_horizontally ~separator:space [ Identifier.pp parameter; colon; string "nat" ]))
+    in
+    let constructor = Identifier.pp constructor_identifier
     in
     let* fields     = GC.map ~f:(Fn.uncurry generate_field) record_definition.fields
     in
-    GC.return @@ Coq.pp_record ~identifier ~type_name ~constructor ~fields
+    let record = Coq.pp_record ~identifier ~parameters ~type_name ~constructor ~fields
+    in
+    (* the constructor and projections of a family take its parameters implicitly: MkS v, S_value r *)
+    match parameter_identifiers record_definition with
+    | []         -> GC.return record
+    | parameters -> begin
+        let arguments_for (function_identifier : Ast.Identifier.t) : PP.t =
+          PP.string @@ Printf.sprintf "#[global] Arguments %s {%s}."
+            (Ast.Identifier.to_string function_identifier)
+            (String.concat ~sep:" " @@ List.map ~f:Ast.Identifier.to_string parameters)
+        and projection_identifiers =
+          List.map record_definition.fields ~f:(fun (field_identifier, _) ->
+              Identifier.record_field_projection_name record_definition.identifier field_identifier)
+        in
+        GC.return @@ PP.vertical (record :: List.map ~f:arguments_for (constructor_identifier :: projection_identifiers))
+      end
   end
+
 
 let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.Type.Record.t) list) =
   let record_definitions =
@@ -43,6 +105,10 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
     let id = Identifier.reified_record_name record_definition.identifier
     in
     Identifier.pp id
+  and tag_parameters (record_definition : Ast.Definition.Type.Record.t) : PP.t =
+    PP.separate_horizontally ~separator:PP.space @@ List.map (parameter_identifiers record_definition) ~f:(fun identifier ->
+        PP.(surround parens @@ separate_horizontally ~separator:space [ Identifier.pp identifier; colon; string "nat" ])
+      )
   in
   GC.block begin
     GC.pp_inductive_type
@@ -50,8 +116,8 @@ let generate_tags (record_definitions : (Sail.sail_definition * Ast.Definition.T
       typ
       (fun add_constructor ->
          GC.iter
-           ~f:(fun record_identifier ->
-               add_constructor @@ tag_of_record record_identifier
+           ~f:(fun record_definition ->
+               add_constructor ~parameters:(tag_parameters record_definition) @@ tag_of_record record_definition
              )
            record_definitions
       )

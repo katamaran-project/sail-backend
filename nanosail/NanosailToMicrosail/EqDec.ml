@@ -474,6 +474,28 @@ let pp_variant_definition_instances (variant_definition : Ast.Definition.Type.Va
   end
 
 
+(* The generic part of pp_indexed_tag_instance's instances, generated once *)
+let pp_indexed_tag_generic_definitions () : PP.t =
+  PP.annotate [%here] @@ PP.vertical @@ List.map ~f:PP.string [
+    "Lemma nanosail_eqdec_via_N_nat_injective {A : Type}";
+    "  (to_N : A -> BinNums.N * nat) (of_N : BinNums.N * nat -> A) (H : forall x, of_N (to_N x) = x)";
+    "  (x y : A) (e1 : fst (to_N x) = fst (to_N y)) (e2 : snd (to_N x) = snd (to_N y)) : x = y.";
+    "Proof.";
+    "  rewrite <- (H x), <- (H y). revert e1 e2.";
+    "  destruct (to_N x), (to_N y); cbn; intros -> ->; reflexivity.";
+    "Defined.";
+    "";
+    "Definition nanosail_eqdec_via_N_nat {A : Type}";
+    "  (to_N : A -> BinNums.N * nat) (of_N : BinNums.N * nat -> A) (H : forall x, of_N (to_N x) = x) : EqDec A :=";
+    "  fun x y =>";
+    "    match BinNat.N.eq_dec (fst (to_N x)) (fst (to_N y)), PeanoNat.Nat.eq_dec (snd (to_N x)) (snd (to_N y)) with";
+    "    | left e1, left e2 => left (nanosail_eqdec_via_N_nat_injective to_N of_N H x y e1 e2)";
+    "    | right n, _       => right (fun e => n (f_equal (fun z => fst (to_N z)) e))";
+    "    | _, right n       => right (fun e => n (f_equal (fun z => snd (to_N z)) e))";
+    "    end.";
+  ]
+
+
 (*
    The EqDec instance for a tag type some of whose values take a nat (Unions with a width family,
    | Ures_bits (kid__n : nat)): an injection into N * nat, as pp_enum_instance's into N.
@@ -488,26 +510,6 @@ let pp_indexed_tag_instance
   in
   let pattern ((value, indexed) : PP.t * bool) : PP.t =
     if indexed then PP.horizontal [ value; PP.string " n" ] else value
-  in
-  let generic =
-    PP.vertical @@ List.map ~f:PP.string [
-      "Lemma nanosail_eqdec_via_N_nat_injective {A : Type}";
-      "  (to_N : A -> BinNums.N * nat) (of_N : BinNums.N * nat -> A) (H : forall x, of_N (to_N x) = x)";
-      "  (x y : A) (e1 : fst (to_N x) = fst (to_N y)) (e2 : snd (to_N x) = snd (to_N y)) : x = y.";
-      "Proof.";
-      "  rewrite <- (H x), <- (H y). revert e1 e2.";
-      "  destruct (to_N x), (to_N y); cbn; intros -> ->; reflexivity.";
-      "Defined.";
-      "";
-      "Definition nanosail_eqdec_via_N_nat {A : Type}";
-      "  (to_N : A -> BinNums.N * nat) (of_N : BinNums.N * nat -> A) (H : forall x, of_N (to_N x) = x) : EqDec A :=";
-      "  fun x y =>";
-      "    match BinNat.N.eq_dec (fst (to_N x)) (fst (to_N y)), PeanoNat.Nat.eq_dec (snd (to_N x)) (snd (to_N y)) with";
-      "    | left e1, left e2 => left (nanosail_eqdec_via_N_nat_injective to_N of_N H x y e1 e2)";
-      "    | right n, _       => right (fun e => n (f_equal (fun z => fst (to_N z)) e))";
-      "    | _, right n       => right (fun e => n (f_equal (fun z => snd (to_N z)) e))";
-      "    end.";
-    ]
   in
   let to_N_definition =
     let cases =
@@ -547,4 +549,4 @@ let pp_indexed_tag_instance
       ]
     ]
   in
-  PP.annotate [%here] @@ PP.paragraphs [ generic; to_N_definition; of_N_definition; instance ]
+  PP.annotate [%here] @@ PP.paragraphs [ to_N_definition; of_N_definition; instance ]

@@ -247,6 +247,45 @@ let flatten_named_statements (named_statements : named_statement list list) : na
 
   with expr : t
  *)
+(*
+   The record type that a Sail type denotes, with its field types: for a record family at a width
+   (struct S('m) = { value : bits(8 * 'm) } at 4), the indices [4] and the field types at them (bits(8 * 4)).
+   Aliases of the record type are seen through. None if the type is not a record.
+*)
+let record_type_of_sail_type (typ : S.typ) : (Ast.Identifier.t * Ast.Numeric.Expression.t list * (Ast.Identifier.t * Ast.Type.t) list) option TC.t =
+  let* translated_type =
+    Type.translate_type typ
+  in
+  let lookup (record_type_identifier : Ast.Identifier.t) =
+    TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
+  in
+  let numeric_argument (type_argument : Ast.TypeArgument.t) : Ast.Numeric.Expression.t option =
+    match type_argument with
+    | NumericExpression e -> Some e
+    | Type _              -> None
+    | Bool _              -> None
+  in
+  match Ast.Type.strip_aliases translated_type with
+  | Record record_type_identifier -> begin
+      let* record_definition = lookup record_type_identifier
+      in
+      TC.return @@ Some (record_type_identifier, [], record_definition.fields)
+    end
+  | Application (Record record_type_identifier, type_arguments) -> begin
+      let* record_definition = lookup record_type_identifier
+      in
+      match Option.all @@ List.map ~f:numeric_argument type_arguments, Ast.Definition.Type.instantiate_types record_definition.type_quantifier type_arguments with
+      | Some indices, Some instantiate_type -> begin
+          let fields = List.map record_definition.fields ~f:(fun (field_identifier, field_type) -> (field_identifier, instantiate_type field_type))
+          in
+          TC.return @@ Some (record_type_identifier, indices, fields)
+        end
+      | None, Some _ | Some _, None | None, None -> TC.return None
+    end
+  | Int _ | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Variant _
+  | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> TC.return None
+
+
 let rec expression_of_aval
     (location : S.l         )
     (value    : S.typ S.aval) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
@@ -379,23 +418,19 @@ let rec expression_of_aval
         (bindings : S.typ S.aval Bindings.t)
         (typ      : S.typ                  ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
-    let S.Typ_aux (unwrapped_type, _typ_location) = typ
+    (* Find out which record we're building: a record or a record family at a width (S(4)) *)
+    let* record_type =
+      record_type_of_sail_type typ
     in
-    (* Find out which record we're building *)
-    match unwrapped_type with
-    | Typ_id type_identifier -> begin
+    match record_type with
+    | None -> TC.fail [%here] "Unexpected type"
+    | Some (type_identifier', indices, fields) -> begin
         (*
            We know the record's name, we need the fields,
            more specifically, the order they are defined in
         *)
-        let* type_identifier' =
-          Identifier.translate_identifier [%here] type_identifier
-        in
-        let* record_definition =
-          TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named type_identifier')
-        in
         let record_field_names =
-          List.map ~f:fst record_definition.fields
+          List.map ~f:fst fields
         in
         let* mapping, named_statements =
           translate_bindings location bindings
@@ -416,12 +451,16 @@ let rec expression_of_aval
         let record =
           Ast.Expression.Record {
             type_identifier = type_identifier';
+            indices;
             fields          = field_value_identifiers;
           }
+        and record_type =
+          match indices with
+          | []     -> Ast.Type.Record type_identifier'
+          | _ :: _ -> Ast.Type.Application (Ast.Type.Record type_identifier', List.map indices ~f:(fun index -> Ast.TypeArgument.NumericExpression index))
         in
-        TC.return (record, Ast.Type.Record type_identifier', named_statements)
+        TC.return (record, record_type, named_statements)
       end
-    | _ -> TC.fail [%here] "Unexpected type"
 
   and expression_of_vector
       (values : S.typ S.aval list)
@@ -586,6 +625,9 @@ type with_destructured_record_data = {
   (* name of the record type *)
   record_type_identifier : Ast.Identifier.t;
 
+  (* the widths of a record family (struct S('m) at 4), [] for other records *)
+  record_indices         : Ast.Numeric.Expression.t list;
+
   (* field names and types *)
   fields                 : (Ast.Identifier.t * Ast.Type.t) list;
 
@@ -605,76 +647,63 @@ let with_destructured_record
       and* S.Typ_aux (t, _loc) =
         sail_type_of_lvar lvar location
       in
-      match t with
-      | Typ_id record_type_identifier -> begin
-          (* The record's type can be an alias of the record type (e.g., type regtype = Capability) *)
-          let* record_type_identifier =
-            let* translated_record_type_identifier =
-              Identifier.translate_identifier [%here] record_type_identifier
-            and* translated_type =
-              Type.translate_type (S.Typ_aux (t, _loc))
+      let destructure (fallback_identifier : S.id option) =
+        let* record_type =
+          let* record_type = record_type_of_sail_type (S.Typ_aux (t, _loc))
+          in
+          match record_type, fallback_identifier with
+          | Some _, _            -> TC.return record_type
+          | None, None           -> TC.return None
+          | None, Some identifier -> begin
+              (* as before record families: the record named by the type *)
+              let* record_type_identifier = Identifier.translate_identifier [%here] identifier
+              in
+              let* record_definition =
+                TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
+              in
+              TC.return @@ Some (record_type_identifier, [], record_definition.fields)
+            end
+        in
+        match record_type with
+        | None -> TC.not_yet_implemented ~message:"not a record type" [%here] location
+        | Some (record_type_identifier, record_indices, fields) -> begin
+            let field_identifiers =
+              List.map ~f:fst fields
             in
-            match Ast.Type.strip_aliases translated_type with
-            | Record record_type_identifier -> TC.return record_type_identifier
-            | Int _
-            | Bool
-            | String
-            | Bit
-            | List _
-            | Unit
-            | Enum _
-            | Bitvector _
-            | Tuple _
-            | Sum (_, _)
-            | Variant _
-            | Application (_, _)
-            | Alias (_, _)
-            | Range (_, _)
-            | Function _
-            | TypeVariable _
-            | Nat
-            | Vector (_, _)
-            | Implicit _                    -> TC.return translated_record_type_identifier
-          in
-          let* record_type_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
-          in
-          let fields =
-            record_type_definition.fields
-          in
-          let field_identifiers =
-            List.map ~f:fst fields
-          in
-          let* binders =
-            TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
-          in
-          let* body =
-            body_generator {
-              record_identifier;
-              record_type_identifier;
-              fields;
-              binders
-            }
-          in
-          let* destructured_record =
-            statement_of_lvar record_identifier lvar location
-          in
-          TC.return begin
-            Ast.Statement.DestructureRecord {
-              record_type_identifier;
-              field_identifiers;
-              binders;
-              destructured_record;
-              body
-            }
+            let* binders =
+              TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
+            in
+            let* body =
+              body_generator {
+                record_identifier;
+                record_type_identifier;
+                record_indices;
+                fields;
+                binders
+              }
+            in
+            let* destructured_record =
+              statement_of_lvar record_identifier lvar location
+            in
+            TC.return begin
+              Ast.Statement.DestructureRecord {
+                record_type_identifier;
+                field_identifiers;
+                binders;
+                destructured_record;
+                body
+              }
+            end
           end
-        end
+      in
+      match t with
+      | Typ_id identifier    -> destructure (Some identifier)   (* also an alias of the record type, e.g., type regtype = Capability *)
+      | Typ_app (_, _)       -> destructure None                (* a record family at a width, S(4) *)
       | Typ_internal_unknown -> TC.not_yet_implemented [%here] location
       | Typ_var _            -> TC.not_yet_implemented [%here] location
       | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
       | Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
       | Typ_tuple _          -> TC.not_yet_implemented [%here] location
-      | Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
       | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
   | AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
@@ -1119,7 +1148,7 @@ let rec statement_of_aexp
     let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_type_identifier; fields; binders; record_identifier = _ } -> begin
+      fun { record_type_identifier; fields; binders; record_identifier = _; record_indices = _ } -> begin
         match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
@@ -1592,7 +1621,7 @@ let rec statement_of_aexp
       in
       TC.return @@ (field_map', named_statements')
     in
-    with_destructured_record location aval @@ fun { record_type_identifier; fields; binders; _ } -> begin
+    with_destructured_record location aval @@ fun { record_type_identifier; record_indices; fields; binders; _ } -> begin
       let field_identifiers = List.map ~f:fst fields
       in
       let* field_map, named_statements =
@@ -1607,7 +1636,7 @@ let rec statement_of_aexp
         and fields =
           List.map field_identifiers ~f:(Map.find_exn field_map)
         in
-        Record { type_identifier; fields }
+        Record { type_identifier; indices = record_indices; fields }
       in
       TC.return @@ wrap_in_named_statements_context named_statements (Expression record_expression)
     end

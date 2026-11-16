@@ -109,12 +109,13 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t 
       return @@ Expression.BinaryOperation (operator, left_operand, right_operand)
     end
 
-  | Record { type_identifier; fields } -> begin
+  | Record { type_identifier; indices; fields } -> begin
       let* fields = map ~f:rename fields
       in
       return begin
         Expression.Record {
           type_identifier;
+          indices;
           fields;
         }
       end

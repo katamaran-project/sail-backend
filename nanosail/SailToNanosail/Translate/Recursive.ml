@@ -152,9 +152,28 @@ end = struct
             match sum_definition with
             | Some sum_definition -> nanotype_of_sum sum_definition type_arguments'
             | None                -> begin
-                let* constructor = nanotype_of_identifier identifier
+                let* type_definition : Ast.Definition.Type.t option =
+                  TC.lookup_definition_opt (Ast.Definition.Select.(type_definition @@ of_anything_named identifier'))
                 in
-                TC.return @@ Ast.Type.Application (constructor, type_arguments')
+                let application () =
+                  let* constructor = nanotype_of_identifier identifier
+                  in
+                  TC.return @@ Ast.Type.Application (constructor, type_arguments')
+                in
+                match type_definition with
+                | Some (Abbreviation { identifier = _; abbreviation = Alias (type_quantifier, aliased_type) }) -> begin
+                    (* an alias with parameters is expanded: mybits(8 * 'm) is bits(8 * 'm) *)
+                    match Ast.Definition.Type.instantiate_types type_quantifier type_arguments' with
+                    | Some instantiate_type -> TC.return @@ instantiate_type aliased_type
+                    | None                  -> TC.fail [%here] "type arguments do not match the parameters of the alias"
+                  end
+                | Some (Abbreviation { identifier = _; abbreviation = NumericExpression (_, _) }) -> application ()
+                | Some (Abbreviation { identifier = _; abbreviation = NumericConstraint (_, _) }) -> application ()
+                | Some (Variant _)                                                              -> application ()
+                | Some (Sum _)                                                                  -> application ()
+                | Some (Record _)                                                               -> application ()
+                | Some (Enum _)                                                                 -> application ()
+                | None                                                                          -> application ()
               end
               end
           end

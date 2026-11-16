@@ -123,10 +123,10 @@ let rec normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t 
       return @@ Ast.Expression.BinaryOperation (operator, left_operand, right_operand)
     end
 
-  | Record { type_identifier; fields } -> begin
+  | Record { type_identifier; indices; fields } -> begin
       let* fields = map ~f:substitute_identifier fields
       in
-      return @@ Ast.Expression.Record { type_identifier; fields }
+      return @@ Ast.Expression.Record { type_identifier; indices; fields }
     end
 
   | Enum _ -> return @@ expression

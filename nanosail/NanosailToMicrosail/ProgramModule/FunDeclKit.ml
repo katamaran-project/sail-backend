@@ -153,8 +153,8 @@ let pp_hypothesis_support () : PP.t =
     "  repeat match goal with H : IsTrue _ |- _ => apply IsTrue.from, Is_true_eq_true in H end;";
     "  constructor; apply Is_true_eq_left;";
     "  (* unification can leave widths unfolded (8 * n as a chain of fix add): refold them for lia *)";
-    "  change (fix add (n m : nat) {struct n} : nat := match n with | O => m | S p => S (add p m) end) with Nat.add in *;";
-    "  try change (fix mul (n m : nat) {struct n} : nat := match n with | O => O | S p => Nat.add m (mul p m) end) with Nat.mul in *;";
+    "  change (fix add (n m : nat) {struct n} : nat := match n with | Datatypes.O => m | Datatypes.S p => Datatypes.S (add p m) end) with Nat.add in *;";
+    "  try change (fix mul (n m : nat) {struct n} : nat := match n with | Datatypes.O => Datatypes.O | Datatypes.S p => Nat.add m (mul p m) end) with Nat.mul in *;";
     "  rewrite ?Nat2Z.inj_div, ?Nat2Z.inj_mod in *;";
     "  repeat rewrite ?Bool.andb_true_iff, ?Bool.orb_true_iff, ?Bool.negb_true_iff, ?Z.leb_le, ?Z.ltb_lt, ?Z.eqb_eq, ?Z.eqb_neq,";
     "                 ?Nat.leb_le, ?Nat.ltb_lt, ?Nat.eqb_eq, ?Nat.eqb_neq in *;";

@@ -57,6 +57,25 @@ let pp_union_tag (type_identifier : Ast.Identifier.t) : PP.t GC.t =
     end
 
 
+(*
+   The tag of a record in Records, as an argument of a record match: Rs, or (Rs _) for a record family
+   (see Types.Records), whose width Rocq infers from the type of the matched value.
+*)
+let pp_record_tag (type_identifier : Ast.Identifier.t) : PP.t GC.t =
+  let tag = Identifier.pp @@ Identifier.reified_record_name type_identifier
+  in
+  let* definition =
+    GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ type_definition @@ of_record_named type_identifier)
+  in
+  match definition with
+  | None            -> GC.return tag
+  | Some definition -> begin
+      match Types.Records.parameter_identifiers definition with
+      | []         -> GC.return tag
+      | parameters -> GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (tag :: List.map parameters ~f:(fun _ -> PP.string "_"))
+    end
+
+
 let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
   let rec pp_value (value : Ast.Value.t) : PP.t GC.t =
     GC.pp_annotate [%here] begin
@@ -195,12 +214,23 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
     end
 
   and pp_record
-      (type_identifier : Ast.Identifier.t     )
-      (fields          : Ast.Identifier.t list) : PP.t GC.t
+      (type_identifier : Ast.Identifier.t                 )
+      (indices         : Ast.Numeric.Expression.t list    )
+      (fields          : Ast.Identifier.t list            ) : PP.t GC.t
     =
-    let pp_record_type =
-      Identifier.pp @@ Identifier.reified_record_name type_identifier;
-    and pp_record_fields =
+    (* Rs, or (Rs w) for a record family at the width w, which Rocq cannot infer from 8 * w *)
+    let* pp_record_type =
+      let tag = Identifier.pp @@ Identifier.reified_record_name type_identifier
+      in
+      match indices with
+      | []     -> GC.return tag
+      | _ :: _ -> begin
+          let* pp_indices = GC.map indices ~f:(fun index -> Numeric.Expression.pp_argument @@ Ast.Numeric.Expression.simplify index)
+          in
+          GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (tag :: pp_indices)
+        end
+    in
+    let pp_record_fields =
       Coq.pp_list_using_notation begin
         List.map
           fields
@@ -503,7 +533,7 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
     | UnaryOperation (operator, operand)                -> pp_unary_operation operator operand
     | BinaryOperation (op, e1, e2)                      -> pp_binary_operation op e1 e2
     | List elements                                     -> pp_list elements
-    | Record { type_identifier; fields }                -> pp_record type_identifier fields
+    | Record { type_identifier; indices; fields }       -> pp_record type_identifier indices fields
     | Enum { type_identifier; constructor_identifier }  -> pp_enum type_identifier constructor_identifier
     | Variant { type_identifier;
                 constructor_identifier;

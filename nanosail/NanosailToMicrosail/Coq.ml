@@ -565,18 +565,19 @@ let pp_finite_instance
 (* fields as (identifier, type) pairs *)
 let pp_record
       ~(identifier  : PP.t              )
+     ?(parameters  : PP.t list = []    )
       ~(type_name   : PP.t              )
       ~(constructor : PP.t              )
       ~(fields      : (PP.t * PP.t) list) : PP.t
   =
   let first_line =
     PP.(
-      separate_horizontally ~separator:space [
-        string "Record";
-        identifier;
-        colon;
+      separate_horizontally ~separator:space @@ List.concat [
+        [ string "Record"; identifier ];
+        parameters;
+        [ colon;
         type_name;
-        string ":="
+        string ":=" ];
       ]
     )
   in

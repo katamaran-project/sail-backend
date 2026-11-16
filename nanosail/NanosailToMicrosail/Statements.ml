@@ -761,8 +761,8 @@ and pp_destructure_record
       ~(destructured_record    : Ast.Statement.t      )
       ~(body                   : Ast.Statement.t      ) : PP.t GC.t
   =
-  let pp_matched_type =
-    Identifier.pp @@ Identifier.reified_record_name record_type_identifier
+  let* pp_matched_type =
+    Expressions.pp_record_tag record_type_identifier
   in
   let* pp_matched_value =
     pp_statement destructured_record

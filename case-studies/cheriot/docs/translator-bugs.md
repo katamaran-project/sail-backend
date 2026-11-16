@@ -5,6 +5,15 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### A model type named `S` broke `machine.v`'s `sail_constraint`
+- Found: e2e `bitvectors-variables` (`struct S('m)`), once the struct translated: "Unknown constructor: S" in `machine.v`.
+- Cause: the generated tactic refolds `Nat.add`/`Nat.mul` with `match n with | O => m | S p => ...`; the model's `Record S` shadows Peano's `S`.
+- Fix: the tactic writes `Datatypes.O`/`Datatypes.S`.
+```coq
+(* before *) change (fix add ... := match n with | O => m | S p => S (add p m) end) with Nat.add in *;
+(* after  *) change (fix add ... := match n with | Datatypes.O => m | Datatypes.S p => Datatypes.S (add p m) end) with Nat.add in *;
+```
+
 ### Inlined scrutinee lost a width family's width
 - Found: e2e `unions-width-family` failed after merging the read path.
 - Cause: `let x = S in match x` printed as `match S` dropped the `let`'s type; a width family's union tag prints its width as `_` (`Ures_bits _`), so Rocq could not infer it.
