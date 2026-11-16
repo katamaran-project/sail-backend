@@ -26,10 +26,10 @@ Not implemented yet; this records the choices and the options considered.
 
 - **Chosen**: a fuel-based interpreter in Rocq, run with `vm_compute`:
   ```coq
-  exec : nat -> Stm Γ τ -> State -> CStore Γ -> option (Result τ * State)
+  exec : nat -> Stm Γ τ -> State -> CStore Γ -> Outcome (Result τ * State)   (* Done | OutOfFuel | NoAnswer *)
   ```
   - Generic over any Katamaran program, so it can move to Katamaran later.
-  - Later: soundness, `exec n s σ δ = Some r -> Steps ...`.
+  - Later: soundness, `exec n s σ δ = Done r -> Steps ...`.
   - Later: extract it to OCaml for a fast µSail simulator and a full test rig (TestRIG-style random sequences).
 - Considered:
   - *extracted interpreter first*: fast, but trusts extraction and costs more set-up before the first result.

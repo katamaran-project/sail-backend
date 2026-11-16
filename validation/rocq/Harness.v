@@ -154,12 +154,14 @@ Definition set_pc (st : State) (pc : Z) : State :=
   mkState (write_register (st_regs st) PC (bv.of_Z pc)) (st_mem st).
 
 (* As the emulator (riscv_sim.c, init_sail with NO_BOOT_ROM): init_model,
-   then PC := ELF entry. *)
-Definition reset (fuel : nat) (m : Memory) : option State :=
-  match exec_call oracle fuel init_model (env.snoc env.nil (_∷_) tt) (state0 m) with
-  | Some (inr _, st) => Some (set_pc st c_entry)
-  | _ => None
-  end.
+   then PC := ELF entry (only if init_model did not fail). *)
+Definition reset (fuel : nat) (m : Memory) : Outcome (Result ty.unit * State) :=
+  omap (fun '(r, st) =>
+          match r with
+          | inr _ => (r, set_pc st c_entry)
+          | inl _ => (r, st)
+          end)
+    (exec_call oracle fuel init_model (env.snoc env.nil (_∷_) tt) (state0 m)).
 
-Definition run_step (fuel : nat) (st : State) : option (Result ty.bool * State) :=
+Definition run_step (fuel : nat) (st : State) : Outcome (Result ty.bool * State) :=
   exec_call oracle fuel step (env.snoc env.nil (_∷_) 0) st.

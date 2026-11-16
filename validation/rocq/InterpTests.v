@@ -299,10 +299,7 @@ Definition observe (st : State) : Z * bool * Z * Memory :=
    bv.unsigned (read_register (st_regs st) pc), st_mem st).
 
 Definition run {Γ τ} (o : Oracle) (fuel : nat) (s : Stm Γ τ) (δ : CStore Γ) (st : State) :=
-  match exec o fuel s st δ with
-  | Some (r, st') => Some (r, observe st')
-  | None => None
-  end.
+  omap (fun '(r, st') => (r, observe st')) (exec o fuel s st δ).
 
 Definition fuel := 100%nat.
 
@@ -311,18 +308,18 @@ Definition fuel := 100%nat.
 (* value and pure match on an enum via cmp *)
 Example t_cmp :
   run oracle fuel (FunDef cmp) [env].["x"∷ty.int ↦ 3].["y"∷ty.int ↦ 5] st0
-  = Some (inr LT, (0, false, 0x80000000, nil)).
+  = Done (inr LT, (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* recursion: 1 + 2 + ... + 10 *)
 Example t_sum_to :
   run oracle fuel (FunDef sum_to) [env].["n"∷ty.int ↦ 10] st0
-  = Some (inr 55, (0, false, 0x80000000, nil)).
+  = Done (inr 55, (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* out of fuel: recursion depth exceeds the fuel *)
 Example t_fuel :
-  run oracle 20 (FunDef sum_to) [env].["n"∷ty.int ↦ 10] st0 = None.
+  run oracle 20 (FunDef sum_to) [env].["n"∷ty.int ↦ 10] st0 = OutOfFuel.
 Proof. vm_compute. reflexivity. Qed.
 
 (* registers: two bumps, flag set when acc > 10 *)
@@ -331,38 +328,48 @@ Example t_bump :
     (stm_seq (stm_call bump [env].["d"∷ty.int ↦ exp_int 5])
              (stm_call bump [env].["d"∷ty.int ↦ exp_int 7]))
     [env] st0
-  = Some (inr 12, (12, true, 0x80000000, nil)).
+  = Done (inr 12, (12, true, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* bitvector register *)
 Example t_pc :
   run oracle fuel (FunDef advance_pc) [env] st0
-  = Some (inr tt, (0, false, 0x80000004, nil)).
+  = Done (inr tt, (0, false, 0x80000004, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* foreign calls answered by the oracle *)
 Example t_store_load :
   run oracle fuel (FunDef store_load) [env].["a"∷ty.int ↦ 4].["v"∷ty.int ↦ 42] st0
-  = Some (inr 42, (0, false, 0x80000000, cons (4, 42) nil)).
+  = Done (inr 42, (0, false, 0x80000000, cons (4, 42) nil)).
 Proof. vm_compute. reflexivity. Qed.
 
-(* oracle without an answer: None; another oracle answers *)
+(* oracle without an answer: NoAnswer rnd (OutOfFuel without fuel); another oracle answers *)
 Example t_rnd_none :
-  run oracle fuel (stm_foreign rnd [env]) [env] st0 = None.
+  run oracle fuel (stm_foreign rnd [env]) [env] st0 = NoAnswer rnd.
+Proof. vm_compute. reflexivity. Qed.
+Example t_rnd_none_deep :
+  run oracle fuel
+    (stm_seq (stm_call bump [env].["d"∷ty.int ↦ exp_int 5])
+             (stm_let "x" ty.int (stm_foreign rnd [env]) (stm_val ty.int 0)))
+    [env] st0
+  = NoAnswer rnd.
+Proof. vm_compute. reflexivity. Qed.
+Example t_rnd_fuel :
+  run oracle 0 (stm_foreign rnd [env]) [env] st0 = OutOfFuel.
 Proof. vm_compute. reflexivity. Qed.
 Example t_rnd_7 :
   run oracle7 fuel (stm_foreign rnd [env]) [env] st0
-  = Some (inr 7, (0, false, 0x80000000, nil)).
+  = Done (inr 7, (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* assertion passes (lemma skipped) / fails *)
 Example t_safe_sub_ok :
   run oracle fuel (FunDef safe_sub) [env].["x"∷ty.int ↦ 5].["y"∷ty.int ↦ 3] st0
-  = Some (inr 2, (0, false, 0x80000000, nil)).
+  = Done (inr 2, (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 Example t_safe_sub_fail :
   run oracle fuel (FunDef safe_sub) [env].["x"∷ty.int ↦ 3].["y"∷ty.int ↦ 5] st0
-  = Some (inl "underflow", (0, false, 0x80000000, nil)).
+  = Done (inl "underflow", (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* failure after a register write: the write persists, the rest is skipped *)
@@ -372,32 +379,32 @@ Example t_fail_after_write :
        (stm_seq (stm_fail ty.int "stop")
                 (stm_call bump [env].["d"∷ty.int ↦ exp_int 7])))
     [env] st0
-  = Some (inl "stop", (5, false, 0x80000000, nil)).
+  = Done (inl "stop", (5, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* list match *)
 Example t_sum_list :
   run oracle fuel (FunDef sum_list) [env].["xs"∷ty.list ty.int ↦ (cons 1 (cons 2 (cons 3 (cons 4 nil))))] st0
-  = Some (inr 10, (0, false, 0x80000000, nil)).
+  = Done (inr 10, (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* main: the three arms of the enum match *)
 Example t_main_lt :
   run oracle fuel (FunDef main) [env].["n"∷ty.int ↦ 3] st0
-  = Some (inr 6, (6, false, 0x80000000, nil)).
+  = Done (inr 6, (6, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 Example t_main_eq :
   run oracle fuel (FunDef main) [env].["n"∷ty.int ↦ 4] st0
-  = Some (inl "ten", (0, false, 0x80000000, nil)).
+  = Done (inl "ten", (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 Example t_main_gt :
   run oracle fuel (FunDef main) [env].["n"∷ty.int ↦ 5] st0
-  = Some (inr 15, (0, false, 0x80000000, cons (4, 15) nil)).
+  = Done (inr 15, (0, false, 0x80000000, cons (4, 15) nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* exec_call *)
 Example t_exec_call :
-  option_map fst (exec_call oracle fuel sum_to [env].["n"∷ty.int ↦ 4] st0) = Some (inr 10).
+  omap fst (exec_call oracle fuel sum_to [env].["n"∷ty.int ↦ 4] st0) = Done (inr 10).
 Proof. vm_compute. reflexivity. Qed.
 
 (* stm_bind, stm_debugk *)
@@ -405,7 +412,7 @@ Example t_bind :
   run oracle fuel
     (stm_debugk (stm_bind (stm_val ty.int 3) (fun k => stm_val ty.int (k + 1))))
     [env] st0
-  = Some (inr 4, (0, false, 0x80000000, nil)).
+  = Done (inr 4, (0, false, 0x80000000, nil)).
 Proof. vm_compute. reflexivity. Qed.
 
 (* local store: assignment, let and block scoping *)
@@ -419,8 +426,7 @@ Section Locals.
 End Locals.
 
 Example t_locals :
-  match exec_aux oracle fuel s_locals st0 [env].["x"∷ty.int ↦ 0] with
-  | Some (r, _, δ) => Some (r, env.head δ)
-  | None => None
-  end = Some (inr 8, 8).
+  omap (fun '(r, _, δ) => (r, env.head δ))
+    (exec_aux oracle fuel s_locals st0 [env].["x"∷ty.int ↦ 0])
+  = Done (inr 8, 8).
 Proof. vm_compute. reflexivity. Qed.

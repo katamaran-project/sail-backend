@@ -45,7 +45,7 @@ Module Import I := MakeInterp UntitledBase ModelProgram.
 | `MEMr_tag(a)` / `MEMw_tag(a, t)` | tag map |
 | `get_16_random_bits` | `0` (emulator: `/dev/urandom`) |
 | platform settings | constants below |
-| none | no `None` answers |
+| none | no `None` answers (never `NoAnswer`) |
 
 Used by `init_model`: `unconstrained`, `pow2`, `sail_zero_extend`, `get_slice_int`, `sys_enable_fdext`, `sys_enable_zfinx`, `sys_enable_vext`.
 Used by `step` on ADDI: `unconstrained`, `sail_sign_extend`, `sail_zero_extend`, `get_slice_int`, `__read_mem`, `elf_tohost`, `plat_{ram,rom,clint,uart}_{base,size}`.
@@ -74,13 +74,13 @@ Source: `sail-riscv/c_emulator/riscv_platform_impl.c` defaults, `riscv_sim.c` (`
 ## Initial state
 
 - Registers: `reg_default`, every register the `Unconstrained` inhabitant (bitvectors `bv.zero`).
-- `reset`: `init_model`, then `PC := 0x80000000` (emulator: `init_sail`, `zPC = elf_entry` after `zinit_model`).
-- `run_step`: `step(0)`.
+- `reset : nat -> Memory -> Outcome (Result unit * State)`: `init_model`, then `PC := 0x80000000` if it did not fail (emulator: `init_sail`, `zPC = elf_entry` after `zinit_model`).
+- `run_step : nat -> State -> Outcome (Result bool * State)`: `step(0)`.
 
 ## StepADDI
 
 - `0x00500093` at `0x80000000`; after `step`: result `true`, `PC = 0x80000004`, `x1.address = 5`, `x1.tag = false`, `minstret = 1`.
-- Also checked: fuel is least (`reset` with 64, `step` with 49 give `None`).
+- Also checked: fuel is least (`reset` with 64, `step` with 49 give `OutOfFuel`).
 - Probes (not in the file): `ADDI x1, x0, -3` gives `0xfffffffd`; encoding `0` traps (PC = 0, `mcause = 2`); `ADDI x16, x0, 1` gives `inl "failure"` (RV32E, expected divergence).
 
 ## Fuel and timings
