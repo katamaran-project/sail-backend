@@ -9,7 +9,7 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `48db0066` plus matches on statements and no `FunDefKit` section; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `a3b142bb` plus `if`s with a condition known at compile time folded; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
@@ -19,11 +19,11 @@ Measured on `48db0066` plus matches on statements and no `FunDefKit` section; ch
 | untranslated definitions | 33 |
 | `NYI` holes | 2 (`align_down`: a width that depends on a value) |
 | hard failures | 0 |
-| calls to missing functions | 13, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
+| calls to missing functions | 11, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 47, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 9 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
 | Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2353`: 31 of its 511 definitions, then the first `NYI` hole (`align_down`) |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v`; in `machine.v`, the whole memory write path type-checks with its real bodies; `encdec_backwards` takes 6 s; the probe stops at `machine.v:23983`, `execute_STORE`, on the 45 s watchdog (a dead branch whose width hypothesis is false, see [roadmap](roadmap.md)); with that branch replaced by a failure, all of `machine.v` compiles in 117 s |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` and `machine.v` compile, every command within the 45 s limit (slowest: `execute_LoadCapImm` 4.3 s, `encdec_backwards` 3.4 s) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
@@ -79,6 +79,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-15 | merge | core + fallbacks | 67 / 67, 63 clean | 489 / 506 | 33 | 2 | 0 | `machine.v:20436` `encdec_backwards` (stall) | `implicit-hypotheses` merged: width constraints as implicit hypotheses; `STORE`, `StoreCapImm` clean |
 | 2026-11-16 | `79b870b4`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:20360` `encdec_backwards` (stall) | Zb\* and compressed absent like PMP (`haveZb*`, `sys_enable_rvc` = `false`): `execute`'s 80 failure arms unreachable; the 7 `haveZb*` leave the scope |
 | 2026-11-16 | `48db0066`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:23983` `execute_STORE` (stall) | `let x = S in match x` printed as `match S` when the cases do not use `x`, and no `Section FunDefKit`: `encdec_backwards` 608 s -> 6 s, `End FunDefKit` 72 s -> 0 |
+| 2026-11-16 | `a3b142bb`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | compiles | an `if` whose condition is known at compile time becomes its live branch (`DOUBLE if sizeof(xlen) >= 64` in `execute_STORE`); the probe compiles all of `machine.v`; missing calls 13 -> 11 |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

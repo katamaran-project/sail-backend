@@ -22,8 +22,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Rocq output
 
-- **A dead branch with a false width hypothesis stalls `coqc`**: in `execute_STORE`, the `DOUBLE` arm under `if 32 >= 64` (Sail: `sizeof(xlen) >= 64`) calls `mem_write_value (kid__n := 8)` with a `bits(32)`; Sail's flow typing accepts the dead branch, Rocq's search for the false hypothesis runs over 45 s.
-  Needs: a branch under a condition that is false at compile time translated as a failure. With it, all of `machine.v` compiles in 117 s.
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
 
 ## Later

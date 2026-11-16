@@ -2279,6 +2279,78 @@ let rewrite_zero_extended_low_slice (expression : Sail.type_annotation S.exp) : 
 
 
 (*
+   An if whose condition is known at compile time becomes its live branch.
+
+     if gteq_int(32, 64) then A else B          (sail-riscv: if sizeof(xlen) >= 64 then ... in execute_STORE)
+
+   becomes B. Sail's flow typing checks A assuming the condition, so A may be ill-typed once the
+   condition is false: in execute_STORE it calls mem_write_value at 8 bytes with a bits(32), and Rocq
+   searched for the false width hypothesis for over 45 s. The condition is a literal, an integer
+   comparison whose operands' values the types give, or not, and and or of those; value exclusions
+   (exclude-functions-as-value: haveZbb() = false) are replaced before, so their conditions fold too.
+*)
+let rewrite_constant_conditions (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let rec value_of (condition : Sail.type_annotation S.exp) : bool option =
+    let compare (operator : Z.t -> Z.t -> bool) (left : Sail.type_annotation S.exp) (right : Sail.type_annotation S.exp) : bool option =
+      match sail_integer_value left, sail_integer_value right with
+      | Some left, Some right -> Some (operator left right)
+      | Some _   , None       -> None
+      | None     , Some _     -> None
+      | None     , None       -> None
+    in
+    match sail_application_of condition with
+    | Some ("eq_int"  , [ left; right ]) -> compare Z.equal left right
+    | Some ("neq_int" , [ left; right ]) -> compare (fun x y -> not (Z.equal x y)) left right
+    | Some ("lt_int"  , [ left; right ]) -> compare Z.lt left right
+    | Some ("lteq_int", [ left; right ]) -> compare Z.leq left right
+    | Some ("gt_int"  , [ left; right ]) -> compare Z.gt left right
+    | Some ("gteq_int", [ left; right ]) -> compare Z.geq left right
+    | Some ("not_bool", [ operand ])     -> Option.map ~f:not (value_of operand)
+    | Some ("and_bool", [ left; right ]) -> begin
+        match value_of left, value_of right with
+        | Some false, _          -> Some false
+        | _         , Some false -> Some false
+        | Some true , Some true  -> Some true
+        | Some true , None       -> None
+        | None      , Some true  -> None
+        | None      , None       -> None
+      end
+    | Some ("or_bool" , [ left; right ]) -> begin
+        match value_of left, value_of right with
+        | Some true , _          -> Some true
+        | _         , Some true  -> Some true
+        | Some false, Some false -> Some false
+        | Some false, None       -> None
+        | None      , Some false -> None
+        | None      , None       -> None
+      end
+    | Some _ -> None
+    | None   -> begin
+        let S.E_aux (unwrapped_condition, _) = condition
+        in
+        match unwrapped_condition with
+        | E_lit (S.L_aux (S.L_true , _)) -> Some true
+        | E_lit (S.L_aux (S.L_false, _)) -> Some false
+        | _                              -> None
+      end
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    match unwrapped_expression with
+    | E_if (condition, when_true, when_false) -> begin
+        match value_of condition with
+        | Some true  -> when_true
+        | Some false -> when_false
+        | None       -> S.E_aux (unwrapped_expression, annotation)
+      end
+    | _ -> S.E_aux (unwrapped_expression, annotation)
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
    Replaces each call to a function that the configuration excludes with a value
    (exclude-functions-as-value) with that value: a Sail expression, parsed and then
    type-checked at the type of the call, in the call's environment.
@@ -2362,7 +2434,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
+       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ rewrite_constant_conditions @@ replace_calls_by_values body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
        let* locally_bound_identifiers =

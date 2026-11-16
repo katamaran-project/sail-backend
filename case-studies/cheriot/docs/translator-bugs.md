@@ -13,6 +13,18 @@ Commit hashes are those on the branch at the time of writing.
 let r = Ok(width > 4)    // r : Res(bool('p)), now the instance Res(bool)
 ```
 
+### A dead branch with a false width hypothesis stalled `coqc`
+- Found: after the decoder fix, the probe stalled at `execute_STORE` (45 s limit); with the `DOUBLE` arm replaced by a failure, all of `machine.v` compiled.
+- Cause: Sail turns the guard of `DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, ...)` into `if gteq_int(32, 64)` after `remove_impossible_int_cases`, so nothing folds it; its branch is checked assuming the false condition, and passes a `bits(32)` where `mem_write_value` at 8 bytes expects a `bits(64)`. Rocq searched for the false width hypothesis.
+- Fix: an `if` whose condition is known at compile time (integer comparisons of constants, `not`, `and`, `or`, literals, value exclusions) becomes its live branch. Test `if-constant-condition`.
+```sail
+DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false),   // sail-riscv's execute STORE
+```
+```coq
+(* before *) | DOUBLE => stm_if ((stm_exp ((exp_int 32%Z) >= (exp_int 64%Z)))) (stm_call (mem_write_value (kid__n := 8)) ...) (stm_call report_invalid_width ...)
+(* after  *) | DOUBLE => stm_call report_invalid_width ...
+```
+
 ### The decoder took 608 s in `coqc`
 - Found: the probe stalled at `encdec_backwards` (45 s limit); a diagnostic run without the limit took 608 s, then 72 s at `End FunDefKit`.
 - Cause: Sail's ANF names every matched value, `let x = S in match x { ... }`; the decoder is a chain of about 130 such matches (one per encoding), each nested in the previous one's last case, so every `let` lengthens the context of all later ones (a synthetic chain of 160: 49 s with the lets, 6.5 s without).
