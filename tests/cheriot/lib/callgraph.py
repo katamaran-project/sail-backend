@@ -34,6 +34,7 @@ VALUE_HEAD = re.compile(ATTRIBUTES + r'let\s+\(?([A-Za-z0-9_#]+)')
 REGISTER_HEAD = re.compile(ATTRIBUTES + r'register\s+([A-Za-z0-9_#]+)')
 HEADS = [(FUNCTION_HEAD, 'function'), (VALUE_HEAD, 'value'), (REGISTER_HEAD, 'register')]
 IDENTIFIER = re.compile(r'operator\s+[^\s(]+|[A-Za-z_][A-Za-z0-9_#]*')
+STRING_LITERAL = re.compile(r'"(?:[^"\\]|\\.)*"')
 
 # How the translator names an operator such as `operator <_s` (Sail.mangle_sail_operator_name, applied to
 # Sail's internal form of the operator, in which each character of a part is set between bars: |<|_|s|).
@@ -75,8 +76,10 @@ def identifiers(text: str) -> list[str]:
     """
     The identifiers in a piece of Sail, operators named as the translator names them, and calls
     to bitfield setters with a register reference replaced by calls to the update function.
+    Words inside string literals are not identifiers ("unreachable: execute(NOT_CAPMODE(...))").
     """
-    return [canonical(i) for i in IDENTIFIER.findall(SETTER_CALL.sub(r'_update_\1(', text))]
+    code = STRING_LITERAL.sub('""', text)
+    return [canonical(i) for i in IDENTIFIER.findall(SETTER_CALL.sub(r'_update_\1(', code))]
 
 
 class CallGraph:

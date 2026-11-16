@@ -300,8 +300,9 @@ let pp_function_definition_kit
         end
       end
     in
-    let section =
-      Coq.pp_section (PP.string "FunDefKit") contents
-    in
-    GC.return @@ PP.annotate [%here] @@ section
+    (*
+       Not in a Section: it would have no variables, and closing it makes Rocq check every
+       definition in it again (End FunDefKit took 72 s on CHERIoT's decoder).
+    *)
+    GC.return @@ PP.annotate [%here] @@ PP.paragraphs [ Coq.pp_comment (PP.string "FunDefKit"); contents ]
   end

@@ -118,3 +118,18 @@ registers = [
 # PMP absent: a CHERIoT without PMP entries, a configuration the model allows
 # (init_pmp asserts 0, 16 or 64). Remove the PMP lines above to turn PMP back on.
 sys_pmp_count = "0"
+# Bit manipulation (Zb*) absent: every encdec clause of a Zb* instruction is guarded
+# by these (e.g. `if haveZbb() | haveZbkb()`), so with all false none decodes and
+# execute's Zb* arms (failures) are unreachable. Remove these lines to turn Zb* back on.
+haveZba = "false"
+haveZbb = "false"
+haveZbc = "false"
+haveZbs = "false"
+haveZbkb = "false"
+haveZbkc = "false"
+haveZbkx = "false"
+# Compressed instructions absent: misa.C is set from sys_enable_rvc() at reset and
+# legalize_misa never sets it when sys_enable_rvc() is false; step executes a 16-bit
+# parcel only if haveRVC() (misa.C), and raises an illegal-instruction trap otherwise,
+# so execute's compressed arms (failures) are unreachable. Remove to turn RVC back on.
+sys_enable_rvc = "false"

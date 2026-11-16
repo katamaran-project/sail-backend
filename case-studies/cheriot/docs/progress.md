@@ -9,31 +9,29 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `cfde26d7` (width families, per-type copies, tuple matches split on a union column, tuple binders in order); cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `83ef37cc` plus slice indices that Sail's solver knows; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
-| instructions clean | **64 of 67**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSEQX`, `CSR`, `CSeal`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSetHigh`, `CSpecialRW`, `CSub`, `CTestSubset`, `CUnseal`, `C_ILLEGAL`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCEI_RESERVED`, `FENCE_RESERVED`, `FENCE_TSO`, `ILLEGAL`, `ITYPE`, `LOAD`, `MRET`, `MUL`, `MULW`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `STORE`, `StoreCapImm`, `UTYPE`, `WFI` |
+| instructions clean | **65 of 67**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSeal`, `CSEQX`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSetHigh`, `CSpecialRW`, `CSR`, `CSub`, `CTestSubset`, `CUnseal`, `C_ILLEGAL`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCEI_RESERVED`, `FENCE_RESERVED`, `FENCE_TSO`, `ILLEGAL`, `ITYPE`, `MRET`, `MUL`, `MULW`, `NOT_CAPMODE`, `NOT_C_CAPMODE`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `STORE`, `StoreCapImm`, `UTYPE`, `WFI` |
 | instructions generated | 67 of 67 |
-| functions generated | 505 of 506 |
-| untranslated definitions | 1 (`try_execute`: exceptions) |
-| `NYI` holes | 2 (`align_down`: a width that depends on a value) |
+| functions generated | 482 of 499 |
+| untranslated definitions | 33 |
+| `NYI` holes | 0 |
 | hard failures | 0 |
-| calls to missing functions | 2, both to `try_execute`; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, though reachable ([design](design.md#scope)) |
+| calls to missing functions | 11, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
-| policy exclusions | 39, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | all of `base.v`; `machine.v:2522`: 31 of its 534 definitions, then the first `NYI` hole (`align_down`) |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v`; in `machine.v`, the memory write and read paths type-check with their real bodies; the probe stops at `machine.v:22043`, `encdec_backwards`, on the 45 s watchdog (the decoder, 6.8 MB of Rocq). By hand with a 900 s limit (`tests/cheriot/coq-watch.py --stall 900`), all of the probe's `machine.v` compiles in 718 s: `encdec_backwards` 494 s, `End FunDefKit` 69 s, `writeCSR` 68 s |
+| policy exclusions | 47, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 9 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
+| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:14805`: 383 of its 511 definitions, then the first call to an untranslated definition (`mem_read_cap` calls `mem_read_meta`, on the read path) |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v` and `machine.v` compile, every command within the 45 s limit (slowest: `execute_LoadCapImm` 4.3 s, `encdec_backwards` 3.4 s) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Known limitations
 
-- `LoadCapImm` (and `NOT_CAPMODE`, `NOT_C_CAPMODE`, which reach it) wait for `align_down`: slice bounds that come from an `itself('n)` value.
-- `execute`'s compressed and Zb\* arms are failures, though those instructions decode; a decision is pending ([roadmap](roadmap.md#rocq-output)).
+- PMP, Zb\* and compressed instructions are absent, virtual memory excluded; see [design](design.md#scope).
 - `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
-- Plain Rocq stops at the first `NYI` hole in `machine.v` (`align_down`).
-- PMP is absent (`sys_pmp_count = 0`) and virtual memory is excluded; see [design](design.md#scope).
+- Plain Rocq stops at the first call to an untranslated definition (the memory read path).
 - Details and what each blocks: [roadmap](roadmap.md).
 
 ## History
@@ -78,7 +76,12 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-15 | `0bcdee76`+ | core + fallbacks | 67 / 67, 61 clean | 488 / 506 | 34 | 4 | 0 | `machine.v:15215` `htif_store` (370 of 515) | the decoders' fallbacks (`ILLEGAL`, `C_ILLEGAL`, `FENCE_RESERVED`, `FENCEI_RESERVED`, `NOT_CAPMODE`, `NOT_C_CAPMODE`) in scope: they are reachable; `execute` keeps 80 failure arms; with the memory-write functions and `encdec_backwards` axiomatised, all of `machine.v` compiles |
 | 2026-11-15 | `83f7df8a` | core | 61 / 61, 57 clean | 478 / 500 | 38 | 2 | 0 | compiles (`base.v`, `machine.v`) | Sail's constraints on widths are implicit `IsTrue` hypotheses; flow-typed branches decided in Rocq (`Nat.eq_dec`, `sail_decide`) with casts; widths Sail proves equal to a size variable are that variable; `MemoryOpResult(bool('p))` is `MemoryOpResult(bool)`: the write path type-checks, `read_ram` and `phys_mem_write` translate |
 | 2026-11-15 | merge | core + fallbacks | 67 / 67, 63 clean | 489 / 506 | 33 | 2 | 0 | `machine.v:20436` `encdec_backwards` (stall) | `implicit-hypotheses` merged: width constraints as implicit hypotheses; `STORE`, `StoreCapImm` clean |
+| 2026-11-16 | `79b870b4`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:20360` `encdec_backwards` (stall) | Zb\* and compressed absent like PMP (`haveZb*`, `sys_enable_rvc` = `false`): `execute`'s 80 failure arms unreachable; the 7 `haveZb*` leave the scope |
 | 2026-11-16 | `cfde26d7` | core + fallbacks | 67 / 67, 64 clean | 505 / 506 | 1 | 2 | 0 | `machine.v:22043` `encdec_backwards` (stall) | read path: `MemoryOpResult(bits('n))` and `MemoryOpResult((bits('n), bool))` as width families; `add_meta`/`drop_meta` one copy each (one type each); tuple matches split on a union column (`phys_mem_read`); tuple binders were reversed (CHERIoT's flag triples swapped); `LOAD` clean |
+| 2026-11-16 | `48db0066`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:23983` `execute_STORE` (stall) | `let x = S in match x` printed as `match S` when the cases do not use `x`, and no `Section FunDefKit`: `encdec_backwards` 608 s -> 6 s, `End FunDefKit` 72 s -> 0 |
+| 2026-11-16 | `a3b142bb`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | compiles | an `if` whose condition is known at compile time becomes its live branch (`DOUBLE if sizeof(xlen) >= 64` in `execute_STORE`); the probe compiles all of `machine.v`; missing calls 13 -> 11 |
+| 2026-11-16 | `64414328`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 0 | 0 | compiles | `align_down`: an update with an unknown high index has the new value's width as its length (`kid__n`); no holes left; plain Rocq 31 -> 383 definitions; the loop probes a file with calls to missing functions even without holes |
+| 2026-11-16 | `83ef37cc`+ | core + fallbacks | 67 / 67, 65 clean | 482 / 499 | 33 | 0 | 0 | compiles | slice indices and widths that Sail's solver determines (after an `assert`) become constants; with `76415d3d` (words in string literals are not calls in the call graph), `NOT_CAPMODE` and `NOT_C_CAPMODE` are clean |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

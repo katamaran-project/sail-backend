@@ -255,9 +255,13 @@ def original_line(line: int, inserted_at: int, inserted: int) -> int:
 def needs_probe(text: str) -> bool:
     """
     Whether the probe copy of a generated file can compile differently from the file: when it
-    mentions NYI or has the marker for untranslated definitions.
+    mentions NYI, has the marker for untranslated definitions, or has a function body that calls
+    a function the file does not define (the probe replaces such a body by the axiom).
     """
-    return NYI_TOKEN.search(text) is not None or UNTRANSLATED_MARKER in text
+    if NYI_TOKEN.search(text) is not None or UNTRANSLATED_MARKER in text:
+        return True
+    lines = text.split('\n')
+    return axiomatise_function_bodies_with_holes(lines) != lines
 
 
 # --------------------------------------------------------------------------

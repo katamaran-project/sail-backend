@@ -34,5 +34,8 @@ val checked : bits(32) -> bool
 function checked(addr) =
   if pmp_count() == 0 then false else is_fault(pmp_check(addr, 4))
 
+val fault_at : bits(32) -> bool
+function fault_at(addr) = is_fault(pmp_check(addr, 4))
+
 val checked_mstatus : unit -> bool
 function checked_mstatus() = is_fault(pmp_check(mstatus, 4))

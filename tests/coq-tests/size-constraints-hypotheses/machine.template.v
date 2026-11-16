@@ -23,13 +23,11 @@ Proof. reflexivity. Qed.
 
 (* A branch that Sail's flow typing specialises: at width 4, data is a bits(32) *)
 Goal forall H, @fun_store_flow 32 4 H =
-  stm_let "ga#0" ty.bool (stm_exp (exp_binop (bop.relop bop.eq) (exp_var "width") (exp_int 4%Z)))
-    (stm_if (stm_exp (exp_var "ga#0"))
-       (stm_let "data" (ty.bvec 32) (stm_exp (exp_var "data"))      (* rebound at the branch's width *)
-          (stm_seq (stm_let "ж1" (ty.bvec 32) (stm_exp (exp_var "data")) (stm_write_register r32 (exp_var "ж1")))
-                   (stm_exp (exp_val ty.unit tt))))
-       (stm_let "ga#1" ty.bool (stm_exp (exp_binop (bop.relop bop.eq) (exp_var "width") (exp_int 2%Z)))
-          (stm_if (stm_exp (exp_var "ga#1"))
-             (stm_fail ty.unit "unreachable: Sail's typing fixes kid__n = 2, kid__p8_times_n = 16 here")
-             (stm_exp (exp_val ty.unit tt))))).
+  stm_if (stm_exp (exp_binop (bop.relop bop.eq) (exp_var "width") (exp_int 4%Z)))
+    (stm_let "data" (ty.bvec 32) (stm_exp (exp_var "data"))      (* rebound at the branch's width *)
+       (stm_seq (stm_let "ж1" (ty.bvec 32) (stm_exp (exp_var "data")) (stm_write_register r32 (exp_var "ж1")))
+                (stm_exp (exp_val ty.unit tt))))
+    (stm_if (stm_exp (exp_binop (bop.relop bop.eq) (exp_var "width") (exp_int 2%Z)))
+       (stm_fail ty.unit "unreachable: Sail's typing fixes kid__n = 2, kid__p8_times_n = 16 here")
+       (stm_exp (exp_val ty.unit tt))).
 Proof. intros H. reflexivity. Qed.

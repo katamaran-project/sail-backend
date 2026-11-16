@@ -23,6 +23,89 @@ Commit hashes are those on the branch at the time of writing.
 let r = Ok(width > 4)    // r : Res(bool('p)), now the instance Res(bool)
 ```
 
+### A dead branch with a false width hypothesis stalled `coqc`
+- Found: after the decoder fix, the probe stalled at `execute_STORE` (45 s limit); with the `DOUBLE` arm replaced by a failure, all of `machine.v` compiled.
+- Cause: Sail turns the guard of `DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, ...)` into `if gteq_int(32, 64)` after `remove_impossible_int_cases`, so nothing folds it; its branch is checked assuming the false condition, and passes a `bits(32)` where `mem_write_value` at 8 bytes expects a `bits(64)`. Rocq searched for the false width hypothesis.
+- Fix: an `if` whose condition is known at compile time (integer comparisons of constants, `not`, `and`, `or`, literals, value exclusions) becomes its live branch. Test `if-constant-condition`.
+```sail
+DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false),   // sail-riscv's execute STORE
+```
+```coq
+(* before *) | DOUBLE => stm_if ((stm_exp ((exp_int 32%Z) >= (exp_int 64%Z)))) (stm_call (mem_write_value (kid__n := 8)) ...) (stm_call report_invalid_width ...)
+(* after  *) | DOUBLE => stm_call report_invalid_width ...
+```
+
+### Slice indices known only to Sail's solver were holes
+- Found: e2e `assert-flow-typing-constrained-width`.
+- Cause: µSail's slices take their indices as Rocq numbers; the translator only accepted literals, not an index whose value Sail's flow typing knows (`assert(n == 32); v[n - 1 .. 0]`).
+- Fix: such an index (an argument without an effect whose value `solve_unique` finds) becomes a literal before the translation (`rewrite_solved_indices`), and a width the solver determines becomes a constant (`normalise_widths`).
+```coq
+(* before *) stm_let "w" (ty.bvec (NYI[0])) (stm_exp (exp_unop (uop.vector_subrange NYI[1] NYI[2]) (exp_var "v")))
+(* after  *) stm_let "w" (ty.bvec (32))      (stm_exp (exp_unop (uop.vector_subrange 0 32) (exp_var "v")))
+```
+
+### Struct patterns untranslated
+- Found: e2e `match-record` failed ("expected pattern AP_struct (_, _) while matching type Record").
+- Cause: the pattern translation had no case for struct patterns.
+- Fix: a match with a single case whose pattern is a struct of variables and wildcards always matches; it destructures the record (`stm_match_record`) and binds the variables to its fields. Other struct patterns stay untranslated.
+```sail
+match s { struct { foo = x, bar = y, qux = z } => x }
+```
+```coq
+(* after *) stm_match_record Rmystruct (stm_exp (exp_var "s")) (recordpat_snoc (... "foo" "жfoo0") ...) (stm_exp (exp_var "жfoo0"))
+```
+
+### Scattered functions took their arguments as one tuple
+- Found: e2e `functions-ternary-scattered` failed: `scatfoo(XXX, 1)` passed two arguments to a `Fun` with one parameter.
+- Cause: Sail's `merge_function_clauses` makes the clauses one function of a single variable, `merge#var`, bound to the tuple of the arguments.
+- Fix: when the `val` declares several parameters and the pattern is one variable of a tuple type, the function gets one parameter per element and binds `merge#var` to their tuple first. Test `functions-ternary-scattered`.
+```coq
+(* before *) | scatfoo : Fun ["merge#var" ∷ ty.prod (ty.enum Emyenum) ty.int] ty.int
+(* after  *) | scatfoo : Fun ["merge#var#1" ∷ ty.enum Emyenum; "merge#var#2" ∷ ty.int] ty.int
+```
+
+### Constructor patterns nested two levels deep
+- Found: e2e `match-unions-nested-2` failed ("pattern is incompatible with type of value being matched").
+- Cause: `merge_nested_constructor_patterns` built the inner match on a constructor's fields straight into a pattern tree, which takes no nested patterns; a pattern nested one level deeper (`C1(B1(A1(a, b)))`) reached it.
+- Fix: the match on a single field is translated like any match (`translate_cases`), which merges at that level in turn.
+```sail
+match x { C1(B1(A1(a, b))) => "a", C2(A2(a, b)) => "b", C1(B2(_)) => "c", _ => "z" }
+```
+
+### Record field of a tuple type with three or more elements
+- Found: e2e `records-definition-with-triple` failed in `base.v`.
+- Cause: the Rocq type of a tuple of three or more was `T1 * T2 * T3`, but µSail's `ty.tuple` has Katamaran's `EnvRec` values, `((unit * T1) * T2) * T3`, so `record_fold` did not fit the record.
+- Fix: such a tuple's Rocq type is `unit * T1 * T2 * T3` (a pair stays `T1 * T2`, µSail's `ty.prod`). The check in `type-alias-of-tuple` now builds `(tt, true, (e, i), b)`.
+```sail
+struct MyStruct = { foo : (int, int, int) }
+```
+```coq
+(* before *) Record MyStruct := MkMyStruct { MyStruct_foo : (Z * Z * Z)%type }.
+(* after  *) Record MyStruct := MkMyStruct { MyStruct_foo : (unit * Z * Z * Z)%type }.
+```
+
+### Function names clash with Katamaran's
+- Found: e2e `model-008` failed: a Sail function named like a Katamaran definition clashes in `machine.v`.
+- Cause: the translation keeps Sail's names; Katamaran's `DefaultRegStoreKit` declares `read_register` and `write_register`.
+- Fix: the configuration function `rename` (no automatic scheme, by decision: a clash fails in Rocq until the configuration renames it). `model-008` renames both.
+```sail
+function write_register(r, w) = { ... }
+```
+```
+(* before *) machine.v: Error: The label write_register is already declared.    (* DefaultRegStoreKit *)
+(* after  *) (rename '(("read_register" "read_register_model") ("write_register" "write_register_model")))
+```
+
+### The decoder took 608 s in `coqc`
+- Found: the probe stalled at `encdec_backwards` (45 s limit); a diagnostic run without the limit took 608 s, then 72 s at `End FunDefKit`.
+- Cause: Sail's ANF names every matched value, `let x = S in match x { ... }`; the decoder is a chain of about 130 such matches (one per encoding), each nested in the previous one's last case, so every `let` lengthens the context of all later ones (a synthetic chain of 160: 49 s with the lets, 6.5 s without).
+  Closing the `FunDefKit` section, which has no variables, made Rocq check every definition in it again.
+- Fix: a `let` whose body is a match on it, with cases that do not use it, is printed as a match on the bound statement; `FunDefKit` is no longer a section. `encdec_backwards` 6 s, `End FunDefKit` gone. Test `match-scrutinee-without-let`.
+```coq
+(* before *) stm_let "ga#2252" (ty.sum (ty.union Uast) ty.unit) (...) (stm_match_sum (stm_exp (exp_var "ga#2252")) ...)
+(* after  *) stm_match_sum (...) ...
+```
+
 ### Discarded call to a type-polymorphic function behind argument lets: `stm_seq`'s type not inferable
 - Found: by hand-compiling `machine.v` past the probe's stop, after the decoders' fallbacks entered the scope (`execute_NOT_C_CAPMODE`).
 - Cause: `pp_sequence` fixes the discarded type of a call such as `internal_error : forall ('a : Type). ... -> 'a` to `ty.unit`, but only for a bare call; with a computed argument the call sits under a `let`, and Rocq cannot infer `σ`.
@@ -271,25 +354,6 @@ Definition fun_tag_addr_to_addr : Stm [...] ... :=
 [1] : Not yet implemented; see nanosail/NanosailToMicrosail/FunctionCalls.ml line 908 (%s's indices should be known at compile time)
 ```
 
-### Function names clash with Katamaran's
-- A Sail function named like a Katamaran definition clashes in `machine.v`; e2e `model-008`.
-```sail
-function write_register(r, w) = { ... }
-```
-```
-machine.v: Error: The label write_register is already declared.    (* DefaultRegStoreKit *)
-```
-
-### Record field of a tuple type with three or more elements
-- `base.v` types the field as a Rocq product, `record_fold` gives a `Val (ty.tuple [..])`; e2e `records-definition-with-triple`.
-```sail
-struct MyStruct = { foo : (int, int, int) }
-```
-```
-The term "fields.[? "foo"∷?type]" has type "Val (type ("foo"∷?type))"
-while it is expected to have type "(Z * Z * Z)%type".
-```
-
 ### `argument-types-of-polymorphic-function-calls` crashes
 - With the retired `monomorphize-type` model, the template function raises `GenerationContext.FrameException` ("should only be executed while within a frame"); still crashes on this branch. Cause not investigated.
 
@@ -298,6 +362,22 @@ while it is expected to have type "(Z * Z * Z)%type".
 - The `monomorphize-*` tests were retired (`b2b44476`); size-polymorphic functions now use implicit arguments instead.
 
 ## Loop and measurement bugs
+
+### Words in string literals counted as calls
+- Found: the user noticed that `execute_NOT_CAPMODE` only calls `internal_error`, yet the loop listed the load path among its blockers.
+- Cause: the call graph took every identifier in a body as a use, string literals included: `"should be unreachable: execute(NOT_CAPMODE("` made `execute_NOT_CAPMODE` call `execute`, whose cone has the whole load path.
+- Fix: `76415d3d` skips string literals (`tests/cheriot/lib/callgraph.py`); `NOT_CAPMODE` and `NOT_C_CAPMODE` are clean (65 of 67).
+```sail
+function clause execute(NOT_CAPMODE(s)) = {
+  internal_error(__FILE__, __LINE__, "should be unreachable: execute(NOT_CAPMODE(" ^ BitStr(s) ^ "))");
+  RETIRE_FAIL
+}
+```
+
+### The probe was skipped once the holes were gone
+- Found: after `align_down` lost its last holes, the ratchet reported the probe stopping earlier, at plain Rocq's first error.
+- Cause: the loop ran the probe only for a file with `NYI` (or the old marker), but the probe also axiomatises bodies that call a missing function.
+- Fix: a file with such a body needs the probe too (`needs_probe`).
 
 Bugs in `tests/cheriot` and the case study configuration, not the translator.
 
