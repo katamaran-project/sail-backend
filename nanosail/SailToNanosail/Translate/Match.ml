@@ -2920,8 +2920,11 @@ let is_nested_pattern (pattern : Pattern.t) : bool =
      }
 
    The merged case takes the place of the first case for C. Constructors whose cases only bind their fields are left alone.
+   The match on a single field is translated by translate_field_match (translate_cases), so that patterns nested
+   deeper (C1(B1(A1(a, b)))) are merged at that level in turn.
 *)
 let merge_nested_constructor_patterns
+    ~(translate_field_match : S.l -> Ast.Identifier.t -> Ast.Type.t -> (Pattern.t * Ast.Statement.t) list -> Ast.Type.t -> Ast.Statement.t TC.t)
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (variant_identifier : Ast.Identifier.t                  )
@@ -3070,16 +3073,29 @@ let merge_nested_constructor_patterns
       TC.return @@ List.filter_opt inner_cases
     in
     let* inner_match : Ast.Statement.t =
-      let* empty_pattern_tree =
-        build_empty_pattern_tree location field_types
-      in
-      let* pattern_tree =
-        TC.fold_left
-          inner_cases
-          ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
-          ~init:empty_pattern_tree
-      in
-      build_leveled_match_statements field_identifiers pattern_tree output_type
+      match field_identifiers, field_types with
+      | [ field_identifier ], [ single_field_type ] -> begin
+          let single_field_cases =
+            List.map inner_cases ~f:(fun (subpatterns, statement) ->
+                match subpatterns with
+                | [ subpattern ] -> (subpattern, statement)
+                | _              -> failwith "bug: a constructor with one field has one subpattern per case"
+              )
+          in
+          translate_field_match location field_identifier single_field_type single_field_cases output_type
+        end
+      | _, _ -> begin
+          let* empty_pattern_tree =
+            build_empty_pattern_tree location field_types
+          in
+          let* pattern_tree =
+            TC.fold_left
+              inner_cases
+              ~f:(fun tree (subpatterns, statement) -> adorn_pattern_tree location tree subpatterns statement)
+              ~init:empty_pattern_tree
+          in
+          build_leveled_match_statements field_identifiers pattern_tree output_type
+        end
     in
     let merged_case : Pattern.t * Ast.Statement.t =
       let field_binders : Pattern.t list =
@@ -3101,6 +3117,7 @@ let merge_nested_constructor_patterns
 
 
 let translate_variant_match
+    ~(translate_field_match : S.l -> Ast.Identifier.t -> Ast.Type.t -> (Pattern.t * Ast.Statement.t) list -> Ast.Type.t -> Ast.Statement.t TC.t)
     (location           : S.l                               )
     (matched_identifier : Ast.Identifier.t                  )
     (variant_identifier : Ast.Identifier.t                  )
@@ -3108,7 +3125,7 @@ let translate_variant_match
     (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
   let* cases =
-    merge_nested_constructor_patterns location matched_identifier variant_identifier cases output_type
+    merge_nested_constructor_patterns ~translate_field_match location matched_identifier variant_identifier cases output_type
   in
   let* empty_pattern_tree =
     build_empty_pattern_tree
@@ -3396,7 +3413,7 @@ let rec translate_cases
   | List element_type            -> translate_list_match location matched_identifier element_type cases
   | Unit                         -> translate_unit_match location matched_identifier cases output_type
   | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier cases output_type
-  | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier cases output_type
+  | Variant variant_identifier   -> translate_variant_match ~translate_field_match:translate_cases location matched_identifier variant_identifier cases output_type
   | Tuple element_types          -> translate_tuple_match location matched_identifier element_types cases output_type
   | Sum (left_type, right_type)  -> translate_sum_match location matched_identifier left_type right_type cases output_type
   | Int _                        -> TC.not_yet_implemented [%here] location

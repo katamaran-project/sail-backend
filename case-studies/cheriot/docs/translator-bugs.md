@@ -25,6 +25,14 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 (* after  *) | DOUBLE => stm_call report_invalid_width ...
 ```
 
+### Constructor patterns nested two levels deep
+- Found: e2e `match-unions-nested-2` failed ("pattern is incompatible with type of value being matched").
+- Cause: `merge_nested_constructor_patterns` built the inner match on a constructor's fields straight into a pattern tree, which takes no nested patterns; a pattern nested one level deeper (`C1(B1(A1(a, b)))`) reached it.
+- Fix: the match on a single field is translated like any match (`translate_cases`), which merges at that level in turn.
+```sail
+match x { C1(B1(A1(a, b))) => "a", C2(A2(a, b)) => "b", C1(B2(_)) => "c", _ => "z" }
+```
+
 ### Record field of a tuple type with three or more elements
 - Found: e2e `records-definition-with-triple` failed in `base.v`.
 - Cause: the Rocq type of a tuple of three or more was `T1 * T2 * T3`, but µSail's `ty.tuple` has Katamaran's `EnvRec` values, `((unit * T1) * T2) * T3`, so `record_fold` did not fit the record.
