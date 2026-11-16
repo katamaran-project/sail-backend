@@ -29,7 +29,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 
 ## Known limitations
 
-- Memory loads (`LOAD`, `LoadCapImm`, and `NOT_CAPMODE`, `NOT_C_CAPMODE`, which reach them) wait for the read path: width-indexed `MemoryOpResult` and `MemoryOpResult_add_meta`/`drop_meta` (polymorphic in a type).
+- Memory loads (`LOAD`, `LoadCapImm`) wait for the read path: width-indexed `MemoryOpResult` and `MemoryOpResult_add_meta`/`drop_meta` (polymorphic in a type).
 - PMP, Zb\* and compressed instructions are absent, virtual memory excluded; see [design](design.md#scope).
 - `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
 - Plain Rocq stops at the first call to an untranslated definition (the memory read path).
@@ -81,7 +81,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-16 | `48db0066`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:23983` `execute_STORE` (stall) | `let x = S in match x` printed as `match S` when the cases do not use `x`, and no `Section FunDefKit`: `encdec_backwards` 608 s -> 6 s, `End FunDefKit` 72 s -> 0 |
 | 2026-11-16 | `a3b142bb`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | compiles | an `if` whose condition is known at compile time becomes its live branch (`DOUBLE if sizeof(xlen) >= 64` in `execute_STORE`); the probe compiles all of `machine.v`; missing calls 13 -> 11 |
 | 2026-11-16 | `64414328`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 0 | 0 | compiles | `align_down`: an update with an unknown high index has the new value's width as its length (`kid__n`); no holes left; plain Rocq 31 -> 383 definitions; the loop probes a file with calls to missing functions even without holes |
-| 2026-11-16 | `83ef37cc`+ | core + fallbacks | 67 / 67, 65 clean | 482 / 499 | 33 | 0 | 0 | compiles | slice indices and widths that Sail's solver determines (after an `assert`) become constants: `NOT_CAPMODE`, `NOT_C_CAPMODE` clean |
+| 2026-11-16 | `83ef37cc`+ | core + fallbacks | 67 / 67, 65 clean | 482 / 499 | 33 | 0 | 0 | compiles | slice indices and widths that Sail's solver determines (after an `assert`) become constants; with `76415d3d` (words in string literals are not calls in the call graph), `NOT_CAPMODE` and `NOT_C_CAPMODE` are clean |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

@@ -26,7 +26,7 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 ```
 
 ### Slice indices known only to Sail's solver were holes
-- Found: e2e `assert-flow-typing-constrained-width`; in CHERIoT, `NOT_CAPMODE` and `NOT_C_CAPMODE` were not clean.
+- Found: e2e `assert-flow-typing-constrained-width`.
 - Cause: µSail's slices take their indices as Rocq numbers; the translator only accepted literals, not an index whose value Sail's flow typing knows (`assert(n == 32); v[n - 1 .. 0]`).
 - Fix: such an index (an argument without an effect whose value `solve_unique` finds) becomes a literal before the translation (`rewrite_solved_indices`), and a width the solver determines becomes a constant (`normalise_widths`).
 ```coq
@@ -352,6 +352,17 @@ Definition fun_tag_addr_to_addr : Stm [...] ... :=
 - The `monomorphize-*` tests were retired (`b2b44476`); size-polymorphic functions now use implicit arguments instead.
 
 ## Loop and measurement bugs
+
+### Words in string literals counted as calls
+- Found: the user noticed that `execute_NOT_CAPMODE` only calls `internal_error`, yet the loop listed the load path among its blockers.
+- Cause: the call graph took every identifier in a body as a use, string literals included: `"should be unreachable: execute(NOT_CAPMODE("` made `execute_NOT_CAPMODE` call `execute`, whose cone has the whole load path.
+- Fix: `76415d3d` skips string literals (`tests/cheriot/lib/callgraph.py`); `NOT_CAPMODE` and `NOT_C_CAPMODE` are clean (65 of 67).
+```sail
+function clause execute(NOT_CAPMODE(s)) = {
+  internal_error(__FILE__, __LINE__, "should be unreachable: execute(NOT_CAPMODE(" ^ BitStr(s) ^ "))");
+  RETIRE_FAIL
+}
+```
 
 ### The probe was skipped once the holes were gone
 - Found: after `align_down` lost its last holes, the ratchet reported the probe stopping earlier, at plain Rocq's first error.
