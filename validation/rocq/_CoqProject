@@ -4,3 +4,6 @@ Interp.v
 InterpTests.v
 Harness.v
 StepADDI.v
+Names.v
+Dump.v
+DumpADDI.v
