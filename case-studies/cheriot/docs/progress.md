@@ -23,7 +23,7 @@ Measured on `cfde26d7` (width families, per-type copies, tuple matches split on 
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 39, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
 | Rocq, plain | all of `base.v`; `machine.v:2522`: 31 of its 534 definitions, then the first `NYI` hole (`align_down`) |
-| Rocq, probe (`NYI` as an axiom) | all of `base.v`; in `machine.v`, the memory write and read paths type-check with their real bodies; the probe stops at `machine.v:22043`, `encdec_backwards`, on the 45 s watchdog (the decoder, 6.8 MB of Rocq, takes about 10 minutes in `coqc`) |
+| Rocq, probe (`NYI` as an axiom) | all of `base.v`; in `machine.v`, the memory write and read paths type-check with their real bodies; the probe stops at `machine.v:22043`, `encdec_backwards`, on the 45 s watchdog (the decoder, 6.8 MB of Rocq). By hand with a 900 s limit (`tests/cheriot/coq-watch.py --stall 900`), all of the probe's `machine.v` compiles in 718 s: `encdec_backwards` 494 s, `End FunDefKit` 69 s, `writeCSR` 68 s |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
