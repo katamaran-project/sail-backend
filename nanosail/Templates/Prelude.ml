@@ -169,7 +169,7 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
             (sail_definition         : Sail.sail_definition         )
             (untranslated_definition : Ast.Definition.Untranslated.t) : string
           =
-          NanosailToMicrosail.Untranslated.escape_for_rocq_comment @@
+          NanosailToMicrosail.Coq.escape_for_rocq_comment @@
           string_of_document @@
           NanosailToMicrosail.Untranslated.generate sail_definition untranslated_definition
         in
