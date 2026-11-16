@@ -25,6 +25,17 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 (* after  *) | DOUBLE => stm_call report_invalid_width ...
 ```
 
+### Struct patterns untranslated
+- Found: e2e `match-record` failed ("expected pattern AP_struct (_, _) while matching type Record").
+- Cause: the pattern translation had no case for struct patterns.
+- Fix: a match with a single case whose pattern is a struct of variables and wildcards always matches; it destructures the record (`stm_match_record`) and binds the variables to its fields. Other struct patterns stay untranslated.
+```sail
+match s { struct { foo = x, bar = y, qux = z } => x }
+```
+```coq
+(* after *) stm_match_record Rmystruct (stm_exp (exp_var "s")) (recordpat_snoc (... "foo" "жfoo0") ...) (stm_exp (exp_var "жfoo0"))
+```
+
 ### Scattered functions took their arguments as one tuple
 - Found: e2e `functions-ternary-scattered` failed: `scatfoo(XXX, 1)` passed two arguments to a `Fun` with one parameter.
 - Cause: Sail's `merge_function_clauses` makes the clauses one function of a single variable, `merge#var`, bound to the tuple of the arguments.

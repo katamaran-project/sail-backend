@@ -993,11 +993,72 @@ let rec statement_of_aexp
       end
   in
 
+  (*
+     A match with a single case whose pattern is a struct of variables and wildcards,
+
+       match s { struct { foo = x, bar = _, qux = z } => body }
+
+     always matches: it destructures the record, and binds x and z to its fields.
+     Returns None for any other match.
+  *)
+  let statement_of_struct_match
+      (matched : S.typ S.aval                                     )
+      (cases   : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t option
+    =
+    let is_true (condition : S.typ S.aexp) : bool =
+      match condition with
+      | S.AE_aux (AE_val (AV_lit (S.L_aux (L_true, _), _)), _) -> true
+      | _                                                      -> false
+    in
+    let field_binding (field_pattern : S.id * S.typ S.apat) : (S.id * S.Jib.name option) option =
+      match field_pattern with
+      | (field, S.AP_aux (AP_id (name, _), _)) -> Some (field, Some name)
+      | (field, S.AP_aux (AP_wild _, _))       -> Some (field, None)
+      | (_, _)                                 -> None
+    in
+    match cases with
+    | [ (S.AP_aux (AP_struct (field_patterns, _), _), condition, body) ] when is_true condition -> begin
+        match Option.all (List.map ~f:field_binding field_patterns) with
+        | None                -> None
+        | Some field_bindings -> Some begin
+            with_destructured_record location matched @@ fun { fields; binders; _ } -> begin
+              let* body = statement_of_aexp None body
+              in
+              TC.fold_left (List.rev field_bindings) ~init:body ~f:(fun body (field, name) ->
+                  match name with
+                  | None      -> TC.return body
+                  | Some name -> begin
+                      let* field = Identifier.translate_identifier [%here] field
+                      and* name  = Identifier.translate_identifier [%here] (Sail.id_of_name name)
+                      in
+                      match List.findi fields ~f:(fun _ (field', _) -> Ast.Identifier.equal field field') with
+                      | None -> TC.fail [%here] @@ Printf.sprintf "record has no field %s" (Ast.Identifier.to_string field)
+                      | Some (index, (_, field_type)) -> begin
+                          let binder = List.nth_exn binders index
+                          in
+                          TC.return @@ Ast.Statement.Let {
+                            binder                 = name;
+                            binding_statement_type = field_type;
+                            binding_statement      = Expression (Variable (binder, field_type));
+                            body_statement         = body;
+                          }
+                        end
+                    end
+                )
+            end
+          end
+      end
+    | _ -> None
+  in
+
   let statement_of_match
       (matched     : S.typ S.aval                                     )
       (cases       : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
       (output_type : S.typ                                            ) : Ast.Statement.t TC.t
     =
+    match statement_of_struct_match matched cases with
+    | Some statement -> statement
+    | None ->
     let* matched_variable =
       TC.generate_unique_identifier ()
     and* output_type =
