@@ -25,6 +25,18 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 (* after  *) | DOUBLE => stm_call report_invalid_width ...
 ```
 
+### Record field of a tuple type with three or more elements
+- Found: e2e `records-definition-with-triple` failed in `base.v`.
+- Cause: the Rocq type of a tuple of three or more was `T1 * T2 * T3`, but µSail's `ty.tuple` has Katamaran's `EnvRec` values, `((unit * T1) * T2) * T3`, so `record_fold` did not fit the record.
+- Fix: such a tuple's Rocq type is `unit * T1 * T2 * T3` (a pair stays `T1 * T2`, µSail's `ty.prod`). The check in `type-alias-of-tuple` now builds `(tt, true, (e, i), b)`.
+```sail
+struct MyStruct = { foo : (int, int, int) }
+```
+```coq
+(* before *) Record MyStruct := MkMyStruct { MyStruct_foo : (Z * Z * Z)%type }.
+(* after  *) Record MyStruct := MkMyStruct { MyStruct_foo : (unit * Z * Z * Z)%type }.
+```
+
 ### Function names clash with Katamaran's
 - Found: e2e `model-008` failed: a Sail function named like a Katamaran definition clashes in `machine.v`.
 - Cause: the translation keeps Sail's names; Katamaran's `DefaultRegStoreKit` declares `read_register` and `write_register`.
@@ -293,16 +305,6 @@ Definition fun_tag_addr_to_addr : Stm [...] ... :=
 - `FunctionCalls.ml` (slices, `update_vector_subrange`) passes `"%s's indices should be known at compile time"` as the message without formatting it.
 ```coq
 [1] : Not yet implemented; see nanosail/NanosailToMicrosail/FunctionCalls.ml line 908 (%s's indices should be known at compile time)
-```
-
-### Record field of a tuple type with three or more elements
-- `base.v` types the field as a Rocq product, `record_fold` gives a `Val (ty.tuple [..])`; e2e `records-definition-with-triple`.
-```sail
-struct MyStruct = { foo : (int, int, int) }
-```
-```
-The term "fields.[? "foo"∷?type]" has type "Val (type ("foo"∷?type))"
-while it is expected to have type "(Z * Z * Z)%type".
 ```
 
 ### `argument-types-of-polymorphic-function-calls` crashes

@@ -225,7 +225,12 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
     | []       -> GC.fail [%here] "should not occur"
     | [_]      -> GC.fail [%here] "should not occur"
     | [t1; t2] -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1; t2 ]
-    | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
+    (*
+       Three or more elements are muSail's ty.tuple, whose values are Katamaran's EnvRec:
+       Val (ty.tuple [σ1; σ2; σ3]) is ((unit * Val σ1) * Val σ2) * Val σ3, so a record field of
+       such a type must be unit * T1 * T2 * T3 for record_fold to fit (a pair is ty.prod, just T1 * T2).
+    *)
+    | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type (PP.string "unit" :: ts')
 
   (*
      The values of ty.sum σ τ are of type Val σ + Val τ.
