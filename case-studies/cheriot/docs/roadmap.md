@@ -22,8 +22,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 
 ## Rocq output
 
-- **`execute`'s compressed and Zb\* arms are failures, but reachable** (`haveZb*()` are `true`; `misa.C` is `sys_enable_rvc()`, unconstrained), so a proof says nothing about executions that decode one.
-  Decision pending: make them absent like PMP (`haveZb*`, `sys_enable_rvc` excluded as the value `false`), or keep the failures as a documented assumption.
 - **Slow decoder**: `encdec_backwards` type-checks but takes 608 s in `coqc`, and `End FunDefKit` 72 s, both over the 45 s stall limit (with the memory-write functions axiomatised, all of `machine.v` compiles in 753 s).
 - **Ignored casts**: 160 warnings in 27 in-scope definitions; check that dropping each cast is sound.
 
@@ -33,5 +31,5 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
 - **Minimal faithful PMP**: 16 entries instead of `sys_pmp_count = 0`.
   - Register arrays (`pmpcfg_n`, `pmpaddr_n`) as one register per entry: a constant index is that register, a run-time index a `match`.
   - Loops with constant bounds (`foreach`) unrolled or as a recursive helper; `pmpCheck`'s `return` inside a `foreach`.
-- **Compressed instructions** (`riscv_insts_cext.sail`, `src/cheri_insts_cext.sail`, 43 constructors): add to `scope.toml`.
+- **Compressed instructions** (`riscv_insts_cext.sail`, `src/cheri_insts_cext.sail`, 43 constructors): absent (`sys_enable_rvc = "false"`); add to `scope.toml` and remove that line.
 - **Contracts**: Katamaran contracts for the generated functions; one per size-polymorphic function, proved for all widths.

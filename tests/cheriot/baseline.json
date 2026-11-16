@@ -65,8 +65,8 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "1538ae2f+dirty",
- "date": "2026-11-15",
+ "commit": "79b870b4+dirty",
+ "date": "2026-11-16",
  "definitions": {
   "CGP_IDX": "ok",
   "CapExCode": "ok",
@@ -428,13 +428,6 @@
   "haveSupMode": "ok",
   "haveUsrMode": "ok",
   "haveXcheri": "ok",
-  "haveZba": "ok",
-  "haveZbb": "ok",
-  "haveZbc": "ok",
-  "haveZbkb": "ok",
-  "haveZbkc": "ok",
-  "haveZbkx": "ok",
-  "haveZbs": "ok",
   "haveZkr": "ok",
   "haveZmmul": "ok",
   "htif_load": "missing",
@@ -621,7 +614,7 @@
  },
  "headline": {
   "NYI holes": 2,
-  "functions generated": 489,
+  "functions generated": 482,
   "hard failures": 0,
   "instructions clean": 63,
   "instructions generated": 67,
@@ -714,6 +707,13 @@
   "get_config_print_mem": "unconstrained",
   "get_config_print_platform": "unconstrained",
   "get_config_print_reg": "unconstrained",
+  "haveZba": "value",
+  "haveZbb": "value",
+  "haveZbc": "value",
+  "haveZbkb": "value",
+  "haveZbkc": "value",
+  "haveZbkx": "value",
+  "haveZbs": "value",
   "hex_str": "unconstrained",
   "init_pmp": "no-op",
   "init_vmem": "no-op",
@@ -736,6 +736,7 @@
   "size_mnemonic_forwards": "unconstrained",
   "string_of_capex": "unconstrained",
   "string_of_capreg_idx": "unconstrained",
+  "sys_enable_rvc": "value",
   "sys_pmp_count": "value",
   "tlb32": "registers",
   "translate32": "failure",
@@ -899,13 +900,6 @@
     "haveSupMode",
     "haveUsrMode",
     "haveNExt",
-    "haveZba",
-    "haveZbb",
-    "haveZbc",
-    "haveZbs",
-    "haveZbkb",
-    "haveZbkc",
-    "haveZbkx",
     "haveZkr",
     "haveZmmul",
     "Mk_Mstatus",
@@ -2193,6 +2187,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261115T043610-1538ae2f-dirty",
- "scope": "1ced1b745a57"
+ "run": "20261116T090320-79b870b4-dirty",
+ "scope": "4ab347182e49"
 }

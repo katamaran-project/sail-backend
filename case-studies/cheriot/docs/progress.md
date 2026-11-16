@@ -9,19 +9,19 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on the merge of `implicit-hypotheses` into `e2e-loop`; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `79b870b4` plus Zb\* and compressed absent; cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
 | instructions clean | **63 of 67**: `ADDIW`, `AUICGP`, `AUIPCC`, `BTYPE`, `CAndPerm`, `CClearTag`, `CGetAddr`, `CGetBase`, `CGetHigh`, `CGetLen`, `CGetPerm`, `CGetTag`, `CGetTop`, `CGetType`, `CIncAddr`, `CIncAddrImmediate`, `CJAL`, `CJALR`, `CMove`, `CRAM`, `CRRL`, `CSEQX`, `CSR`, `CSeal`, `CSetAddr`, `CSetBounds`, `CSetBoundsExact`, `CSetBoundsImmediate`, `CSetBoundsRoundDown`, `CSetHigh`, `CSpecialRW`, `CSub`, `CTestSubset`, `CUnseal`, `C_ILLEGAL`, `DIV`, `DIVW`, `EBREAK`, `ECALL`, `FENCE`, `FENCEI`, `FENCEI_RESERVED`, `FENCE_RESERVED`, `FENCE_TSO`, `ILLEGAL`, `ITYPE`, `MRET`, `MUL`, `MULW`, `REM`, `REMW`, `RISCV_JAL`, `RISCV_JALR`, `RTYPE`, `RTYPEW`, `SFENCE_VMA`, `SHIFTIOP`, `SHIFTIWOP`, `SRET`, `STORE`, `StoreCapImm`, `UTYPE`, `WFI` |
 | instructions generated | 67 of 67 |
-| functions generated | 489 of 506 |
+| functions generated | 482 of 499 |
 | untranslated definitions | 33 |
 | `NYI` holes | 2 (`align_down`: a width that depends on a value) |
 | hard failures | 0 |
-| calls to missing functions | 13, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, though reachable ([design](design.md#scope)) |
+| calls to missing functions | 13, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
-| policy exclusions | 39, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 1 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
+| policy exclusions | 47, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 9 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
 | Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2412`: 31 of its 518 definitions, then the first `NYI` hole (`align_down`) |
 | Rocq, probe (`NYI` as an axiom) | all of `base.v`; in `machine.v`, the whole memory write path type-checks with its real bodies; the probe stops at `machine.v:20436`, `encdec_backwards`, on the 45 s watchdog (the decoder takes about 608 s in `coqc`, see [roadmap](roadmap.md)) |
 
@@ -30,10 +30,9 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 ## Known limitations
 
 - Memory loads (`LOAD`, `LoadCapImm`, and `NOT_CAPMODE`, `NOT_C_CAPMODE`, which reach them) wait for the read path: width-indexed `MemoryOpResult` and `MemoryOpResult_add_meta`/`drop_meta` (polymorphic in a type).
-- `execute`'s compressed and Zb\* arms are failures, though those instructions decode; a decision is pending ([roadmap](roadmap.md#rocq-output)).
+- PMP, Zb\* and compressed instructions are absent, virtual memory excluded; see [design](design.md#scope).
 - `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
 - Plain Rocq stops at the first `NYI` hole in `machine.v` (`align_down`).
-- PMP is absent (`sys_pmp_count = 0`) and virtual memory is excluded; see [design](design.md#scope).
 - Details and what each blocks: [roadmap](roadmap.md).
 
 ## History
@@ -78,6 +77,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-15 | `0bcdee76`+ | core + fallbacks | 67 / 67, 61 clean | 488 / 506 | 34 | 4 | 0 | `machine.v:15215` `htif_store` (370 of 515) | the decoders' fallbacks (`ILLEGAL`, `C_ILLEGAL`, `FENCE_RESERVED`, `FENCEI_RESERVED`, `NOT_CAPMODE`, `NOT_C_CAPMODE`) in scope: they are reachable; `execute` keeps 80 failure arms; with the memory-write functions and `encdec_backwards` axiomatised, all of `machine.v` compiles |
 | 2026-11-15 | `83f7df8a` | core | 61 / 61, 57 clean | 478 / 500 | 38 | 2 | 0 | compiles (`base.v`, `machine.v`) | Sail's constraints on widths are implicit `IsTrue` hypotheses; flow-typed branches decided in Rocq (`Nat.eq_dec`, `sail_decide`) with casts; widths Sail proves equal to a size variable are that variable; `MemoryOpResult(bool('p))` is `MemoryOpResult(bool)`: the write path type-checks, `read_ram` and `phys_mem_write` translate |
 | 2026-11-15 | merge | core + fallbacks | 67 / 67, 63 clean | 489 / 506 | 33 | 2 | 0 | `machine.v:20436` `encdec_backwards` (stall) | `implicit-hypotheses` merged: width constraints as implicit hypotheses; `STORE`, `StoreCapImm` clean |
+| 2026-11-16 | `79b870b4`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:20360` `encdec_backwards` (stall) | Zb\* and compressed absent like PMP (`haveZb*`, `sys_enable_rvc` = `false`): `execute`'s 80 failure arms unreachable; the 7 `haveZb*` leave the scope |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
