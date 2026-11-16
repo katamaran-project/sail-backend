@@ -177,9 +177,9 @@ function tag_addr_to_addr(tag_addr : tagaddrbits) -> bits(xlen) = tag_addr @ zer
 ### Comment listing untranslated definitions is not valid Rocq
 - Found: the loop's plain Rocq stopped in `base.v` at the template's `Theorem UNTRANSLATED_DEFINITIONS : False. Qed.` (fails by design); behind it, the comment with the Sail source of untranslated definitions.
 - Cause: Rocq lexes string literals and nested comments inside comments; an odd number of `"` or a `*)` in the Sail source ends or breaks the comment ("Unterminated comment").
-- Fix: `(untranslated-definitions)` escapes each listing (`( *`, `* )`; all `"` become `'` when their number is odd); the CHERIoT template marks the listing with a comment instead of the theorem. Test `untranslated-listing-comment`.
+- Fix: every comment is escaped (`Coq.ml` `escape_for_rocq_comment`: `( *`, `* )`; all `"` become `'` when their number is odd); the CHERIoT template marks the listing with a comment instead of the theorem. Test `untranslated-listing-comment`.
 ```sail
-function guarded() = try { print_endline("an odd \" quote, a *) and a (*"); 1 } catch { Oops() => 0 }
+foreach (i from 0 to 3) { print_endline("an odd \" quote, a *) and a (*"); n = n + i }
 ```
 ```coq
 (* before *) print_endline("an odd \" quote, a *) and a (*");    (* inside the listing comment *)

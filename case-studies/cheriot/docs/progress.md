@@ -84,5 +84,5 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-16 | `cce22be3` | core + fallbacks | 67 / 67, 67 clean | 498 / 499 | 1 | 0 | 0 | compiles | read path (`implicit-hypotheses`) merged with `e2e-loop`; a width-family scrutinee keeps its `let` (its type fixes the width); `LOAD`, `LoadCapImm` clean; missing calls 11 -> 2 |
 | 2026-11-16 | `51a49aa1`+ | core + fallbacks | 67 / 67, 67 clean | 499 / 499 | 0 | 0 | 0 | compiles (plain) | `try { e } catch ...` is `e`, handler dropped: `try_execute` translates; missing calls 2 -> 0; plain Rocq compiles all of `machine.v` |
 
-Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
+Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions with a doc comment; the `c6e58096` row (without `+`) still merged the 5 operators into one node.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
