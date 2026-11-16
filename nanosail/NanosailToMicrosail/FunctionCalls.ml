@@ -941,6 +941,59 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.t GC.t 
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
 
+(*
+   A linear numeric expression in normal form: the sum of its variables (with their coefficients) and
+   its constant, so that Sail's ('n - 1) - (0 - 1) is 'n. Returns None for an expression that is not
+   linear (a product of variables, a division, ...).
+*)
+let normalise_linear (expression : Ast.Numeric.Expression.t) : Ast.Numeric.Expression.t option =
+  let open Ast.Numeric.Expression in
+  (* coefficients of the atoms (Var or Id, by name), and the constant *)
+  let rec linear (expression : t) : ((t * Z.t) list * Z.t) option =
+    let scale (factor : Z.t) ((terms, constant) : (t * Z.t) list * Z.t) =
+      (List.map terms ~f:(fun (atom, coefficient) -> (atom, Z.mul factor coefficient)), Z.mul factor constant)
+    and add ((terms_1, constant_1) : (t * Z.t) list * Z.t) ((terms_2, constant_2) : (t * Z.t) list * Z.t) =
+      (terms_1 @ terms_2, Z.add constant_1 constant_2)
+    in
+    match expression with
+    | Constant value -> Some ([], value)
+    | Var _          -> Some ([ (expression, Z.one) ], Z.zero)
+    | Id _           -> Some ([ (expression, Z.one) ], Z.zero)
+    | Neg operand    -> Option.map (linear operand) ~f:(scale Z.minus_one)
+    | PowerOf2 _     -> None
+    | BinaryOperation (Add, left, right) -> Option.map2 (linear left) (linear right) ~f:add
+    | BinaryOperation (Sub, left, right) -> Option.map2 (linear left) (linear right) ~f:(fun l r -> add l (scale Z.minus_one r))
+    | BinaryOperation (Mul, Constant factor, operand)
+    | BinaryOperation (Mul, operand, Constant factor) -> Option.map (linear operand) ~f:(scale factor)
+    | BinaryOperation ((Mul | Div | Mod), _, _) -> None
+  in
+  match linear expression with
+  | None                   -> None
+  | Some (terms, constant) -> begin
+      (* collect the coefficients of each atom, in order of first appearance *)
+      let collected =
+        List.fold terms ~init:[] ~f:(fun collected (atom, coefficient) ->
+            match List.Assoc.find collected atom ~equal with
+            | Some sum -> List.Assoc.add collected atom (Z.add sum coefficient) ~equal
+            | None     -> collected @ [ (atom, coefficient) ]
+          )
+        |> List.filter ~f:(fun (_, coefficient) -> not (Z.equal coefficient Z.zero))
+      in
+      let term ((atom, coefficient) : t * Z.t) : t =
+        if Z.equal coefficient Z.one then atom else BinaryOperation (Mul, Constant coefficient, atom)
+      in
+      match collected with
+      | [] -> Some (Constant constant)
+      | first :: rest -> begin
+          let sum = List.fold rest ~init:(term first) ~f:(fun sum next -> BinaryOperation (Add, sum, term next))
+          in
+          if Z.equal constant Z.zero then Some sum
+          else if Z.gt constant Z.zero then Some (BinaryOperation (Add, sum, Constant constant))
+          else Some (BinaryOperation (Sub, sum, Constant (Z.neg constant)))
+        end
+    end
+
+
 let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "update_subrange_bits"
   in
@@ -990,10 +1043,32 @@ let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP
             pp_new_bitvector
         end
       | _ -> begin
-          let* low_index = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
-          and* length    = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          (*
+             The high index is not known, but the low one is (the second, as Sail's order is dec):
+             the length is the width of the new bitvector, bits('m - 'o + 1) in update_subrange_bits's
+             signature, which may be a size variable. cheriot-sail's align_down does this:
+
+               [bv with ('n - 1) .. 0 = zeros()]      becomes      bop.update_vector_subrange 0 kid__n
+
+             The side condition 0 + kid__n <= kid__m follows from the function's hypothesis (sail_constraint).
+          *)
+          let new_bitvector_width =
+            match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type new_bitvector with
+            | Bitvector width -> Some (Option.value (normalise_linear width) ~default:width)
+            | _               -> None
           in
-          pp_slice low_index length pp_bitvector pp_new_bitvector
+          match second_index, new_bitvector_width with
+          | Some low_index, Some width -> begin
+              let* pp_width = Numeric.Expression.pp_argument width
+              in
+              pp_slice (PP.integer (Z.to_int low_index)) pp_width pp_bitvector pp_new_bitvector
+            end
+          | _ -> begin
+              let* low_index = GC.not_yet_implemented ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name) [%here]
+              and* length    = GC.not_yet_implemented ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name) [%here]
+              in
+              pp_slice low_index length pp_bitvector pp_new_bitvector
+            end
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name

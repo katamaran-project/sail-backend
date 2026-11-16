@@ -61,9 +61,10 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 - Why: one contract and one proof cover all widths.
   Katamaran's hand-written RiscvPmp model does the same (`mem_read (bytes : nat)`, proved once with `vm_reflexivity`).
   Monomorphisation (one copy per width) would need one contract and one proof per copy.
+- An update whose high index is not known takes its length from the new value's width: `[bv with ('n - 1) .. 0 = zeros()]` is `bop.update_vector_subrange 0 kid__n`, its side condition proved from the function's hypothesis (`align_down`).
 - Not translated yet:
   - an extension or truncation of a bitvector of variable width is a foreign call (`uop.zext` would need a proof of `n <= m`);
-  - a width that depends on a value (`itself('n)`) or divides a size variable is a hole (`NYI`).
+  - a width that divides a size variable is a hole (`NYI`).
 
 ## Constraints on widths are implicit hypotheses
 

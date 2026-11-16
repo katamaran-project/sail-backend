@@ -13,7 +13,6 @@ The loop ranks blockers per instruction (`progress.json`, the report); [progress
   - Needs: a union family indexed by a `nat` (`Umemoryopresult_bits (n : nat)`), shared by the closed instances (`MemoryOpResult(bits(32))` is the family at 32).
   - Blocks: `LOAD`, `LoadCapImm`, and `fetch`.
 - **Functions polymorphic in a type**: `MemoryOpResult_add_meta`, `MemoryOpResult_drop_meta` (over `'t`). Unions cannot be indexed by a `Ty` in Katamaran (`Ty` is built over the unions). Needs a decision (copies per type, or inlining). Block `LOAD`, `LoadCapImm`.
-- **Widths that depend on a value**: `align_down`'s `bits('n)` for `n : itself('n)`. Holes. Block `LOAD`, `LoadCapImm`.
   - A width that Sail's solver proves equal to a size variable is that variable (`read_ram`'s `bits(8 * ('p8_times_n / 8))`).
 
 ## Patterns

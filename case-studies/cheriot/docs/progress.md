@@ -9,7 +9,7 @@ How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
 ## Now
 
-Measured on `a3b142bb` plus `if`s with a condition known at compile time folded; cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `64414328` plus update widths from the types (`align_down`); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
@@ -17,12 +17,12 @@ Measured on `a3b142bb` plus `if`s with a condition known at compile time folded;
 | instructions generated | 67 of 67 |
 | functions generated | 482 of 499 |
 | untranslated definitions | 33 |
-| `NYI` holes | 2 (`align_down`: a width that depends on a value) |
+| `NYI` holes | 0 |
 | hard failures | 0 |
 | calls to missing functions | 11, all to untranslated definitions; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
 | foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 47, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 9 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:2353`: 31 of its 511 definitions, then the first `NYI` hole (`align_down`) |
+| Rocq, plain | all of `base.v` (1091 definitions); `machine.v:14805`: 383 of its 511 definitions, then the first call to an untranslated definition (`mem_read_cap` calls `mem_read_meta`, on the read path) |
 | Rocq, probe (`NYI` as an axiom) | all of `base.v` and `machine.v` compile, every command within the 45 s limit (slowest: `execute_LoadCapImm` 4.3 s, `encdec_backwards` 3.4 s) |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
@@ -32,7 +32,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 - Memory loads (`LOAD`, `LoadCapImm`, and `NOT_CAPMODE`, `NOT_C_CAPMODE`, which reach them) wait for the read path: width-indexed `MemoryOpResult` and `MemoryOpResult_add_meta`/`drop_meta` (polymorphic in a type).
 - PMP, Zb\* and compressed instructions are absent, virtual memory excluded; see [design](design.md#scope).
 - `step` calls `try_execute`, untranslated (`try`; exceptions are deferred).
-- Plain Rocq stops at the first `NYI` hole in `machine.v` (`align_down`).
+- Plain Rocq stops at the first call to an untranslated definition (the memory read path).
 - Details and what each blocks: [roadmap](roadmap.md).
 
 ## History
@@ -80,6 +80,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-16 | `79b870b4`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:20360` `encdec_backwards` (stall) | Zb\* and compressed absent like PMP (`haveZb*`, `sys_enable_rvc` = `false`): `execute`'s 80 failure arms unreachable; the 7 `haveZb*` leave the scope |
 | 2026-11-16 | `48db0066`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | `machine.v:23983` `execute_STORE` (stall) | `let x = S in match x` printed as `match S` when the cases do not use `x`, and no `Section FunDefKit`: `encdec_backwards` 608 s -> 6 s, `End FunDefKit` 72 s -> 0 |
 | 2026-11-16 | `a3b142bb`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 2 | 0 | compiles | an `if` whose condition is known at compile time becomes its live branch (`DOUBLE if sizeof(xlen) >= 64` in `execute_STORE`); the probe compiles all of `machine.v`; missing calls 13 -> 11 |
+| 2026-11-16 | `64414328`+ | core + fallbacks | 67 / 67, 63 clean | 482 / 499 | 33 | 0 | 0 | compiles | `align_down`: an update with an unknown high index has the new value's width as its length (`kid__n`); no holes left; plain Rocq 31 -> 383 definitions; the loop probes a file with calls to missing functions even without holes |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions, and before `c6e58096` from one that merged the 5 operators into one.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.

@@ -56,6 +56,12 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertTrue(rocq.needs_probe(text))
         self.assertFalse(rocq.needs_probe('Definition a := 1.\n'))
 
+    def test_a_call_to_a_missing_function_needs_the_probe(self):
+        text = ('Definition fun_f : Stm [] ty.unit :=\n  stm_call g env.nil.\n\n'
+                'Definition fun_h : Stm [] ty.unit :=\n  stm_call f env.nil.\n')
+        self.assertTrue(rocq.needs_probe(text))
+        self.assertFalse(rocq.needs_probe(text.replace('stm_call g', 'stm_call h')))
+
     def test_holes_are_one_argument_with_a_list_of_numbers(self):
         # NYI[1] as an argument would be two arguments, and [1] may be read as a bitvector literal
         text = 'From Katamaran Require Import Base.\n\nDefinition a := f NYI[1] NYI[23] (g NYI[4]).\n'

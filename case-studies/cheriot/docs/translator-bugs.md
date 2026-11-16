@@ -311,6 +311,11 @@ while it is expected to have type "(Z * Z * Z)%type".
 
 ## Loop and measurement bugs
 
+### The probe was skipped once the holes were gone
+- Found: after `align_down` lost its last holes, the ratchet reported the probe stopping earlier, at plain Rocq's first error.
+- Cause: the loop ran the probe only for a file with `NYI` (or the old marker), but the probe also axiomatises bodies that call a missing function.
+- Fix: a file with such a body needs the probe too (`needs_probe`).
+
 Bugs in `tests/cheriot` and the case study configuration, not the translator.
 
 ### Call graph merged all operators into one node
