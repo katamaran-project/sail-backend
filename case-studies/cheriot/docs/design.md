@@ -100,6 +100,7 @@ val htif_store : forall 'n 'p8_times_n, 0 < 'n <= 8 & 'p8_times_n == 8 * 'n.   /
   - A branch fact that fixes no value (`'n <= 8` in `mmio_write`, before calling `htif_store`) is decided the same way, with `sail_decide : {IsTrue b} + {~ IsTrue b}`; the `lia` hint uses it.
   - Both branches of an `if` are considered; only the size variables of the variables in scope (not Sail's existentials) go to Sail's solver.
   - `fundef_bindfree` case-splits on these decisions before `vm_compute`.
+- **Dead branches**: a branch whose constraints Sail proves contradictory (`if 32 >= 64 then mem_write_value(paddr, 8, rs2_val)` in `execute_STORE`) is `stm_fail` ("unreachable"): Sail typed it under `false`, and in Rocq the callee's false hypothesis made type class search run for over 15 minutes.
 - **Size variables only an `int('n)` parameter shows**: one that a type in the body mentions becomes a parameter (passed by name, from that argument).
   One that only an equation `'p == c * 'n` relates to the types is passed as `'p / c` (or `X` when the argument shows `'p` as `c * X`); the hint rewrites `Z.of_nat (a / b)` and solves with `Z.div_mod_to_equations; lia`.
 - **Widths Sail proves equal to a size variable**: a let-bound width such as `8 * ('p8_times_n / 8)` (`read_ram`) or `8 * 'n` is replaced by the size variable (`'p8_times_n`) when Sail's solver proves them equal under the constraints; Rocq could not identify them otherwise.
