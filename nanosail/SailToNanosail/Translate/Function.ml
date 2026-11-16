@@ -1806,6 +1806,28 @@ let rec statement_of_aexp
     in
     TC.return @@ Ast.Statement.Fail (translated_type, "failure")
 
+  (*
+     try { body } catch { handlers } is translated as body: the handlers are dropped,
+     so a throw inside body fails (throw is translated as fail) instead of being caught.
+  *)
+  and statement_of_try
+        (body     : S.typ S.aexp)
+        (handlers : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp * S.uannot) list) : Ast.Statement.t TC.t
+    =
+    let* () =
+      let message = lazy begin
+        PP.string begin
+          Printf.sprintf
+            "Dropped the %d handler(s) of a try at %s; the try is translated as its body"
+            (List.length handlers)
+            (Sail.string_of_location location)
+        end
+      end
+      in
+      TC.log [%here] Logging.warning message
+    in
+    statement_of_aexp expression_type body
+
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
         (typ   : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
@@ -1865,7 +1887,7 @@ let rec statement_of_aexp
     | AE_throw (aval, typ)                                          -> statement_of_throw aval typ
     | AE_exit (aval, typ)                                           -> statement_of_exit aval typ
     | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
-    | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
+    | AE_try (body, handlers, _typ)                                 -> statement_of_try body handlers
     | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
     | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
   in

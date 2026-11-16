@@ -34,6 +34,13 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   - Exact for a CHERIoT without PMP. Removing the PMP lines from `scope.toml` turns PMP back on.
 - **Printing and tracing are excluded**, together with their uses (below).
 
+## Exceptions fail
+
+- `throw` is `stm_fail`; `try { e } catch ...` is `e`, handler dropped ([usage](../../../docs/usage.md#exceptions)).
+- The core's only `try` is in `try_execute` (`riscv_step.sail`, called by `step`); it catches only `Error_not_rv32e_register()`.
+  - Sail: an RV32E register >= 16 (thrown in `cheri_regs.sail`) traps as illegal (`handle_illegal(); RETIRE_FAIL`).
+  - µSail: such an encoding fails. **Assumption**: a proof must show that no register >= 16 is accessed, or `fail_rule_pre` makes it vacuous.
+
 ## Undefined values are unconstrained
 
 - A Sail `undefined` (an `undefined_<type>()` call after Sail's rewrites) means "any value". It must become an *unconstrained* value: a proof holds for every value.
