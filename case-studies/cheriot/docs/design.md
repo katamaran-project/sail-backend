@@ -100,12 +100,45 @@ val htif_store : forall 'n 'p8_times_n, 0 < 'n <= 8 & 'p8_times_n == 8 * 'n.   /
   - A branch fact that fixes no value (`'n <= 8` in `mmio_write`, before calling `htif_store`) is decided the same way, with `sail_decide : {IsTrue b} + {~ IsTrue b}`; the `lia` hint uses it.
   - Both branches of an `if` are considered; only the size variables of the variables in scope (not Sail's existentials) go to Sail's solver.
   - `fundef_bindfree` case-splits on these decisions before `vm_compute`.
+- **Size variables only an `int('n)` parameter shows**: one that a type in the body mentions becomes a parameter (passed by name, from that argument).
+  One that only an equation `'p == c * 'n` relates to the types is passed as `'p / c` (or `X` when the argument shows `'p` as `c * X`); the hint rewrites `Z.of_nat (a / b)` and solves with `Z.div_mod_to_equations; lia`.
 - **Widths Sail proves equal to a size variable**: a let-bound width such as `8 * ('p8_times_n / 8)` (`read_ram`) or `8 * 'n` is replaced by the size variable (`'p8_times_n`) when Sail's solver proves them equal under the constraints; Rocq could not identify them otherwise.
 - **Not changed**: the `ForeignKit` (externs need no hypotheses; their semantics is total), and explicit `monomorphize` (monomorphs are closed).
 - Why: one definition and one contract for all widths, as RiscvPmp's `{H : restrict_bytes bytes}`; the hypotheses are exactly what Sail's type checker assumed.
 - Sail's constraints on the widths become implicit hypotheses (below).
-- A union with a type parameter becomes one monomorphic copy per *closed* type argument it is used at (`MemoryOpResult_bool`); unions at an open type wait for width-indexed unions ([roadmap](roadmap.md)).
+- A union with a type parameter becomes one monomorphic copy per *closed* type argument it is used at (`MemoryOpResult_bool`), or a width family (below).
 - The `monomorphize` option still exists but is not used here.
+
+## Unions at a width: families indexed by `nat`
+
+```sail
+val mem_read : forall 'n 'p8_times_n, ... . (..., int('n), ...) -> MemoryOpResult(bits('p8_times_n))
+```
+```coq
+Inductive MemoryOpResult_bits (kid__n : nat) : Set :=
+  | MemValue_bits : bv kid__n -> MemoryOpResult_bits kid__n
+  | MemException_bits : ExceptionType -> MemoryOpResult_bits kid__n.
+| Umemoryopresult_bits (kid__n : nat)                          (* in Unions *)
+ty.union (Umemoryopresult_bits kid__p8_times_n)               (* the type of mem_read's result *)
+```
+- A union used at a type with one bitvector of open width is one family indexed by that width, as RiscvPmp's `memory_op_result (bytes : nat)`.
+  - The shape is the type argument with the width as the index: `bits('n)`, `(bits('n), mem_meta)` (two families of `MemoryOpResult`).
+  - Its uses at closed widths (`MemoryOpResult(bits(32))`) are the family at that width, so a size-polymorphic callee and its callers agree on the type.
+  - Its uses at other types stay copies (`MemoryOpResult_bool`).
+- In Rocq: the family's constructors take the width implicitly; `exp_union` and union matches give the tag as `(Umemoryopresult_bits _)`, and Rocq infers the width from the value's type.
+- `Unions` gets an EqDec instance by injection into `N * nat`; the family itself uses `Derive EqDec`.
+- A tuple match whose union or sum column has nested patterns (`(Read(Data), None())` in `phys_mem_read`) matches that column first, one case per constructor, then the fields with the other columns.
+
+## Functions polymorphic in a type over a union
+
+- `MemoryOpResult_add_meta`, `MemoryOpResult_drop_meta : forall ('t : Type). MemoryOpResult(('t, bool)) -> MemoryOpResult('t)`: Katamaran's unions cannot be indexed by a `Ty` (`Ty` is built over the unions), so such a function cannot be one definition.
+- The user's rule:
+  - used at one or two types (a width family's shape counts as one): one copy per type, type-checked again by Sail; a single copy keeps the function's name;
+  - used at more types: inlined at each call (the body, type-checked again at the call).
+- CHERIoT: each has one call, at `'t = bits(8 * 'n)`, so one copy each, size-polymorphic like any other function:
+  ```coq
+  | MemoryOpResult_drop_meta {kid__n : nat} : Fun ["r" ∷ ty.union (Umemoryopresult_bits_bool kid__n)] (ty.union (Umemoryopresult_bits kid__n))
+  ```
 
 ## Externs: µSail operations or foreign functions
 

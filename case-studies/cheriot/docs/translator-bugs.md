@@ -5,6 +5,16 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Tuple match binders were bound in reverse order
+- Found: Rocq rejected a 3-tuple match of `(bits(8), bool, enum)` in a new test.
+- Cause: `stm_match_tuple` binders `[a; b; c]` were printed `tuplepat_snoc (tuplepat_snoc (tuplepat_snoc tuplepat_nil c) b) a`; `tuplepat_snoc` adds at the end, so `a` was bound to the last component.
+  With components of one type, Rocq accepted it and the meaning was wrong: CHERIoT's `(aq, rl, res)` flag triples (`read_kind_of_flags`, `mem_write_ea`, `mem_write_value_priv_meta`, `encdec_backwards`) had `aq` and the last flag swapped.
+- Fix: the first binder is innermost. Test `match-tuple-union-option` (`pick`).
+```coq
+(* before *) stm_match_tuple e (tuplepat_snoc (tuplepat_snoc (tuplepat_snoc tuplepat_nil "c") "b") "a") ...
+(* after  *) stm_match_tuple e (tuplepat_snoc (tuplepat_snoc (tuplepat_snoc tuplepat_nil "a") "b") "c") ...
+```
+
 ### Unions at a flow-typed boolean had no instance
 - Found: `phys_mem_write` untranslated ("union MemoryOpResult with type parameter used at non-closed type arguments `bool('_#result)`").
 - Cause: `let result = MemValue(write_ram(...))` has type `MemoryOpResult(bool('p))`; the union instances were looked up by the type argument as written, and `bool('p)` is not closed.

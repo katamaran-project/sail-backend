@@ -2,18 +2,16 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-4 of 67 instructions are not clean, all on the memory read path: `LOAD`, `LoadCapImm`, `NOT_CAPMODE`, `NOT_C_CAPMODE`.
+3 of 67 instructions are not clean: `LoadCapImm`, `NOT_CAPMODE`, `NOT_C_CAPMODE` (`align_down`, a width that depends on a value).
 
 ## Memory path
 
 - **Writes**: done. Sail's constraints are hypotheses and flow-typed branches are decided in Rocq ([design](design.md#constraints-on-widths-are-implicit-hypotheses)); the whole write chain type-checks with its real bodies.
   - `STORE`, `StoreCapImm` still wait for `translationMode` (option patterns), `STORE` also for `ext_handle_data_check_error` (below).
-- **Unions at an open type argument**: `MemoryOpResult(bits(8 * 'n))` needs a width-indexed union family (RiscvPmp's `ty_memory_op_result bytes`).
-  - Untranslated: `mem_read`, `mem_read_priv(_meta)`, `mem_read_meta`, `phys_mem_read`, `pmp_mem_read`, `checked_mem_read`, `mmio_read`, `clint_load`, `htif_load`, `uart_load`, `rvfi_read`, `process_load`, `extend_value`.
-  - Needs: a union family indexed by a `nat` (`Umemoryopresult_bits (n : nat)`), shared by the closed instances (`MemoryOpResult(bits(32))` is the family at 32).
-  - Blocks: `LOAD`, `LoadCapImm`, and `fetch`.
-- **Functions polymorphic in a type**: `MemoryOpResult_add_meta`, `MemoryOpResult_drop_meta` (over `'t`). Unions cannot be indexed by a `Ty` in Katamaran (`Ty` is built over the unions). Needs a decision (copies per type, or inlining). Block `LOAD`, `LoadCapImm`.
-- **Widths that depend on a value**: `align_down`'s `bits('n)` for `n : itself('n)`. Holes. Block `LOAD`, `LoadCapImm`.
+- **Reads**: done. Width families for `MemoryOpResult(bits('n))`, copies of `MemoryOpResult_add_meta`/`drop_meta`, tuple matches split on a union column ([design](design.md#unions-at-a-width-families-indexed-by-nat)); `LOAD` is clean.
+  - `rocq probe` reaches `encdec_backwards` (the decoder, 6.8 MB of Rocq) and stops after 45 s on it (`STUCK`).
+- **Widths that depend on a value**: `align_down`'s `bv[n - 1 .. 0] = zeros(n)` for `n : itself('n)`: the slice bounds come from a value. 2 holes. Block `LoadCapImm`, `NOT_CAPMODE`, `NOT_C_CAPMODE`.
+  - Needs: a variable of type `int('n)`/`itself('n)` read as the size variable `kid__n`, so that the bounds are `kid__n - 1` and the side condition follows from the hypothesis.
   - A width that Sail's solver proves equal to a size variable is that variable (`read_ram`'s `bits(8 * ('p8_times_n / 8))`).
 
 ## Patterns

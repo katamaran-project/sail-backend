@@ -110,3 +110,9 @@ timestamp,commit,dirty,scope,instructions total,instructions clean,instructions 
 2026-11-15T04:29:21,83f7df8a,True,core,61,57,61,500,478,38,2,0,101,machine.v:2373,ok,PROGRESS (baseline updated),20261115T042841-83f7df8a-dirty
 2026-11-15T04:35:53,1538ae2f,True,core,67,63,67,506,489,33,2,0,13,machine.v:2412,stuck machine.v:20436,STUCK,20261115T043333-1538ae2f-dirty
 2026-11-15T04:38:23,1538ae2f,True,core,67,63,67,506,489,33,2,0,13,machine.v:2412,stuck machine.v:20436,STUCK (baseline updated),20261115T043610-1538ae2f-dirty
+2026-11-15T04:47:16,79b870b4,True,core,67,63,67,506,496,18,3,0,4,machine.v:2450,machine.v:15077,REGRESSION,20261115T044550-79b870b4-dirty
+2026-11-15T04:53:20,79b870b4,True,core,67,63,67,506,502,2,2,0,3,machine.v:2502,machine.v:18758,PROGRESS,20261115T045150-79b870b4-dirty
+2026-11-16T09:04:57,79b870b4,True,core,67,63,67,506,504,2,2,0,3,machine.v:2509,machine.v:18775,PROGRESS,20261116T090324-79b870b4-dirty
+2026-11-16T09:15:58,79b870b4,True,core,67,64,67,506,505,1,2,0,2,machine.v:2518,machine.v:19062,PROGRESS,20261116T091344-79b870b4-dirty
+2026-11-16T09:24:20,79b870b4,True,core,67,64,67,506,505,1,2,0,2,machine.v:2522,stuck machine.v:22043,STUCK,20261116T092009-79b870b4-dirty
+2026-11-16T09:32:16,cfde26d7,True,core,67,64,67,506,505,1,2,0,2,machine.v:2522,stuck machine.v:22043,STUCK (baseline updated),20261116T092929-cfde26d7-dirty
