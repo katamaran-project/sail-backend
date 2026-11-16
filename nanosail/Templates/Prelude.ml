@@ -161,16 +161,21 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit string_of_document_exported_function "untranslated-definitions" translation#program
+      inherit exported_nullary_string_function "untranslated-definitions"
 
-      method document =
-        let untranslated_definitions =
-          translation#untranslated_definitions
+      (* Each definition is escaped on its own, so that the listing is a valid Rocq comment *)
+      method generate_string =
+        let format_untranslated_definition
+            (sail_definition         : Sail.sail_definition         )
+            (untranslated_definition : Ast.Definition.Untranslated.t) : string
+          =
+          NanosailToMicrosail.Coq.escape_for_rocq_comment @@
+          string_of_document @@
+          NanosailToMicrosail.Untranslated.generate sail_definition untranslated_definition
         in
-        let formatted_untranslated_definitions =
-          PP.(paragraphs @@ List.map ~f:(Fn.uncurry NanosailToMicrosail.Untranslated.generate) untranslated_definitions)
-        in
-        GC.return formatted_untranslated_definitions
+        EC.return @@
+        String.concat ~sep:"\n\n" @@
+        List.map ~f:(Fn.uncurry format_untranslated_definition) translation#untranslated_definitions
     end;
 
     export object

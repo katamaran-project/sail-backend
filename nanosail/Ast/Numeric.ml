@@ -21,3 +21,18 @@ module Expression = Recursive.NumericExpression
    Here, 0 <= 'k & 'k < 'n is a numeric constraint.
 *)
 module Constraint = Recursive.NumericConstraint
+
+
+(*
+   A substitution for substitute_numeric_expression_identifier (of types, expressions, statements)
+   that replaces each size variable in values by its value. The substitution sees both Var and Id;
+   every other identifier is kept: as Var if it is a size variable (kid__n), as Id otherwise.
+*)
+let size_variable_substitution (values : (Identifier.t * Z.t) list) (identifier : Identifier.t) : Expression.t =
+  match Base.List.Assoc.find values ~equal:Identifier.equal identifier with
+  | Some value -> Expression.Constant value
+  | None       -> begin
+      if Base.String.is_prefix (Identifier.to_string identifier) ~prefix:"kid__"
+      then Expression.Var identifier
+      else Expression.Id identifier
+    end

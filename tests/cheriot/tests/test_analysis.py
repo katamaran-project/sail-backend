@@ -58,6 +58,16 @@ class CallGraphTests(unittest.TestCase):
             'function execute_CJALR () = $[setter] _set_Mstatus_MIE(ref mstatus, 0b0)\n')
         self.assertEqual(graph.reachable(['execute_CJALR']), {'execute_CJALR', '_update_Mstatus_MIE', 'mstatus'})
 
+    def test_words_in_string_literals_are_not_calls(self):
+        graph = callgraph.CallGraph.from_dump_text(
+            'function execute (x) = 0\n\n'
+            'function execute_NOT_CAPMODE s = {\n'
+            '    internal_error("model.sail", 68, concat_str("should be unreachable: execute(NOT_CAPMODE(", "\\"))"));\n'
+            '    RETIRE_FAIL\n}\n\n'
+            'function internal_error (f, l, m) = ()\n\n'
+            'function concat_str (a, b) = a\n')
+        self.assertEqual(graph.reachable(['execute_NOT_CAPMODE']), {'execute_NOT_CAPMODE', 'internal_error', 'concat_str'})
+
     def test_mark_reachable(self):
         items = [dict(name=name) for name in ('helper', 'bool_to_bits', 'unused', 'regidx', 'truncate')]
         callgraph.mark_reachable(items, self.graph)

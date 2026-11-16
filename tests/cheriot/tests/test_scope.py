@@ -64,6 +64,14 @@ class ComputeTests(unittest.TestCase):
     def test_warnings(self):
         self.assertEqual(self.scope.warnings, ['roots that are not definitions of the model: not_a_definition'])
 
+    def test_single_instructions(self):
+        scope_file = scope.ScopeFile.from_text('instruction-files = ["model/insts_base.sail"]\nroots = ["step"]\n'
+                                               'instructions = ["FOO", "ADDI"]\n[dispatchers]\nexecute = "execute_"\n')
+        result = scope.compute(callgraph.CallGraph.from_dump(DUMP), scope_file,
+                               {'model/insts_base.sail': (CHERIOT_SAIL / 'model/insts_base.sail').read_text()})
+        self.assertEqual(result.instructions, ['ADDI', 'FOO'])
+        self.assertEqual(result.dispatched, {'execute_ADDI', 'execute_FOO'})
+
     def test_warning_for_an_instruction_without_its_function(self):
         scope_file = scope.ScopeFile(['model/insts_vector.sail', 'model/insts_base.sail'], ['step'], {'execute': 'run_'})
         sources = {name: (CHERIOT_SAIL / name).read_text() for name in scope_file.instruction_files}
@@ -88,12 +96,19 @@ class DispatcherInScopeTests(unittest.TestCase):
         self.assertIn('execute_FOO', self.scope.mentioned)
         self.assertFalse(self.scope.includes('execute_FOO'))
 
+    def test_out_of_scope_instructions_are_failures(self):
+        self.assertEqual(self.scope.undispatched, {'execute_FOO'})
+        self.assertIn("(exclude-functions-as-failure\n  '(\n   \"execute_FOO\"\n  ))\n", scope.configuration(self.scope))
+
     def test_unexpected_calls(self):
+        # execute's call to execute_FOO should have become a failure
         calls = [dangling.DanglingCall('execute_FOO', 1, 'outside the scope', '', ['execute']),
                  dangling.DanglingCall('vector_helper', 2, 'outside the scope', '', ['helper', 'step']),
                  dangling.DanglingCall('truncate', 1, 'extern', '', ['helper'])]
         self.assertEqual(scope.unexpected_calls(calls, self.scope),
-                         ['helper, step call vector_helper, which is outside the scope'])
+                         ['execute still calls execute_FOO, which is the function of an out-of-scope instruction: '
+                          'the translation should have removed the call',
+                          'helper, step call vector_helper, which is outside the scope'])
 
 
 class ConfigurationTests(unittest.TestCase):
@@ -206,6 +221,34 @@ class PolicyExclusionTests(unittest.TestCase):
             'policy-excluded definitions under the wrong key (registers go under registers, '
             'functions under the other keys): fetch, vlenb',
             'roots that are policy-excluded, and so left out: helper'])
+
+    def test_a_pattern_excludes_by_name_what_the_scope_reaches(self):
+        result = policy_scope(POLICY_SCOPE_FILE.replace('no-op = ["helper"]', 'no-op = ["help*"]')
+                              .replace('unconstrained = ["truncate"]', 'unconstrained = ["trunc*", "vector_*"]'))
+        # helper is reached (step calls it); truncate (an extern) and vector_helper are not
+        self.assertEqual(result.policy, {'helper': 'no-op', 'vlenb': 'registers'})
+        self.assertNotIn('helper', result.nodes)
+        self.assertIn('vector_helper', result.excluded_functions)
+        self.assertIn("(exclude-functions-as-no-op\n  '(\n   \"helper\"\n  ))\n", scope.configuration(result))
+        self.assertEqual(result.warnings, [])
+
+    def test_a_pattern_excludes_a_reached_extern(self):
+        dump = ('val undefined_bool : unit -> bool\n\n'
+                'function step() = { let b : bool = undefined_bool() in b }\n\n'
+                'function undefined_color() = Red\n')
+        scope_file = scope.ScopeFile.from_text('instruction-files = []\nroots = ["step"]\n'
+                                               '[policy-excluded]\nunconstrained = ["undefined_*"]\n')
+        result = scope.compute(callgraph.CallGraph.from_dump_text(dump), scope_file, {}, scope.declarations(dump))
+        self.assertEqual(result.policy, {'undefined_bool': 'unconstrained'})
+        self.assertIn('undefined_color', result.excluded_functions)
+
+    def test_a_pattern_that_matches_nothing(self):
+        result = policy_scope(POLICY_SCOPE_FILE.replace('unconstrained = ["truncate"]', 'unconstrained = ["truncate", "undefined_*"]'))
+        self.assertEqual(result.warnings, ['policy-excluded patterns that match no definition of the model: undefined_*'])
+
+    def test_a_pattern_under_registers(self):
+        with self.assertRaisesRegex(ValueError, 'pattern vlen\\* under registers'):
+            scope.ScopeFile.from_text(POLICY_SCOPE_FILE.replace('registers = ["vlenb"]', 'registers = ["vlen*"]'))
 
     def test_configuration(self):
         text = scope.configuration(self.scope)

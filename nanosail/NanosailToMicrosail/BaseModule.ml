@@ -249,16 +249,13 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.t G
 let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.t GC.t =
   GC.generation_block [%here] "Union Denote" begin
     let denotations =
-      let variant_identifiers =
-        List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
-      in
-      let denotation_pair_for variant_identifier =
+      let denotation_pair_for (variant_definition : Ast.Definition.Type.Variant.t) =
         (
-          PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
-          PP.annotate [%here] @@ Identifier.pp variant_identifier
+          PP.annotate [%here] @@ Types.Variants.tag_pattern variant_definition,
+          PP.annotate [%here] @@ Types.Variants.denoted_type variant_definition
         )
       in
-      List.map ~f:denotation_pair_for variant_identifiers
+      List.map ~f:denotation_pair_for variant_definitions
 
     and parameter_identifier = PP.annotate [%here] @@ PP.string "u"
     and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Unions"
@@ -281,16 +278,13 @@ let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) :
 let pp_record_denote (record_definitions : Ast.Definition.Type.Record.t list) : PP.t GC.t =
   GC.generation_block [%here] "Record Denote" begin
     let denotations =
-      let record_identifiers =
-        List.map ~f:(fun record_definition -> record_definition.identifier) record_definitions
-      in
-      let denotation_pair_for record_identifier =
+      let denotation_pair_for (record_definition : Ast.Definition.Type.Record.t) =
         (
-          Identifier.pp @@ Identifier.reified_record_name record_identifier,
-          Identifier.pp record_identifier
+          Types.Records.tag_pattern record_definition,
+          Types.Records.denoted_type record_definition
         )
       in
-      List.map ~f:denotation_pair_for record_identifiers
+      List.map ~f:denotation_pair_for record_definitions
 
     and parameter_identifier = PP.string "r"
     and tag_type_identifier  = PP.string "Records"
@@ -339,16 +333,13 @@ let pp_typedenotekit () : PP.t GC.t =
 let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.t GC.t =
   GC.generation_block [%here] "Union Constructor" begin
     let denotations =
-      let variant_identifiers =
-        List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
-      in
-      let denotation_pair_for variant_identifier =
+      let denotation_pair_for (variant_definition : Ast.Definition.Type.Variant.t) =
         (
-          Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
-          Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_identifier
+          Types.Variants.tag_pattern variant_definition,
+          Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
         )
       in
-      List.map ~f:denotation_pair_for variant_identifiers
+      List.map ~f:denotation_pair_for variant_definitions
 
     and parameter_identifier = PP.string "u"
     and tag_type_identifier  = PP.string "Unions"
@@ -438,7 +429,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
           in
           GC.return begin
               (
-                PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier,
+                PP.annotate [%here] @@ Types.Variants.tag_pattern variant_definition,
                 PP.annotate [%here] @@ PP.(horizontal [ string "fun k => "; match_constructor_cases ])
               )
             end
@@ -464,7 +455,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
   #[export] Instance finite_union_constructor U : finite.Finite (union_constructor U) :=
     ltac:(destruct U; cbn; auto with typeclass_instances).
   #[export] Instance eqdec_record_denote R : EqDec (record_denote R) :=
-    ltac:(destruct R; auto with typeclass_instances).
+    ltac:(destruct R; cbn; auto with typeclass_instances).
 
  *)
 let pp_eqdec_and_finite_instances () : PP.t GC.t =
@@ -480,7 +471,7 @@ let pp_eqdec_and_finite_instances () : PP.t GC.t =
       "#[export] Instance finite_union_constructor U : finite.Finite (union_constructor U) :=";
       "  ltac:(destruct U; cbn; auto with typeclass_instances).";
       "#[export] Instance eqdec_record_denote R : EqDec (record_denote R) :=";
-      "  ltac:(destruct R; auto with typeclass_instances).";
+      "  ltac:(destruct R; cbn; auto with typeclass_instances).";
     ]
   in
   GC.generation_block [%here] "EqDec/Finite Instances" begin
@@ -499,7 +490,7 @@ let pp_match_variant_constructors
         let parameter_identifier = Ast.Identifier.mk "Kv"
         in
         let pattern =
-          Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier
+          Types.Variants.tag_pattern variant_definition
         in
         let* expression =
           let* lambda_body =
@@ -738,7 +729,7 @@ let pp_record_field_type (record_definitions : Ast.Definition.Type.Record.t list
       let* contents =
         let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.t * PP.t) GC.t =
           let pattern =
-            PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
+            PP.annotate [%here] @@ Types.Records.tag_pattern record_definition
           in
           let* expression =
             let pp_field (field_identifier, field_type) =
@@ -809,7 +800,7 @@ let pp_record_fold (record_definitions : Ast.Definition.Type.Record.t list) : PP
       let* contents =
         let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.t * PP.t) GC.t =
           let pattern =
-            PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
+            PP.annotate [%here] @@ Types.Records.tag_pattern record_definition
           and expression =
             let lambda_parameter = Ast.Identifier.mk "fields"
             in
@@ -885,7 +876,7 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
       let* contents =
         let record_case_handler (record_definition : Ast.Definition.Type.Record.t) : (PP.t * PP.t) GC.t =
           let pattern =
-            Identifier.pp @@ Identifier.reified_record_name record_definition.identifier
+            Types.Records.tag_pattern record_definition
           in
           let* expression =
             let lambda_parameter = Ast.Identifier.mk "r"

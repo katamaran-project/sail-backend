@@ -472,3 +472,81 @@ let pp_variant_definition_instances (variant_definition : Ast.Definition.Type.Va
     in
     GC.return [ tag_enum_instance; union_instance ]
   end
+
+
+(* The generic part of pp_indexed_tag_instance's instances, generated once *)
+let pp_indexed_tag_generic_definitions () : PP.t =
+  PP.annotate [%here] @@ PP.vertical @@ List.map ~f:PP.string [
+    "Lemma nanosail_eqdec_via_N_nat_injective {A : Type}";
+    "  (to_N : A -> BinNums.N * nat) (of_N : BinNums.N * nat -> A) (H : forall x, of_N (to_N x) = x)";
+    "  (x y : A) (e1 : fst (to_N x) = fst (to_N y)) (e2 : snd (to_N x) = snd (to_N y)) : x = y.";
+    "Proof.";
+    "  rewrite <- (H x), <- (H y). revert e1 e2.";
+    "  destruct (to_N x), (to_N y); cbn; intros -> ->; reflexivity.";
+    "Defined.";
+    "";
+    "Definition nanosail_eqdec_via_N_nat {A : Type}";
+    "  (to_N : A -> BinNums.N * nat) (of_N : BinNums.N * nat -> A) (H : forall x, of_N (to_N x) = x) : EqDec A :=";
+    "  fun x y =>";
+    "    match BinNat.N.eq_dec (fst (to_N x)) (fst (to_N y)), PeanoNat.Nat.eq_dec (snd (to_N x)) (snd (to_N y)) with";
+    "    | left e1, left e2 => left (nanosail_eqdec_via_N_nat_injective to_N of_N H x y e1 e2)";
+    "    | right n, _       => right (fun e => n (f_equal (fun z => fst (to_N z)) e))";
+    "    | _, right n       => right (fun e => n (f_equal (fun z => snd (to_N z)) e))";
+    "    end.";
+  ]
+
+
+(*
+   The EqDec instance for a tag type some of whose values take a nat (Unions with a width family,
+   | Ures_bits (kid__n : nat)): an injection into N * nat, as pp_enum_instance's into N.
+   values: each tag, with whether it takes an index.
+*)
+let pp_indexed_tag_instance
+    ~(type_name : PP.t             )
+    ~(values    : (PP.t * bool) list) : PP.t
+  =
+  let to_N = derived_name type_name "_eqdec_to_N"
+  and of_N = derived_name type_name "_eqdec_of_N"
+  in
+  let pattern ((value, indexed) : PP.t * bool) : PP.t =
+    if indexed then PP.horizontal [ value; PP.string " n" ] else value
+  in
+  let to_N_definition =
+    let cases =
+      List.mapi values ~f:(fun index (value, indexed) ->
+          (pattern (value, indexed), PP.horizontal [ PP.string "("; PP.integer index; PP.string "%N, "; PP.string (if indexed then "n" else "0"); PP.string ")" ]))
+    in
+    PP.vertical [
+      PP.horizontal [ PP.string "Definition "; to_N; PP.string " (x : "; type_name; PP.string ") : BinNums.N * nat :=" ];
+      PP.indent @@ PP.horizontal [ Coq.pp_match (PP.string "x") cases; Coq.eol ];
+    ]
+  and of_N_definition =
+    let builder ((value, indexed) : PP.t * bool) : PP.t =
+      if indexed
+      then PP.horizontal [ PP.string "(fun n => "; value; PP.string " n)" ]
+      else PP.horizontal [ PP.string "(fun _ => "; value; PP.string ")" ]
+    in
+    let builders = List.map ~f:builder values
+    in
+    PP.vertical [
+      PP.horizontal [ PP.string "Definition "; of_N; PP.string " (p : BinNums.N * nat) : "; type_name; PP.string " :=" ];
+      PP.indent @@ PP.vertical [
+        PP.string "List.nth (BinNat.N.to_nat (fst p))";
+        PP.indent @@ PP.horizontal [ PP.string "("; PP.separate_horizontally ~separator:(PP.string " :: ") (builders @ [ PP.string "nil" ]); PP.string ")%list" ];
+        PP.indent @@ PP.horizontal [ List.hd_exn builders; PP.string " (snd p)"; Coq.eol ];
+      ]
+    ]
+  and instance =
+    let cases = List.map values ~f:(fun (value, indexed) -> (pattern (value, indexed), PP.string "eq_refl"))
+    and matched =
+      PP.horizontal [ PP.string "x return "; of_N; PP.string " ("; to_N; PP.string " x) = x" ]
+    in
+    PP.vertical [
+      PP.horizontal [ PP.string "#[export] Instance "; derived_name type_name "_EqDec"; PP.string " : EqDec "; type_name; PP.string " :=" ];
+      PP.indent @@ PP.vertical [
+        PP.horizontal [ PP.string "nanosail_eqdec_via_N_nat "; to_N; PP.string " "; of_N ];
+        PP.indent @@ PP.horizontal [ PP.string "(fun x => "; Coq.pp_match matched cases; PP.string ")"; Coq.eol ];
+      ]
+    ]
+  in
+  PP.annotate [%here] @@ PP.paragraphs [ to_N_definition; of_N_definition; instance ]

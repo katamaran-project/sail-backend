@@ -21,7 +21,8 @@ from .items import Item
 # The definition of a generated function, fun_<name>; functions with size or type parameters
 # have implicit arguments before their type: Definition fun_f {kid__n : nat} : Stm ...
 DEFINED = re.compile(r'Definition fun_([A-Za-z0-9_#]+)(?:\s*\{[^{}]*\})*\s*: Stm')
-CALL = re.compile(r'stm_call\s+([A-Za-z0-9_#]+)')
+# a size variable that Rocq cannot infer is passed by name: stm_call (f (kid__n := 4)) ...
+CALL = re.compile(r'stm_call\s+\(?([A-Za-z0-9_#]+)')
 EXTERN = re.compile(r'^val\s+([A-Za-z0-9_#]+)\s*=\s*(?:monadic|pure)?\s*\{([^}]*)\}', re.M)
 HAS_BODY = re.compile(r'^(?:\$\[[^\]]*\]\s*)*function\s+(?:clause\s+)?([A-Za-z0-9_#]+)', re.M)
 

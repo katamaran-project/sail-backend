@@ -59,10 +59,40 @@ let pp_sentence (contents : PP.t) : PP.t =
 
 
 (*
+   Makes text safe inside a Rocq comment.
+   Rocq's lexer nests comments and reads string literals inside them:
+   - comment delimiters become "( *" and "* )";
+   - an odd number of double quotes would leave a string open, so they all become single quotes.
+*)
+let escape_for_rocq_comment (text : string) : string =
+  let text =
+    String.substr_replace_all ~pattern:"*)" ~with_:"* )" @@
+    String.substr_replace_all ~pattern:"(*" ~with_:"( *" text
+  in
+  if Int.equal (Int.rem (String.count text ~f:(Char.equal '"')) 2) 0
+  then text
+  else String.tr ~target:'"' ~replacement:'\'' text
+
+
+(*
+   Escapes the comment's text with escape_for_rocq_comment.
+   Keeps the document (and its annotations) if nothing needs escaping.
+*)
+let escape_comment (comment : PP.t) : PP.t =
+  let text = PP.to_string @@ PP.undecorate comment
+  in
+  let escaped = escape_for_rocq_comment text
+  in
+  if String.equal text escaped
+  then comment
+  else PP.string escaped
+
+
+(*
    (* comment *)
 *)
 let pp_inline_comment (comment : PP.t) : PP.t =
-  PP.surround comment_delimiters comment
+  PP.surround comment_delimiters @@ escape_comment comment
 
 
 (*
@@ -71,7 +101,7 @@ let pp_inline_comment (comment : PP.t) : PP.t =
    *)
 *)
 let pp_multiline_comment (comment : PP.t) : PP.t =
-  PP.surround ~layout:PP.vertical comment_delimiters @@ PP.indent comment
+  PP.surround ~layout:PP.vertical comment_delimiters @@ PP.indent @@ escape_comment comment
 
 
 (*
@@ -416,11 +446,13 @@ let pp_z_integer (value : Z.t) : PP.t =
 
 
 (*
-   "<value>"
+   "<value>", with each double quote in value doubled, as Rocq string literals require
 *)
 let pp_string (value : string) =
+  let escaped = String.substr_replace_all value ~pattern:"\"" ~with_:"\"\""
+  in
   PP.annotate [%here] begin
-    PP.(surround dquotes @@ string value)
+    PP.(surround dquotes @@ string escaped)
   end
 
 
@@ -565,18 +597,19 @@ let pp_finite_instance
 (* fields as (identifier, type) pairs *)
 let pp_record
       ~(identifier  : PP.t              )
+     ?(parameters  : PP.t list = []    )
       ~(type_name   : PP.t              )
       ~(constructor : PP.t              )
       ~(fields      : (PP.t * PP.t) list) : PP.t
   =
   let first_line =
     PP.(
-      separate_horizontally ~separator:space [
-        string "Record";
-        identifier;
-        colon;
+      separate_horizontally ~separator:space @@ List.concat [
+        [ string "Record"; identifier ];
+        parameters;
+        [ colon;
         type_name;
-        string ":="
+        string ":=" ];
       ]
     )
   in

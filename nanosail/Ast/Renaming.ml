@@ -109,12 +109,13 @@ let rec rename_in_expression (expression : Expression.t) : Expression.t Monad.t 
       return @@ Expression.BinaryOperation (operator, left_operand, right_operand)
     end
 
-  | Record { type_identifier; fields } -> begin
+  | Record { type_identifier; indices; fields } -> begin
       let* fields = map ~f:rename fields
       in
       return begin
         Expression.Record {
           type_identifier;
+          indices;
           fields;
         }
       end
@@ -405,6 +406,19 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
   | ReadRegister _ -> return statement
   | Fail _         -> return statement
   | Unconstrained _ -> return statement
+
+  | Specialize { equalities; facts; rebinds; result_type; body } -> begin
+      let* rebinds =
+        let rename_rebind ((identifier, typ) : Identifier.t * Type.t) =
+          let* identifier = rename identifier
+          in
+          return (identifier, typ)
+        in
+        map ~f:rename_rebind rebinds
+      and* body = rename_in_statement body
+      in
+      return @@ Statement.Specialize { equalities; facts; rebinds; result_type; body }
+    end
 
   | Located (location, statement) -> begin
       let* new_statement = rename_in_statement statement

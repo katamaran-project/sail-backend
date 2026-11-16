@@ -5,17 +5,22 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 
 ## Scope
 
-- **The core only**: RV32I/E, M, Zicsr and the CHERIoT capability instructions (61 `execute` clauses).
-  - Selected by source file in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml); everything they reach is in scope too.
+- **The core only**: RV32I/E, M, Zicsr, the CHERIoT capability instructions, and the decoders' fallbacks for illegal or reserved encodings (67 `execute` clauses).
+  - Selected by source file, or one by one, in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml); everything they reach is in scope too.
+  - The fallbacks (`ILLEGAL`, `C_ILLEGAL`, `FENCE_RESERVED`, `FENCEI_RESERVED`, `NOT_CAPMODE`, `NOT_C_CAPMODE`) are always reachable: they raise the illegal-instruction trap.
   - Out for now: compressed instructions, bit manipulation (Zb\*), vector.
 - **The scope is computed, not listed**: from the model's call graph (Sail's AST after the rewrites).
   - In scope: the roots (`step`, `fetch`, `ext_decode`, `encdec_backwards`, `init_model`), all registers, and `execute_<C>` for each in-scope instruction `C`.
-  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 86 calls stay in `machine.v` as calls to missing functions.
+  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 80 calls (compressed, Zb\*) are failures (`exclude-functions-as-failure`),
+    unreachable because Zb\* and compressed are absent (below).
   - Everything else is ignored by a generated configuration (`ignore-functions`, `ignore-values`). Types are never ignored: an unused type is harmless.
 - **No virtual memory.** CHERIoT has no S-mode, so `satp` is never written and Sv32 translation is dead code.
   - `translate32`, `translationException`: failures (unreachable while `satp`'s reset mode is 0, which a proof must assume).
   - `flush_TLB`, `init_vmem`: no-ops (the TLB caches page-table entries; there are none).
   - The register `tlb32` and the types `TLB_Entry`, `TLB32_Entry` are left out.
+- **Zb\* and compressed absent**, like PMP (value exclusions in `scope.toml`; deleting the lines turns them back on):
+  - `haveZba`, `haveZbb`, `haveZbc`, `haveZbs`, `haveZbkb`, `haveZbkc`, `haveZbkx` are `false`: every `encdec` clause of a Zb\* instruction is guarded by them, so none decodes.
+  - `sys_enable_rvc` is `false`: `misa.C` starts as it, and `legalize_misa` never sets C then; `step` executes a 16-bit parcel only `if haveRVC()`, else it raises the illegal-instruction trap.
 - **PMP absent**: `sys_pmp_count` is `0`, a configuration the model allows (`init_pmp` asserts 0, 16 or 64).
   ```sail
   function pmp_mem_read(t, p, paddr, width, aq, rl, res, meta) =   // sail-riscv's riscv_mem.sail
@@ -29,6 +34,13 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   - Exact for a CHERIoT without PMP. Removing the PMP lines from `scope.toml` turns PMP back on.
 - **Printing and tracing are excluded**, together with their uses (below).
 
+## Exceptions fail
+
+- `throw` is `stm_fail`; `try { e } catch ...` is `e`, handler dropped ([usage](../../../docs/usage.md#exceptions)).
+- The core's only `try` is in `try_execute` (`riscv_step.sail`, called by `step`); it catches only `Error_not_rv32e_register()`.
+  - Sail: an RV32E register >= 16 (thrown in `cheri_regs.sail`) traps as illegal (`handle_illegal(); RETIRE_FAIL`).
+  - µSail: such an encoding fails. **Assumption**: a proof must show that no register >= 16 is accessed, or `fail_rule_pre` makes it vacuous.
+
 ## Undefined values are unconstrained
 
 - A Sail `undefined` (an `undefined_<type>()` call after Sail's rewrites) means "any value". It must become an *unconstrained* value: a proof holds for every value.
@@ -39,7 +51,8 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   stm_foreign (unconstrained ty.bool) env.nil
   ```
 - The same mechanism serves unconstrained externs and excluded definitions (below).
-- Not done yet for `undefined_*` itself: the configuration skips those functions; see [roadmap](roadmap.md).
+- `undefined_*` is policy-excluded as `unconstrained` by a pattern (`"undefined_*"` in `scope.toml`): each one in-scope code reaches is excluded by name, so each call is `stm_foreign (unconstrained τ)`.
+  No in-scope code reaches one yet. Test `undefined-as-unconstrained`.
 
 ## No monomorphisation
 
@@ -55,11 +68,89 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 - Why: one contract and one proof cover all widths.
   Katamaran's hand-written RiscvPmp model does the same (`mem_read (bytes : nat)`, proved once with `vm_reflexivity`).
   Monomorphisation (one copy per width) would need one contract and one proof per copy.
-- Sail's constraints on the widths (`'m >= 'n`, `'p8_times_n == 8 * 'n`) are not translated yet:
-  - an extension or truncation of a bitvector of variable width is a foreign call (`uop.zext` needs a proof of `n <= m`);
-  - a width that depends on a value (`itself('n)`) or divides a size variable is a hole (`NYI`).
-- A union with a type parameter becomes one monomorphic copy per *closed* type argument it is used at (`MemoryOpResult_bool`); unions at an open type wait for width-indexed unions ([roadmap](roadmap.md)).
+- An update whose high index is not known takes its length from the new value's width: `[bv with ('n - 1) .. 0 = zeros()]` is `bop.update_vector_subrange 0 kid__n`, its side condition proved from the function's hypothesis (`align_down`).
+- Not translated yet:
+  - an extension or truncation of a bitvector of variable width is a foreign call (`uop.zext` would need a proof of `n <= m`);
+  - a width that divides a size variable is a hole (`NYI`).
+
+## Constraints on widths are implicit hypotheses
+
+```sail
+val htif_store : forall 'n 'p8_times_n, 0 < 'n <= 8 & 'p8_times_n == 8 * 'n.   // after Sail's rewrites
+  (xlenbits, int('n), bits('p8_times_n)) -> MemoryOpResult(bool)
+```
+```coq
+| htif_store {kid__p8_times_n : nat} {kid__n : nat}
+    {H : IsTrue ((0 <? Z.of_nat kid__n) && (Z.of_nat kid__n <=? 8) && (Z.of_nat kid__p8_times_n =? 8 * Z.of_nat kid__n))%Z}
+    : Fun ["paddr" ∷ ty.bvec 32; "width" ∷ ty.int; "data" ∷ ty.bvec kid__p8_times_n] (ty.union Umemoryopresult_bool)
+```
+- **Which constraints**: the conjuncts of the function's quantifier that mention a width parameter.
+  - Their other size variables become parameters too (`kid__n` above, which only `int('n)` mentions); repeated until nothing changes.
+  - One hypothesis `H` per function: Katamaran's `IsTrue` of the conjuncts as a boolean over `Z` (`Z.of_nat` of each parameter), so that Sail's integer semantics (subtraction) is kept.
+  - A conjunct Rocq cannot express (a boolean variable, an `App`) is left out: weaker, so sound; a body that needs it fails in Rocq.
+  - The `Fun` constructor, the definition `fun_f` and the `FunDef` case (`@f kid__p8_times_n kid__n H => @fun_f kid__p8_times_n kid__n H`) take the same parameters.
+- **Discharging them**: by Rocq's type class search, as for Katamaran's own `IsTrue` side conditions (`uop.vector_subrange`):
+  - at concrete widths, Katamaran's hint computes the boolean;
+  - otherwise, a hint in `machine.v` (`sail_constraint`) turns the `IsTrue` hypotheses in scope (the caller's own `H`, branch facts) into arithmetic and calls `lia`.
+  - The same hint proves the side conditions in the body: a slice `data[15 .. 0]` needs `IsTrue (0 + 16 <=? kid__p8_times_n)`.
+- **Parameters Rocq cannot infer** (those only the constraints relate to the types) are passed by name, from the argument of type `int('n)`:
+  ```coq
+  stm_call (htif_store (kid__n := 4)) [paddr; exp_int 4; data]
+  ```
+- **Branch facts** (Sail's flow typing): in a branch where Sail's constraints fix a size variable (`width == 4` gives `'n == 4`, so `'p8_times_n == 32`):
+  - the branch is translated with the variable replaced by its value;
+  - a Rocq match on `Nat.eq_dec` gives the equality, and each variable whose type mentions it is rebound with a cast;
+  - the other arm is unreachable (Sail's typing guarantees `width = n`): `stm_fail`.
+  ```coq
+  stm_if (exp_var "width" = exp_int 4)
+    (match Nat.eq_dec kid__p8_times_n 32 with
+     | left H1 => stm_let "data" (ty.bvec 32) (stm_exp (sail_cast (fun k => ty.bvec k) H1 (exp_var "data"))) ...
+     | right _ => stm_fail _ "unreachable: Sail's typing fixes kid__p8_times_n = 32 here"
+     end) ...
+  ```
+  - A branch fact that fixes no value (`'n <= 8` in `mmio_write`, before calling `htif_store`) is decided the same way, with `sail_decide : {IsTrue b} + {~ IsTrue b}`; the `lia` hint uses it.
+  - Both branches of an `if` are considered; only the size variables of the variables in scope (not Sail's existentials) go to Sail's solver.
+  - `fundef_bindfree` case-splits on these decisions before `vm_compute`.
+- **Dead branches**: a branch whose constraints Sail proves contradictory (`if 32 >= 64 then mem_write_value(paddr, 8, rs2_val)` in `execute_STORE`) is `stm_fail` ("unreachable"): Sail typed it under `false`, and in Rocq the callee's false hypothesis made type class search run for over 15 minutes.
+- **Size variables only an `int('n)` parameter shows**: one that a type in the body mentions becomes a parameter (passed by name, from that argument).
+  One that only an equation `'p == c * 'n` relates to the types is passed as `'p / c` (or `X` when the argument shows `'p` as `c * X`); the hint rewrites `Z.of_nat (a / b)` and solves with `Z.div_mod_to_equations; lia`.
+- **Widths Sail proves equal to a size variable**: a let-bound width such as `8 * ('p8_times_n / 8)` (`read_ram`) or `8 * 'n` is replaced by the size variable (`'p8_times_n`) when Sail's solver proves them equal under the constraints; Rocq could not identify them otherwise.
+- **Not changed**: the `ForeignKit` (externs need no hypotheses; their semantics is total), and explicit `monomorphize` (monomorphs are closed).
+- Why: one definition and one contract for all widths, as RiscvPmp's `{H : restrict_bytes bytes}`; the hypotheses are exactly what Sail's type checker assumed.
+- Sail's constraints on the widths become implicit hypotheses (below).
+- A union with a type parameter becomes one monomorphic copy per *closed* type argument it is used at (`MemoryOpResult_bool`), or a width family (below).
 - The `monomorphize` option still exists but is not used here.
+
+## Unions at a width: families indexed by `nat`
+
+```sail
+val mem_read : forall 'n 'p8_times_n, ... . (..., int('n), ...) -> MemoryOpResult(bits('p8_times_n))
+```
+```coq
+Inductive MemoryOpResult_bits (kid__n : nat) : Set :=
+  | MemValue_bits : bv kid__n -> MemoryOpResult_bits kid__n
+  | MemException_bits : ExceptionType -> MemoryOpResult_bits kid__n.
+| Umemoryopresult_bits (kid__n : nat)                          (* in Unions *)
+ty.union (Umemoryopresult_bits kid__p8_times_n)               (* the type of mem_read's result *)
+```
+- A union used at a type with one bitvector of open width is one family indexed by that width, as RiscvPmp's `memory_op_result (bytes : nat)`.
+  - The shape is the type argument with the width as the index: `bits('n)`, `(bits('n), mem_meta)` (two families of `MemoryOpResult`).
+  - Its uses at closed widths (`MemoryOpResult(bits(32))`) are the family at that width, so a size-polymorphic callee and its callers agree on the type.
+  - Its uses at other types stay copies (`MemoryOpResult_bool`).
+- In Rocq: the family's constructors take the width implicitly; `exp_union` and union matches give the tag as `(Umemoryopresult_bits _)`, and Rocq infers the width from the value's type.
+- `Unions` gets an EqDec instance by injection into `N * nat`; the family itself uses `Derive EqDec`.
+- A tuple match whose union or sum column has nested patterns (`(Read(Data), None())` in `phys_mem_read`) matches that column first, one case per constructor, then the fields with the other columns.
+
+## Functions polymorphic in a type over a union
+
+- `MemoryOpResult_add_meta`, `MemoryOpResult_drop_meta : forall ('t : Type). MemoryOpResult(('t, bool)) -> MemoryOpResult('t)`: Katamaran's unions cannot be indexed by a `Ty` (`Ty` is built over the unions), so such a function cannot be one definition.
+- The user's rule:
+  - used at one or two types (a width family's shape counts as one): one copy per type, type-checked again by Sail; a single copy keeps the function's name;
+  - used at more types: inlined at each call (the body, type-checked again at the call).
+- CHERIoT: each has one call, at `'t = bits(8 * 'n)`, so one copy each, size-polymorphic like any other function:
+  ```coq
+  | MemoryOpResult_drop_meta {kid__n : nat} : Fun ["r" ∷ ty.union (Umemoryopresult_bits_bool kid__n)] (ty.union (Umemoryopresult_bits kid__n))
+  ```
 
 ## Externs: µSail operations or foreign functions
 
@@ -84,7 +175,7 @@ The scope does not follow edges into an excluded definition, so what only it rea
 | no-op | `stm_exp (exp_val ty.unit tt)` | printing (`print_reg`, ...), `flush_TLB`, `init_vmem`, `init_pmp` | only for `unit` functions whose effects the model never reads back |
 | failure | `stm_fail τ "f is excluded by the configuration"` | `translate32`, `translationException`, `pmpCheck`, PMP CSR accessors | the call is unreachable; a contract must show it (or `fail_rule_pre` makes it vacuous) |
 | unconstrained | `stm_foreign (unconstrained τ) env.nil` | strings for printing (`bits_str`, `RegStr`, ...), `get_config_print_*` | any value is allowed, so nothing is assumed; the values only feed no-op printing |
-| value | the given Sail expression, type-checked in place | `sys_pmp_count = "0"` | a configuration the model allows; fixes the platform being verified |
+| value | the given Sail expression, type-checked in place | `sys_pmp_count = "0"`, `haveZb* = "false"`, `sys_enable_rvc = "false"` | a configuration the model allows; fixes the platform being verified |
 | registers | left out of `Reg`; a read is unconstrained, a write a no-op | `tlb32`, `pmpcfg_n`, `pmpaddr_n` | only excluded code uses them meaningfully |
 
 Example, a failure:
@@ -96,5 +187,5 @@ stm_fail (ty.sum (ty.union Uexceptiontype) ty.unit) "pmpCheck is excluded by the
 
 - Overloads and pragmas are ignored: Sail's type checker has resolved them.
 - Types no in-scope code uses are ignored: Sail's concurrency interface (`Access_kind`, ...), `regfp.sail`, the TLB entries.
-- Generated helpers are skipped: `*_of_num`, `num_of_*` (except the model's own `num_of_ExceptionType`, `num_of_ext_exc_type`), `regval_of_*`, `undefined_*`.
+- Generated helpers are skipped: `*_of_num`, `num_of_*` (except the model's own `num_of_ExceptionType`, `num_of_ext_exc_type`), `regval_of_*`, `undefined_*` (those that in-scope code calls are excluded as unconstrained, above).
 - `option` and `result` translate to µSail's `ty.sum` (`translate-union-as-sum`).

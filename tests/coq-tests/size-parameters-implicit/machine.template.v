@@ -5,11 +5,11 @@ Require Export base.
 >*)
 
 (* One constructor per polymorphic function, with the widths as implicit arguments, in order of appearance *)
-Check (@extend_to 16 64 : Fun [ "m" ∷ ty.int; "v" ∷ ty.bvec 16 ] (ty.bvec 64)).
+Check (@extend_to 16 64 _ : Fun [ "m" ∷ ty.int; "v" ∷ ty.bvec 16 ] (ty.bvec 64)).
 Check (@fail_with ty.unit : Fun [ "message" ∷ ty.string ] ty.unit).
 
-(* and one definition for all widths *)
-Check (@fun_extend_to : forall {n m : nat}, Stm [ "m" ∷ ty.int; "v" ∷ ty.bvec n ] (ty.bvec m)).
+(* and one definition for all widths; the constraint 'm >= 'n is a hypothesis (test size-constraints-hypotheses) *)
+Check (@fun_extend_to : forall {n m : nat} {H : IsTrue (Z.of_nat n <=? Z.of_nat m)%Z}, Stm [ "m" ∷ ty.int; "v" ∷ ty.bvec n ] (ty.bvec m)).
 
 (* Rocq infers the widths at the call *)
 Goal fun_extend_byte =
@@ -18,7 +18,7 @@ Goal fun_extend_byte =
 Proof. reflexivity. Qed.
 
 (* Inside, the extension is a foreign call (uop.zext would need n <= m) *)
-Goal forall n m, @fun_extend_to n m =
+Goal forall n m H, @fun_extend_to n m H =
   stm_let "m" ty.int (stm_exp (exp_var "m"))
     (stm_foreign sail_zero_extend (env.snoc (env.snoc env.nil (_∷_) (exp_var "v")) (_∷_) (exp_var "m"))).
 Proof. reflexivity. Qed.

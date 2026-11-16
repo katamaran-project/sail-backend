@@ -247,6 +247,45 @@ let flatten_named_statements (named_statements : named_statement list list) : na
 
   with expr : t
  *)
+(*
+   The record type that a Sail type denotes, with its field types: for a record family at a width
+   (struct S('m) = { value : bits(8 * 'm) } at 4), the indices [4] and the field types at them (bits(8 * 4)).
+   Aliases of the record type are seen through. None if the type is not a record.
+*)
+let record_type_of_sail_type (typ : S.typ) : (Ast.Identifier.t * Ast.Numeric.Expression.t list * (Ast.Identifier.t * Ast.Type.t) list) option TC.t =
+  let* translated_type =
+    Type.translate_type typ
+  in
+  let lookup (record_type_identifier : Ast.Identifier.t) =
+    TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
+  in
+  let numeric_argument (type_argument : Ast.TypeArgument.t) : Ast.Numeric.Expression.t option =
+    match type_argument with
+    | NumericExpression e -> Some e
+    | Type _              -> None
+    | Bool _              -> None
+  in
+  match Ast.Type.strip_aliases translated_type with
+  | Record record_type_identifier -> begin
+      let* record_definition = lookup record_type_identifier
+      in
+      TC.return @@ Some (record_type_identifier, [], record_definition.fields)
+    end
+  | Application (Record record_type_identifier, type_arguments) -> begin
+      let* record_definition = lookup record_type_identifier
+      in
+      match Option.all @@ List.map ~f:numeric_argument type_arguments, Ast.Definition.Type.instantiate_types record_definition.type_quantifier type_arguments with
+      | Some indices, Some instantiate_type -> begin
+          let fields = List.map record_definition.fields ~f:(fun (field_identifier, field_type) -> (field_identifier, instantiate_type field_type))
+          in
+          TC.return @@ Some (record_type_identifier, indices, fields)
+        end
+      | None, Some _ | Some _, None | None, None -> TC.return None
+    end
+  | Int _ | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Variant _
+  | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> TC.return None
+
+
 let rec expression_of_aval
     (location : S.l         )
     (value    : S.typ S.aval) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
@@ -379,23 +418,19 @@ let rec expression_of_aval
         (bindings : S.typ S.aval Bindings.t)
         (typ      : S.typ                  ) : (Ast.Expression.t * Ast.Type.t * named_statement list) TC.t
     =
-    let S.Typ_aux (unwrapped_type, _typ_location) = typ
+    (* Find out which record we're building: a record or a record family at a width (S(4)) *)
+    let* record_type =
+      record_type_of_sail_type typ
     in
-    (* Find out which record we're building *)
-    match unwrapped_type with
-    | Typ_id type_identifier -> begin
+    match record_type with
+    | None -> TC.fail [%here] "Unexpected type"
+    | Some (type_identifier', indices, fields) -> begin
         (*
            We know the record's name, we need the fields,
            more specifically, the order they are defined in
         *)
-        let* type_identifier' =
-          Identifier.translate_identifier [%here] type_identifier
-        in
-        let* record_definition =
-          TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named type_identifier')
-        in
         let record_field_names =
-          List.map ~f:fst record_definition.fields
+          List.map ~f:fst fields
         in
         let* mapping, named_statements =
           translate_bindings location bindings
@@ -416,12 +451,16 @@ let rec expression_of_aval
         let record =
           Ast.Expression.Record {
             type_identifier = type_identifier';
+            indices;
             fields          = field_value_identifiers;
           }
+        and record_type =
+          match indices with
+          | []     -> Ast.Type.Record type_identifier'
+          | _ :: _ -> Ast.Type.Application (Ast.Type.Record type_identifier', List.map indices ~f:(fun index -> Ast.TypeArgument.NumericExpression index))
         in
-        TC.return (record, Ast.Type.Record type_identifier', named_statements)
+        TC.return (record, record_type, named_statements)
       end
-    | _ -> TC.fail [%here] "Unexpected type"
 
   and expression_of_vector
       (values : S.typ S.aval list)
@@ -586,6 +625,9 @@ type with_destructured_record_data = {
   (* name of the record type *)
   record_type_identifier : Ast.Identifier.t;
 
+  (* the widths of a record family (struct S('m) at 4), [] for other records *)
+  record_indices         : Ast.Numeric.Expression.t list;
+
   (* field names and types *)
   fields                 : (Ast.Identifier.t * Ast.Type.t) list;
 
@@ -605,76 +647,63 @@ let with_destructured_record
       and* S.Typ_aux (t, _loc) =
         sail_type_of_lvar lvar location
       in
-      match t with
-      | Typ_id record_type_identifier -> begin
-          (* The record's type can be an alias of the record type (e.g., type regtype = Capability) *)
-          let* record_type_identifier =
-            let* translated_record_type_identifier =
-              Identifier.translate_identifier [%here] record_type_identifier
-            and* translated_type =
-              Type.translate_type (S.Typ_aux (t, _loc))
+      let destructure (fallback_identifier : S.id option) =
+        let* record_type =
+          let* record_type = record_type_of_sail_type (S.Typ_aux (t, _loc))
+          in
+          match record_type, fallback_identifier with
+          | Some _, _            -> TC.return record_type
+          | None, None           -> TC.return None
+          | None, Some identifier -> begin
+              (* as before record families: the record named by the type *)
+              let* record_type_identifier = Identifier.translate_identifier [%here] identifier
+              in
+              let* record_definition =
+                TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
+              in
+              TC.return @@ Some (record_type_identifier, [], record_definition.fields)
+            end
+        in
+        match record_type with
+        | None -> TC.not_yet_implemented ~message:"not a record type" [%here] location
+        | Some (record_type_identifier, record_indices, fields) -> begin
+            let field_identifiers =
+              List.map ~f:fst fields
             in
-            match Ast.Type.strip_aliases translated_type with
-            | Record record_type_identifier -> TC.return record_type_identifier
-            | Int _
-            | Bool
-            | String
-            | Bit
-            | List _
-            | Unit
-            | Enum _
-            | Bitvector _
-            | Tuple _
-            | Sum (_, _)
-            | Variant _
-            | Application (_, _)
-            | Alias (_, _)
-            | Range (_, _)
-            | Function _
-            | TypeVariable _
-            | Nat
-            | Vector (_, _)
-            | Implicit _                    -> TC.return translated_record_type_identifier
-          in
-          let* record_type_definition =
-            TC.lookup_definition @@ Ast.Definition.Select.(type_definition @@ of_record_named record_type_identifier)
-          in
-          let fields =
-            record_type_definition.fields
-          in
-          let field_identifiers =
-            List.map ~f:fst fields
-          in
-          let* binders =
-            TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
-          in
-          let* body =
-            body_generator {
-              record_identifier;
-              record_type_identifier;
-              fields;
-              binders
-            }
-          in
-          let* destructured_record =
-            statement_of_lvar record_identifier lvar location
-          in
-          TC.return begin
-            Ast.Statement.DestructureRecord {
-              record_type_identifier;
-              field_identifiers;
-              binders;
-              destructured_record;
-              body
-            }
+            let* binders =
+              TC.map ~f:(fun x -> TC.generate_unique_identifier ~prefix:(Ast.Identifier.to_string x) ()) field_identifiers
+            in
+            let* body =
+              body_generator {
+                record_identifier;
+                record_type_identifier;
+                record_indices;
+                fields;
+                binders
+              }
+            in
+            let* destructured_record =
+              statement_of_lvar record_identifier lvar location
+            in
+            TC.return begin
+              Ast.Statement.DestructureRecord {
+                record_type_identifier;
+                field_identifiers;
+                binders;
+                destructured_record;
+                body
+              }
+            end
           end
-        end
+      in
+      match t with
+      | Typ_id identifier    -> destructure (Some identifier)   (* also an alias of the record type, e.g., type regtype = Capability *)
+      | Typ_app (_, _)       -> destructure None                (* a record family at a width, S(4) *)
       | Typ_internal_unknown -> TC.not_yet_implemented [%here] location
       | Typ_var _            -> TC.not_yet_implemented [%here] location
       | Typ_fn (_, _)        -> TC.not_yet_implemented [%here] location
       | Typ_bidir (_, _)     -> TC.not_yet_implemented [%here] location
       | Typ_tuple _          -> TC.not_yet_implemented [%here] location
-      | Typ_app (_, _)       -> TC.not_yet_implemented [%here] location
       | Typ_exist (_, _, _)  -> TC.not_yet_implemented [%here] location
     end
   | AV_lit (_, _)      -> TC.not_yet_implemented [%here] location
@@ -722,6 +751,203 @@ let is_early_return (function_identifier : S.id) : bool =
    it was once unclear what the expected types of a and b
    in a sequence "a; b; c" should be (they are unit, see statement_of_block).
 *)
+(*
+   A branch in which Sail's flow typing fixes size variables, such as the then-branch of
+   if width == 4 for width : int('n), with 'p == 8 * 'n among the function's constraints:
+   Sail's type checker added 'n == 4 to the branch's environment, and its solver finds 'p == 32.
+   The branch becomes a Specialize: its translation with each fixed variable replaced by its value,
+   the variables in scope whose type mentions one (rebound with a cast in Rocq), and the branch's type.
+   Only the size variables of the types of the variables in scope are considered (the solver is not
+   free); a variable the enclosing environment already fixes is left alone.
+*)
+(*
+   A width that is not a constant nor a size variable, such as bits(8 * ('p8_times_n / 8)) in read_ram,
+   or bits(8 * 'n) where the signature has bits('p8_times_n) with 'p8_times_n == 8 * 'n, cannot be
+   identified with the parameter's width by Rocq. When Sail's solver proves, under the constraints in
+   the environment, that the width equals a size variable of the function's quantifier, the width is
+   that variable. Sail's existential variables (named with a #) are not candidates.
+*)
+let rec normalise_widths
+    (environment : Libsail.Type_check.Env.t)
+    (typ         : S.typ                   ) : S.typ
+  =
+  let candidates : S.kid list =
+    Libsail.Ast_compare.KBindings.bindings (Libsail.Type_check.Env.get_typ_vars environment)
+    |> List.filter_map ~f:(fun (kid, kind) ->
+        match kind with
+        | S.K_int when not (String.contains (Libsail.Ast_util.string_of_kid kid) '#') -> Some kid
+        | K_int | K_type | K_bool -> None
+      )
+  in
+  let normalise_nexp (nexp : S.nexp) : S.nexp =
+    let S.Nexp_aux (unwrapped_nexp, _) = nexp
+    in
+    (* a width whose value the solver finds unique is that value (bits(n - 1 + 1) after assert(n == 32)) *)
+    match (try Libsail.Type_check.solve_unique environment nexp with _ -> None) with
+    | Some value when not (match unwrapped_nexp with Nexp_constant _ -> true | _ -> false) -> Libsail.Ast_util.nconstant value
+    | Some _ | None ->
+    match unwrapped_nexp with
+    | Nexp_constant _ | Nexp_var _ | Nexp_id _ -> nexp
+    | Nexp_app _ | Nexp_times _ | Nexp_sum _ | Nexp_minus _ | Nexp_neg _ | Nexp_exp _ | Nexp_if _ -> begin
+        let in_nexp = Libsail.Ast_util.tyvars_of_nexp nexp
+        in
+        (* only when every size variable of the width is a candidate, so that the solver has the constraints *)
+        if
+          Libsail.Ast_compare.KidSet.is_empty in_nexp
+          || not (Libsail.Ast_compare.KidSet.for_all (fun kid -> List.mem candidates kid ~equal:(fun a b -> Libsail.Ast_compare.Kid.compare a b = 0)) in_nexp)
+        then
+          nexp
+        else
+          match
+            List.find candidates ~f:(fun kid ->
+                try Libsail.Type_check.prove __POS__ environment (Libsail.Ast_util.nc_eq nexp (Libsail.Ast_util.nvar kid))
+                with _ -> false)
+          with
+          | Some kid -> Libsail.Ast_util.nvar kid
+          | None     -> nexp
+      end
+  in
+  let S.Typ_aux (unwrapped_typ, location) = typ
+  in
+  let normalise_argument (S.A_aux (argument, argument_location) : S.typ_arg) : S.typ_arg =
+    match argument with
+    | A_nexp nexp -> S.A_aux (A_nexp (normalise_nexp nexp), argument_location)
+    | A_typ typ   -> S.A_aux (A_typ (normalise_widths environment typ), argument_location)
+    | A_bool _    -> S.A_aux (argument, argument_location)
+  in
+  match unwrapped_typ with
+  | Typ_app (S.Id_aux (Id ("atom" | "range" | "atom_bool" | "implicit" | "itself"), _), _) -> typ
+  | Typ_app (identifier, arguments) -> S.Typ_aux (Typ_app (identifier, List.map ~f:normalise_argument arguments), location)
+  | Typ_tuple types                 -> S.Typ_aux (Typ_tuple (List.map ~f:(normalise_widths environment) types), location)
+  | Typ_internal_unknown | Typ_id _ | Typ_var _ | Typ_fn _ | Typ_bidir _ | Typ_exist _ -> typ
+
+
+let specialise_branch
+    ~(outer_environment : Libsail.Type_check.Env.t)
+    ~(branch            : S.typ S.aexp            )
+    ~(branch_type       : S.typ                   )
+    (statement          : Ast.Statement.t         ) : Ast.Statement.t TC.t
+  =
+  let S.AE_aux (_, branch_annotation) = branch
+  in
+  let inner_environment = branch_annotation.env
+  in
+  let proves_false (environment : Libsail.Type_check.Env.t) : bool =
+    try Libsail.Type_check.prove __POS__ environment Libsail.Ast_util.nc_false with _ -> false
+  in
+  (*
+     A branch whose constraints Sail proves contradictory (if 32 >= 64 then ...) is dead: Sail typed its
+     body under false, so it need not type-check in Rocq (a callee's hypothesis 32 = 8 * 8 would make
+     type class search backtrack for a long time). It fails, as unreachable.
+  *)
+  if
+    proves_false inner_environment && not (proves_false outer_environment)
+  then
+    TC.recover
+      begin
+        let* result_type = Type.translate_type branch_type
+        in
+        TC.return @@ Ast.Statement.Fail (result_type, "unreachable: Sail's typing rules this branch out")
+      end
+      (fun _ -> TC.return statement)
+  else
+  let locals : (S.id * S.typ) list =
+    List.map ~f:(fun (identifier, (_mutability, typ)) -> (identifier, typ)) @@ Bindings.bindings @@ Libsail.Type_check.Env.get_locals inner_environment
+  in
+  let outer_size_variables = Libsail.Type_check.Env.get_typ_vars outer_environment
+  in
+  let candidates : S.kid list =
+    List.concat_map (("", branch_type) :: List.map locals ~f:(fun (identifier, typ) -> (Libsail.Ast_util.string_of_id identifier, typ))) ~f:(fun (_, typ) ->
+        Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_typ typ)
+    |> List.dedup_and_sort ~compare:Libsail.Ast_compare.Kid.compare
+    |> List.filter ~f:(fun kid ->
+        match Libsail.Ast_compare.KBindings.find_opt kid outer_size_variables with
+        | Some K_int                -> true
+        | Some (K_type | K_bool) | None -> false
+      )
+  in
+  let fixed : (S.kid * Z.t) list =
+    List.filter_map candidates ~f:(fun kid ->
+        match Libsail.Type_check.solve_unique outer_environment (Libsail.Ast_util.nvar kid) with
+        | Some _ -> None
+        | None   -> begin
+            match Libsail.Type_check.solve_unique inner_environment (Libsail.Ast_util.nvar kid) with
+            | Some value -> Some (kid, value)
+            | None       -> None
+          end
+      )
+  in
+  (*
+     The facts: the constraints Sail's flow typing added in the branch (if 'n <= 8 ...),
+     over the candidate size variables only.
+  *)
+  let* facts : Ast.Numeric.Constraint.t list =
+    let outer_constraints = Libsail.Type_check.Env.get_constraints outer_environment
+    in
+    let is_candidate (kid : S.kid) : bool =
+      List.mem candidates kid ~equal:(fun kid kid' -> Libsail.Ast_compare.Kid.compare kid kid' = 0)
+    in
+    Libsail.Type_check.Env.get_constraints inner_environment
+    |> List.filter ~f:(fun numeric_constraint ->
+        not (List.exists outer_constraints ~f:(fun numeric_constraint' -> Libsail.Ast_compare.NC.compare numeric_constraint numeric_constraint' = 0)))
+    |> List.concat_map ~f:TypeQuantifier.sail_conjuncts
+    |> List.filter ~f:(fun numeric_constraint ->
+        let kids = Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_constraint numeric_constraint
+        in
+        not (List.is_empty kids) && List.for_all kids ~f:is_candidate
+      )
+    |> TypeQuantifier.translate_conjuncts ~environment:(Some inner_environment)
+  in
+  match fixed, facts with
+  | [], [] -> TC.return statement
+  | _, _ -> begin
+      let equalities : (Ast.Identifier.t * Z.t) list =
+        List.map fixed ~f:(fun (kid, value) -> (Identifier.translate_kind_identifier kid, value))
+      in
+      let body =
+        Ast.Statement.substitute_numeric_expression_identifier (Ast.Numeric.size_variable_substitution equalities) statement
+      in
+      let free_variables = Ast.Statement.free_variables body
+      in
+      let mentions_fixed (typ : S.typ) : bool =
+        List.exists fixed ~f:(fun (kid, _) -> Libsail.Ast_compare.KidSet.mem kid (Libsail.Ast_util.tyvars_of_typ typ))
+      in
+      let* rebinds : (Ast.Identifier.t * Ast.Type.t) list =
+        TC.filter_map locals ~f:(fun (identifier, typ) ->
+            if
+              mentions_fixed typ
+            then
+              TC.recover
+                begin
+                  let* identifier' = Identifier.translate_identifier [%here] identifier
+                  in
+                  if
+                    Ast.Identifier.Set.mem free_variables identifier'
+                  then
+                    let* typ' = Type.translate_type typ
+                    in
+                    TC.return @@ Some (identifier', typ')
+                  else
+                    TC.return None
+                end
+                (fun _ -> TC.return None)
+            else
+              TC.return None
+          )
+      in
+      TC.recover
+        begin
+          let* result_type = Type.translate_type branch_type
+          in
+          let facts =
+            List.map facts ~f:(Ast.Numeric.Constraint.substitute_numeric_expression_identifier (Ast.Numeric.size_variable_substitution equalities))
+          in
+          TC.return @@ Ast.Statement.Specialize { equalities; facts; rebinds; result_type; body }
+        end
+        (fun _ -> TC.return statement)
+    end
+
+
 let rec statement_of_aexp
     (expression_type : S.typ option)
     (expression      : S.typ S.aexp) : Ast.Statement.t TC.t
@@ -820,11 +1046,72 @@ let rec statement_of_aexp
       end
   in
 
+  (*
+     A match with a single case whose pattern is a struct of variables and wildcards,
+
+       match s { struct { foo = x, bar = _, qux = z } => body }
+
+     always matches: it destructures the record, and binds x and z to its fields.
+     Returns None for any other match.
+  *)
+  let statement_of_struct_match
+      (matched : S.typ S.aval                                     )
+      (cases   : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list) : Ast.Statement.t TC.t option
+    =
+    let is_true (condition : S.typ S.aexp) : bool =
+      match condition with
+      | S.AE_aux (AE_val (AV_lit (S.L_aux (L_true, _), _)), _) -> true
+      | _                                                      -> false
+    in
+    let field_binding (field_pattern : S.id * S.typ S.apat) : (S.id * S.Jib.name option) option =
+      match field_pattern with
+      | (field, S.AP_aux (AP_id (name, _), _)) -> Some (field, Some name)
+      | (field, S.AP_aux (AP_wild _, _))       -> Some (field, None)
+      | (_, _)                                 -> None
+    in
+    match cases with
+    | [ (S.AP_aux (AP_struct (field_patterns, _), _), condition, body) ] when is_true condition -> begin
+        match Option.all (List.map ~f:field_binding field_patterns) with
+        | None                -> None
+        | Some field_bindings -> Some begin
+            with_destructured_record location matched @@ fun { fields; binders; _ } -> begin
+              let* body = statement_of_aexp None body
+              in
+              TC.fold_left (List.rev field_bindings) ~init:body ~f:(fun body (field, name) ->
+                  match name with
+                  | None      -> TC.return body
+                  | Some name -> begin
+                      let* field = Identifier.translate_identifier [%here] field
+                      and* name  = Identifier.translate_identifier [%here] (Sail.id_of_name name)
+                      in
+                      match List.findi fields ~f:(fun _ (field', _) -> Ast.Identifier.equal field field') with
+                      | None -> TC.fail [%here] @@ Printf.sprintf "record has no field %s" (Ast.Identifier.to_string field)
+                      | Some (index, (_, field_type)) -> begin
+                          let binder = List.nth_exn binders index
+                          in
+                          TC.return @@ Ast.Statement.Let {
+                            binder                 = name;
+                            binding_statement_type = field_type;
+                            binding_statement      = Expression (Variable (binder, field_type));
+                            body_statement         = body;
+                          }
+                        end
+                    end
+                )
+            end
+          end
+      end
+    | _ -> None
+  in
+
   let statement_of_match
       (matched     : S.typ S.aval                                     )
       (cases       : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
       (output_type : S.typ                                            ) : Ast.Statement.t TC.t
     =
+    match statement_of_struct_match matched cases with
+    | Some statement -> statement
+    | None ->
     let* matched_variable =
       TC.generate_unique_identifier ()
     and* output_type =
@@ -861,7 +1148,7 @@ let rec statement_of_aexp
     let* field_identifier = Identifier.translate_identifier [%here] field_identifier
     in
     with_destructured_record location value @@
-      fun { record_type_identifier; fields; binders; record_identifier = _ } -> begin
+      fun { record_type_identifier; fields; binders; record_identifier = _; record_indices = _ } -> begin
         match List.find_index_of ~f:(fun field -> Ast.Identifier.equal field_identifier (fst field)) fields with
         | Some selected_field_index -> begin
             let expression =
@@ -972,7 +1259,7 @@ let rec statement_of_aexp
           *)
           let* constructed_type = Type.translate_type typ
           in
-          match Ast.Type.strip_aliases constructed_type with
+          match Ast.Type.strip_family @@ Ast.Type.strip_aliases constructed_type with
           | Variant instance_identifier -> begin
               let constructor_identifier = UnionInstances.constructor_in union_instances instance_identifier receiver_identifier'
               in
@@ -1216,6 +1503,8 @@ let rec statement_of_aexp
         (body            : S.typ S.aexp        )
         (body_type       : S.typ               ) : Ast.Statement.t TC.t
     =
+    let expression_type = normalise_widths annotation.env expression_type
+    in
     let* binder                 = Identifier.translate_identifier [%here] identifier
     and* binding_statement_type = Type.translate_type expression_type
     and* binding_statement      = statement_of_aexp (Some expression_type) expression
@@ -1242,9 +1531,13 @@ let rec statement_of_aexp
       in
       TC.return (Ast.Statement.Expression condition_expression, named_statements)
     and* when_true =
-      statement_of_aexp (Some output_type) then_clause
+      let* when_true = statement_of_aexp (Some output_type) then_clause
+      in
+      specialise_branch ~outer_environment:annotation.env ~branch:then_clause ~branch_type:output_type when_true
     and* when_false =
-      statement_of_aexp (Some output_type) else_clause
+      let* when_false = statement_of_aexp (Some output_type) else_clause
+      in
+      specialise_branch ~outer_environment:annotation.env ~branch:else_clause ~branch_type:output_type when_false
     and* condition_variable =
       TC.generate_unique_identifier ()
     in
@@ -1328,7 +1621,7 @@ let rec statement_of_aexp
       in
       TC.return @@ (field_map', named_statements')
     in
-    with_destructured_record location aval @@ fun { record_type_identifier; fields; binders; _ } -> begin
+    with_destructured_record location aval @@ fun { record_type_identifier; record_indices; fields; binders; _ } -> begin
       let field_identifiers = List.map ~f:fst fields
       in
       let* field_map, named_statements =
@@ -1343,7 +1636,7 @@ let rec statement_of_aexp
         and fields =
           List.map field_identifiers ~f:(Map.find_exn field_map)
         in
-        Record { type_identifier; fields }
+        Record { type_identifier; indices = record_indices; fields }
       in
       TC.return @@ wrap_in_named_statements_context named_statements (Expression record_expression)
     end
@@ -1513,6 +1806,28 @@ let rec statement_of_aexp
     in
     TC.return @@ Ast.Statement.Fail (translated_type, "failure")
 
+  (*
+     try { body } catch { handlers } is translated as body: the handlers are dropped,
+     so a throw inside body fails (throw is translated as fail) instead of being caught.
+  *)
+  and statement_of_try
+        (body     : S.typ S.aexp)
+        (handlers : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp * S.uannot) list) : Ast.Statement.t TC.t
+    =
+    let* () =
+      let message = lazy begin
+        PP.string begin
+          Printf.sprintf
+            "Dropped the %d handler(s) of a try at %s; the try is translated as its body"
+            (List.length handlers)
+            (Sail.string_of_location location)
+        end
+      end
+      in
+      TC.log [%here] Logging.warning message
+    in
+    statement_of_aexp expression_type body
+
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
         (typ   : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
@@ -1572,7 +1887,7 @@ let rec statement_of_aexp
     | AE_throw (aval, typ)                                          -> statement_of_throw aval typ
     | AE_exit (aval, typ)                                           -> statement_of_exit aval typ
     | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
-    | AE_try (_, _, _)                                              -> TC.not_yet_implemented [%here] location
+    | AE_try (body, handlers, _typ)                                 -> statement_of_try body handlers
     | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
     | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
   in
@@ -2014,6 +2329,230 @@ let rewrite_zero_extended_ones (expression : Sail.type_annotation S.exp) : Sail.
 
 
 (*
+   The low bits of a bitvector, zero-extended, with the number of bits known only at run time.
+
+     zero_extend(m, v[hi .. 0])          (sail-riscv's zero_extend takes the width first)
+     sail_zero_extend(v[hi .. 0], m)
+
+   has the intermediate bitvector v[hi .. 0], whose width hi + 1 is only known at run time,
+   and muSail bitvector types need widths known in Rocq. sail-riscv's writeCSR does this:
+
+     vstart = zero_extend(16, value[vstart_length - 1 .. 0])     with value : xlenbits
+
+   The hi + 1 low bits of v are kept and the others cleared by v & not(ones(w) << (hi + 1)), w = |v|, so this is rewritten to
+
+     resize(and_vec(v, not_vec(sail_shiftleft(sail_ones(w), hi + 1))), m)
+
+   where resize is truncate if m <= w and sail_zero_extend otherwise (hi + 1 <= m is a constraint
+   of the zero extension, so truncating keeps every kept bit). It requires w and m to be known.
+   v[hi .. 0] is subrange_bits(v, hi, 0); zero_extend is sail-riscv's zero_extend or sail_zero_extend.
+   The rewritten expression is type checked again in the environment of the original; if that fails,
+   the original is kept.
+*)
+let rewrite_zero_extended_low_slice (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    let rewritten : Sail.type_annotation S.exp option =
+      let open Monads.OptionNotation
+      in
+      let=? slice, target_width_expression =
+        match sail_application_of original with
+        | Some ("zero_extend", [ target_width_expression; slice ])      -> Some (slice, target_width_expression)
+        | Some ("sail_zero_extend", [ slice; target_width_expression ]) -> Some (slice, target_width_expression)
+        | Some _                                                       -> None
+        | None                                                         -> None
+      in
+      let=? bitvector, high_index =
+        match sail_application_of slice with
+        | Some ("subrange_bits", [ bitvector; high_index; low_index ]) -> begin
+            match sail_integer_value high_index, sail_integer_value low_index with
+            | None  , Some low when Z.equal low Z.zero -> Some (bitvector, high_index)  (* only when the high index is not known *)
+            | None  , Some _                           -> None
+            | None  , None                             -> None
+            | Some _, _                                -> None
+          end
+        | Some _ -> None
+        | None   -> None
+      in
+      let=? bitvector_width = sail_bitvector_width bitvector
+      in
+      let=? target_width = sail_integer_value target_width_expression
+      in
+      let untyped (expression : Sail.type_annotation S.exp) : Libsail.Ast_util.uannot S.exp =
+        TypeCheck.strip_exp expression
+      and call = untyped_sail_call
+      and integer (value : Z.t) : Libsail.Ast_util.uannot S.exp =
+        Libsail.Ast_util.mk_lit_exp (S.L_num value)
+      in
+      let masked =
+        call "and_vec" [
+          untyped bitvector;
+          call "not_vec" [
+            call "sail_shiftleft" [
+              call "sail_ones" [ call "make_the_value" [ integer bitvector_width ] ];
+              call "add_atom" [ untyped high_index; integer Z.one ]
+            ]
+          ]
+        ]
+      in
+      let replacement =
+        let resize = if Z.leq target_width bitvector_width then "truncate" else "sail_zero_extend"
+        in
+        call resize [ masked; untyped target_width_expression ]
+      in
+      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
+      with _ -> None
+    in
+    Option.value rewritten ~default:original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
+   Indices of slices and updates that Sail's solver knows, made literals.
+
+     let n = unsigned(vlenb);
+     assert(n == 32);
+     let w = v[n - 1 .. 0]                 (subrange_bits(v, sub_atom(n, 1), 0))
+
+   After the assert, Sail's flow typing knows n == 32, so the slice has type bits(32), but its index
+   is not a literal, and muSail's slice operations take their indices as Rocq numbers. Each integer
+   argument of such a call without an effect, whose value the solver finds unique in the environment
+   of the call, becomes that value: subrange_bits(v, 31, 0). The call is type checked again in its
+   environment; if that fails, it is kept as it is.
+*)
+let rewrite_solved_indices (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let indexing_functions = [ "subrange_bits"; "vector_subrange"; "update_subrange_bits"; "bitvector_access"; "vector_access"; "bitvector_update"; "vector_update"; "slice" ]
+  in
+  let solved_value (argument : Sail.type_annotation S.exp) : Z.t option =
+    match sail_integer_value argument with
+    | Some _ -> None   (* already a constant *)
+    | None   -> begin
+        if
+          Libsail.Ast_util.effectful (TypeCheck.effect_of argument)
+        then
+          None
+        else
+          let environment = TypeCheck.env_of argument
+          in
+          match TypeCheck.destruct_atom_nexp environment (TypeCheck.typ_of argument) with
+          | None      -> None
+          | Some nexp -> (try TypeCheck.solve_unique environment nexp with _ -> None)
+      end
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    match sail_application_of original with
+    | Some (name, arguments) when List.mem indexing_functions name ~equal:String.equal -> begin
+        let solved = List.map arguments ~f:solved_value
+        in
+        if
+          List.for_all solved ~f:Option.is_none
+        then
+          original
+        else begin
+          let replacement =
+            untyped_sail_call name @@ List.map2_exn arguments solved ~f:(fun argument value ->
+                match value with
+                | Some value -> Libsail.Ast_util.mk_lit_exp (S.L_num value)
+                | None       -> TypeCheck.strip_exp argument
+              )
+          in
+          try TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation)
+          with _ -> original
+        end
+      end
+    | Some _ -> original
+    | None   -> original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
+   An if whose condition is known at compile time becomes its live branch.
+
+     if gteq_int(32, 64) then A else B          (sail-riscv: if sizeof(xlen) >= 64 then ... in execute_STORE)
+
+   becomes B. Sail's flow typing checks A assuming the condition, so A may be ill-typed once the
+   condition is false: in execute_STORE it calls mem_write_value at 8 bytes with a bits(32), and Rocq
+   searched for the false width hypothesis for over 45 s. The condition is a literal, an integer
+   comparison whose operands' values the types give, or not, and and or of those; value exclusions
+   (exclude-functions-as-value: haveZbb() = false) are replaced before, so their conditions fold too.
+*)
+let rewrite_constant_conditions (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let rec value_of (condition : Sail.type_annotation S.exp) : bool option =
+    let compare (operator : Z.t -> Z.t -> bool) (left : Sail.type_annotation S.exp) (right : Sail.type_annotation S.exp) : bool option =
+      match sail_integer_value left, sail_integer_value right with
+      | Some left, Some right -> Some (operator left right)
+      | Some _   , None       -> None
+      | None     , Some _     -> None
+      | None     , None       -> None
+    in
+    match sail_application_of condition with
+    | Some ("eq_int"  , [ left; right ]) -> compare Z.equal left right
+    | Some ("neq_int" , [ left; right ]) -> compare (fun x y -> not (Z.equal x y)) left right
+    | Some ("lt_int"  , [ left; right ]) -> compare Z.lt left right
+    | Some ("lteq_int", [ left; right ]) -> compare Z.leq left right
+    | Some ("gt_int"  , [ left; right ]) -> compare Z.gt left right
+    | Some ("gteq_int", [ left; right ]) -> compare Z.geq left right
+    | Some ("not_bool", [ operand ])     -> Option.map ~f:not (value_of operand)
+    | Some ("and_bool", [ left; right ]) -> begin
+        match value_of left, value_of right with
+        | Some false, _          -> Some false
+        | _         , Some false -> Some false
+        | Some true , Some true  -> Some true
+        | Some true , None       -> None
+        | None      , Some true  -> None
+        | None      , None       -> None
+      end
+    | Some ("or_bool" , [ left; right ]) -> begin
+        match value_of left, value_of right with
+        | Some true , _          -> Some true
+        | _         , Some true  -> Some true
+        | Some false, Some false -> Some false
+        | Some false, None       -> None
+        | None      , Some false -> None
+        | None      , None       -> None
+      end
+    | Some _ -> None
+    | None   -> begin
+        let S.E_aux (unwrapped_condition, _) = condition
+        in
+        match unwrapped_condition with
+        | E_lit (S.L_aux (S.L_true , _)) -> Some true
+        | E_lit (S.L_aux (S.L_false, _)) -> Some false
+        | _                              -> None
+      end
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    match unwrapped_expression with
+    | E_if (condition, when_true, when_false) -> begin
+        match value_of condition with
+        | Some true  -> when_true
+        | Some false -> when_false
+        | None       -> S.E_aux (unwrapped_expression, annotation)
+      end
+    | _ -> S.E_aux (unwrapped_expression, annotation)
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
    Replaces each call to a function that the configuration excludes with a value
    (exclude-functions-as-value) with that value: a Sail expression, parsed and then
    type-checked at the type of the call, in the call's environment.
@@ -2073,6 +2612,66 @@ let replace_calls_by_values (expression : Sail.type_annotation S.exp) : Sail.typ
   Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
 
 
+(*
+   Inlines each call to a function polymorphic in a type over a specialised union (see UnionInstances.collect):
+
+     MemoryOpResult_drop_meta(r)    becomes    let r' : ... = r in match r' { MemValue((v, m)) => MemValue(v), ... }
+
+   with the function's parameter pattern and body, type-checked again at the call's type in the call's
+   environment, so that the union instances are those of the call. A call that does not type-check stays.
+*)
+let inline_calls
+    (union_instances : UnionInstances.t                  )
+    (expression      : Sail.type_annotation S.exp        ) : Sail.type_annotation S.exp
+  =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : Sail.type_annotation S.annot  ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    match unwrapped_expression with
+    | S.E_app (identifier, arguments) when Option.is_some (UnionInstances.renamed_call union_instances identifier original) -> begin
+        (* a call to a function with a copy per type: a call to the copy at the call's type *)
+        match UnionInstances.renamed_call union_instances identifier original with
+        | None -> original
+        | Some (copy_identifier, type_quantifier, typ) -> begin
+            let typed (argument : Sail.type_annotation S.exp) : S.uannot S.exp =
+              Libsail.Ast_util.mk_exp (S.E_typ (TypeCheck.typ_of argument, TypeCheck.strip_exp argument))
+            in
+            let environment = TypeCheck.Env.update_val_spec copy_identifier (type_quantifier, typ) (TypeCheck.env_of_annot annotation)
+            in
+            try TypeCheck.check_exp environment (Libsail.Ast_util.mk_exp (S.E_app (copy_identifier, List.map ~f:typed arguments))) (TypeCheck.typ_of_annot annotation)
+            with _ -> original
+          end
+      end
+    | S.E_app (identifier, arguments) -> begin
+        match UnionInstances.inlined_function union_instances identifier with
+        | None                   -> original
+        | Some (pattern, body) -> begin
+            (* each argument with its type, as the body's match needs to know the type of what it matches *)
+            let typed (argument : Sail.type_annotation S.exp) : S.uannot S.exp =
+              Libsail.Ast_util.mk_exp (S.E_typ (TypeCheck.typ_of argument, TypeCheck.strip_exp argument))
+            in
+            let argument =
+              match arguments with
+              | [ single ] -> typed single
+              | several    -> Libsail.Ast_util.mk_exp (S.E_tuple (List.map ~f:typed several))
+            in
+            let inlined =
+              Libsail.Ast_util.mk_exp (S.E_let (TypeCheck.strip_pat pattern, argument, TypeCheck.strip_exp body))
+            in
+            try TypeCheck.check_exp (TypeCheck.env_of_annot annotation) inlined (TypeCheck.typ_of_annot annotation)
+            with _ -> original
+          end
+      end
+    | _ -> original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
@@ -2097,8 +2696,11 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
-       and return_type = Libsail.Type_check.typ_of raw_body
+       let* union_instances = TC.union_instances
+       in
+       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ rewrite_constant_conditions @@ rewrite_solved_indices @@ replace_calls_by_values @@ inline_calls union_instances body_without_messages
+       (* the body's type, with widths that Sail proves equal to a size variable replaced by it (see normalise_widths) *)
+       and return_type = normalise_widths (Libsail.Type_check.env_of raw_body) (Libsail.Type_check.typ_of raw_body)
        in
        let* locally_bound_identifiers =
          let sail_identifiers =
@@ -2393,6 +2995,7 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | Cast (statement, typ) -> Cast (rewrite statement, typ)
     | Fail (_, _)           -> statement
     | Unconstrained _       -> statement
+    | Specialize { equalities; facts; rebinds; result_type; body } -> Specialize { equalities; facts; rebinds; result_type; body = rewrite body }
     | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
   in
   rewrite statement
@@ -2414,6 +3017,51 @@ let translate_body
   TC.return translation
 
 
+(*
+   Sail's merge_function_clauses rewrite turns the clauses of a scattered function into one clause
+   whose parameter is a single variable, merge#var, bound to the tuple of the arguments:
+
+     val scatfoo : (MyEnum, int) -> int
+     function scatfoo merge#var = match merge#var { (XXX, x) => x, (YYY, x) => x + 1 }
+
+   Its callers pass the arguments separately (scatfoo(XXX, 1)), so the function gets one parameter
+   per element, and its body rebuilds the tuple first:
+
+     function scatfoo (merge#var#1, merge#var#2) = let merge#var = (merge#var#1, merge#var#2) in ...
+
+   Only when the val spec declares that many parameters: a function of one tuple keeps it.
+*)
+let split_tuple_parameter
+    (declared_parameter_count : int                             )
+    (parameters               : (Ast.Identifier.t * Ast.Type.t) list)
+    (body                     : Ast.Statement.t                 ) : (Ast.Identifier.t * Ast.Type.t) list * Ast.Statement.t
+  =
+  match parameters with
+  | [ (identifier, Tuple element_types) ] when declared_parameter_count > 1 && List.length element_types = declared_parameter_count -> begin
+      let element_parameters =
+        List.mapi element_types ~f:(fun index element_type ->
+            (Ast.Identifier.mk @@ Printf.sprintf "%s#%d" (Ast.Identifier.to_string identifier) (index + 1), element_type)
+          )
+      in
+      let tuple =
+        (* a pair is muSail's ty.prod, built with bop.pair; longer tuples are ty.tuple *)
+        match List.map element_parameters ~f:(fun (element, element_type) -> Ast.Expression.Variable (element, element_type)) with
+        | [ first; second ] -> Ast.Expression.BinaryOperation (Pair, first, second)
+        | elements          -> Ast.Expression.Tuple elements
+      in
+      let body =
+        Ast.Statement.Let {
+          binder                 = identifier;
+          binding_statement_type = Tuple element_types;
+          binding_statement      = Expression tuple;
+          body_statement         = body;
+        }
+      in
+      (element_parameters, body)
+    end
+  | _ -> (parameters, body)
+
+
 let translate_function_definition
     (full_sail_definition  : Sail.sail_definition         )
     (definition_annotation : Sail.definition_annotation   )
@@ -2430,6 +3078,13 @@ let translate_function_definition
         and* parameters    = translate_parameter_bindings parts.parameter_bindings
         and* return_type   = translate_return_type parts.return_type
         and* function_body = TC.with_locally_bound_identifiers parts.locally_bound_identifiers (translate_body parts.body parts.return_type)
+        and* type_constraints =
+          (* the quantifier of the function's val spec, as Sail's type checker saw it *)
+          let environment = Libsail.Type_check.env_of_pat parts.parameter_bindings
+          in
+          match Libsail.Type_check.Env.get_val_spec_orig parts.identifier environment with
+          | (type_quantifier, _)           -> TypeQuantifier.translate_type_quantifier_constraints ~environment:(Some environment) type_quantifier
+          | exception Libsail.Type_error.Type_error _ -> TC.return []
         in
         let* () =
           let S.Typ_annot_opt_aux (unwrapped_tannot_opt, _tannot_location) = _tannot_opt
@@ -2507,6 +3162,17 @@ let translate_function_definition
               TC.return false
             end
         in
+        let parameters, function_body =
+          let declared_parameter_count =
+            let environment = Libsail.Type_check.env_of_pat parts.parameter_bindings
+            in
+            match Libsail.Type_check.Env.get_val_spec_orig parts.identifier environment with
+            | (_, S.Typ_aux (Typ_fn (parameter_types, _), _)) -> List.length parameter_types
+            | (_, _)                                         -> 1
+            | exception Libsail.Type_error.Type_error _      -> 1
+          in
+          split_tuple_parameter declared_parameter_count parameters function_body
+        in
         let function_body =
           Ast.Statement.simplify function_body
         in
@@ -2577,6 +3243,7 @@ let translate_function_definition
                     function_body = substituted_function_body;
                     polymorphic   = false;
                     monomorphs    = [];
+                    type_constraints = [];
                   }
                 in
                 let* () =
@@ -2628,6 +3295,7 @@ let translate_function_definition
           function_body;
           polymorphic = is_function_polymorphic;
           monomorphs;
+          type_constraints;
         }
       end
     | _ -> TC.not_yet_implemented [%here] definition_annotation.loc

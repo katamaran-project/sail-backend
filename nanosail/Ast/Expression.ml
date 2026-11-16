@@ -21,7 +21,12 @@ type t =
   | List            of t list
   | UnaryOperation  of UnaryOperator.t * t
   | BinaryOperation of BinaryOperator.t * t * t
+  (*
+     indices: the widths of a record family (struct S('m) at 4, see NanosailToMicrosail.Types.Records),
+     [] for other records.
+  *)
   | Record          of { type_identifier        : Identifier.t;
+                         indices                : Numeric.Expression.t list;
                          fields                 : Identifier.t list }
   | Enum            of { type_identifier        : Identifier.t;
                          constructor_identifier : Identifier.t }
@@ -114,11 +119,15 @@ let rec equal
         right_operand_2
     end
 
-  | Record { type_identifier = type_identifier_1; fields = fields_1 },
-    Record { type_identifier = type_identifier_2; fields = fields_2 } -> begin
+  | Record { type_identifier = type_identifier_1; indices = indices_1; fields = fields_1 },
+    Record { type_identifier = type_identifier_2; indices = indices_2; fields = fields_2 } -> begin
       Identifier.equal
         type_identifier_1
         type_identifier_2
+      &&
+      List.equal Numeric.Expression.equal
+        indices_1
+        indices_2
       &&
       List.equal Identifier.equal
         fields_1
@@ -245,12 +254,14 @@ let rec to_fexpr (expression : t) : FExpr.t =
     FExpr.mk_application ~positional:[BinaryOperator.to_fexpr operator; to_fexpr left_operand; to_fexpr right_operand] "BinaryOp"
 
   and record_to_fexpr
-      (type_identifier : Identifier.t     )
-      (variables       : Identifier.t list) : FExpr.t
+      (type_identifier : Identifier.t             )
+      (indices         : Numeric.Expression.t list)
+      (variables       : Identifier.t list        ) : FExpr.t
     =
     let keyword =
       [
         ("record_type", Identifier.to_fexpr type_identifier                       );
+        ("indices"    , FExpr.mk_list @@ List.map ~f:Numeric.Expression.to_fexpr indices);
         ("variables"  , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr variables)
       ]
     in
@@ -315,7 +326,8 @@ let rec to_fexpr (expression : t) : FExpr.t =
    | Tuple elements                                          -> tuple_to_fexpr elements
    | Bitvector elements                                      -> bitvector_to_fexpr elements
    | Record { type_identifier;
-              fields }                                       -> record_to_fexpr type_identifier fields
+              indices;
+              fields }                                       -> record_to_fexpr type_identifier indices fields
    | Enum { type_identifier;
             constructor_identifier }                         -> enum_to_fexpr type_identifier constructor_identifier
    | Variant { type_identifier;
@@ -335,7 +347,7 @@ let rec free_variables (expression : t) : Identifier.Set.t =
    | List elements                                                       -> Identifier.Set.unions @@ List.map ~f:free_variables elements
    | UnaryOperation (_, operand)                                         -> free_variables operand
    | BinaryOperation (_, left_operand, right_operand)                    -> Identifier.Set.union (free_variables left_operand) (free_variables right_operand)
-   | Record { type_identifier = _; fields }                              -> Identifier.Set.of_list fields
+   | Record { type_identifier = _; indices = _; fields }                 -> Identifier.Set.of_list fields
    | Enum _                                                              -> Identifier.Set.empty
    | Variant { type_identifier = _; constructor_identifier = _; fields } -> Identifier.Set.unions @@ List.map ~f:free_variables fields
    | Tuple elements                                                      -> Identifier.Set.unions @@ List.map ~f:free_variables elements
@@ -350,7 +362,7 @@ class virtual ['a] visitor =
       method virtual visit_bitvector       : elements : t list -> 'a
       method virtual visit_enum            : type_identifier : Identifier.t -> constructor_identifier : Identifier.t -> 'a
       method virtual visit_list            : elements : t list -> 'a
-      method virtual visit_record          : type_identifier : Identifier.t -> fields : Identifier.t list -> 'a
+      method virtual visit_record          : type_identifier : Identifier.t -> indices : Numeric.Expression.t list -> fields : Identifier.t list -> 'a
       method virtual visit_tuple           : elements : t list -> 'a
       method virtual visit_unary_operation : operator : UnaryOperator.t -> operand : t -> 'a
       method virtual visit_value           : value : Value.t -> 'a
@@ -379,7 +391,7 @@ class identity_rewriter =
       | List elements                                               -> self#visit_list ~elements
       | UnaryOperation (operator, operand)                          -> self#visit_unary_operation ~operator ~operand
       | BinaryOperation (operator, left_operand, right_operand)     -> self#visit_binary_operator ~operator ~left_operand ~right_operand
-      | Record { type_identifier; fields }                          -> self#visit_record ~type_identifier ~fields
+      | Record { type_identifier; indices; fields }                 -> self#visit_record ~type_identifier ~indices ~fields
       | Enum { type_identifier; constructor_identifier }            -> self#visit_enum ~type_identifier ~constructor_identifier
       | Variant { type_identifier; constructor_identifier; fields } -> self#visit_variant ~type_identifier ~constructor_identifier ~fields
       | Tuple elements                                              -> self#visit_tuple ~elements
@@ -418,10 +430,11 @@ class identity_rewriter =
       BinaryOperation (operator, self#visit left_operand, self#visit right_operand)
 
     method visit_record
-        ~(type_identifier : Identifier.t     )
-        ~(fields          : Identifier.t list) : t
+        ~(type_identifier : Identifier.t             )
+        ~(indices         : Numeric.Expression.t list)
+        ~(fields          : Identifier.t list        ) : t
       =
-      Record { type_identifier; fields }
+      Record { type_identifier; indices; fields }
 
     method visit_enum
         ~(type_identifier        : Identifier.t)
@@ -474,6 +487,13 @@ let substitute_numeric_expression_identifier
       method! visit_variable ~identifier ~typ =
         Variable (identifier, substitute_in_type typ)
 
+      method! visit_record ~type_identifier ~indices ~fields =
+        Record {
+          type_identifier;
+          indices = List.map ~f:(Numeric.Expression.substitute substitution) indices;
+          fields
+        }
+
       method! foreign_visit_type (typ : Type.t) : Type.t =
         substitute_in_type typ
     end
@@ -492,9 +512,10 @@ let substitute_variable
       method! visit_variable ~identifier ~typ =
         Variable (substitution identifier, typ)
 
-      method! visit_record ~type_identifier ~fields =
+      method! visit_record ~type_identifier ~indices ~fields =
         Record {
           type_identifier;
+          indices;
           fields = List.map ~f:substitution fields
         }
     end

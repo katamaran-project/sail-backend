@@ -174,7 +174,7 @@ let rec pp_function_definition
             PP.annotate [%here] begin
               Coq.pp_definition
                 ~identifier:pp_identifier
-                ~implicit_parameters:(TypeLevelParameters.as_definition_parameters @@ FunDeclKit.type_level_parameters function_definition)
+                ~implicit_parameters:(TypeLevelParameters.signature_as_definition_parameters @@ FunDeclKit.signature function_definition)
                 ~result_type:pp_result_type
                 pp_body
             end
@@ -264,12 +264,12 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
         PP.string "f in Fun Δ τ return Stm Δ τ"
       and cases =
         let case_of_function_definition (function_definition : Ast.Definition.Function.t) =
-          let parameters =
-            FunDeclKit.type_level_parameters function_definition
+          let signature =
+            FunDeclKit.signature function_definition
           in
           (
-            TypeLevelParameters.pp_explicit_application (Identifier.pp function_definition.function_name) parameters,
-            TypeLevelParameters.pp_explicit_application (Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name) parameters
+            TypeLevelParameters.pp_signature_explicit_application (Identifier.pp function_definition.function_name) signature,
+            TypeLevelParameters.pp_signature_explicit_application (Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name) signature
           )
         in
         List.map ~f:case_of_function_definition function_definitions
@@ -300,8 +300,9 @@ let pp_function_definition_kit
         end
       end
     in
-    let section =
-      Coq.pp_section (PP.string "FunDefKit") contents
-    in
-    GC.return @@ PP.annotate [%here] @@ section
+    (*
+       Not in a Section: it would have no variables, and closing it makes Rocq check every
+       definition in it again (End FunDefKit took 72 s on CHERIoT's decoder).
+    *)
+    GC.return @@ PP.annotate [%here] @@ PP.paragraphs [ Coq.pp_comment (PP.string "FunDefKit"); contents ]
   end

@@ -238,6 +238,21 @@ These names are ignored whether the predicates are set before or after, and each
 The CHERIoT loop (`tests/cheriot/run.py`) uses them to ignore everything outside its scope.
 See `tests/coq-tests/ignore-functions-by-name`.
 
+### Renaming identifiers
+
+A Sail definition named like a Katamaran definition clashes in Rocq (`write_register` is already declared by `DefaultRegStoreKit`).
+There is no automatic renaming scheme: the clash fails in Rocq until the configuration renames the identifier.
+
+```lisp
+(rename '(("read_register" "read_register_model") ("write_register" "write_register_model")))
+```
+
+* Every occurrence of the identifier in the output is renamed: its definition and all its uses.
+* The other configuration functions (`ignore-functions`, `exclude-functions-as-*`, ...) still take Sail's names.
+* Renaming one identifier to two different names is an error; each call adds to the earlier ones.
+
+See `tests/coq-tests/model-008`.
+
 ### Excluding definitions together with their uses
 
 Ignoring a function only drops its definition: its callers still call it, so they refer to a function that `machine.v` does not define.
@@ -343,14 +358,72 @@ Definition fun_extend_to {kid__n : nat} {kid__m : nat} : Stm [ ... ] (ty.bvec (k
 
 This is what Katamaran's RiscvPmp case study does by hand (`read_ram (bytes : nat)`); a contract can be proved once for all widths.
 Rocq infers the arguments at each call. A width that only appears in an integer type (`int('n)`) needs none: `ty.int` has no index.
-Sail's constraints on the widths are not translated, so inside such a function:
 
-- an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`sail_zero_extend`, …), since µSail's `uop.zext` would need a proof that the widths are ordered;
+Sail's constraints on the widths become one implicit hypothesis, a boolean over `Z` under Katamaran's `IsTrue`:
+
+```coq
+| store_bytes {kid__p8_times_n : nat} {kid__n : nat}
+    {H : IsTrue ((2 <=? Z.of_nat kid__n) && (Z.of_nat kid__n <=? 8) && (Z.of_nat kid__p8_times_n =? 8 * Z.of_nat kid__n))%Z}
+    : Fun [ "width" ∷ ty.int; "data" ∷ ty.bvec (kid__p8_times_n) ] (ty.unit)
+```
+
+- Only the conjuncts that mention a width; their other size variables (`kid__n`, only in `int('n)`) become parameters too.
+- Rocq proves the hypothesis at each call by type class search: Katamaran's hint computes it at concrete widths; the generated hint `sail_constraint` proves it with `lia` from the hypotheses in scope. It proves side conditions in the body the same way (a slice `data[15 .. 0]`).
+- A size variable that Rocq cannot infer is passed by name, from the argument of type `int('n)`: `stm_call (store_bytes (kid__n := 4)) ...`.
+- In a branch where Sail's flow typing fixes a size variable (`if width == 4`), the branch is translated at that value:
+  a `match` on `PeanoNat.Nat.eq_dec kid__n 4` gives the equality, each variable whose type mentions it is rebound with `sail_cast`, and the other arm (unreachable for Sail) is `stm_fail`.
+  A branch fact that fixes no value (`if width <= 8`) is decided with `sail_decide`, so that `lia` can use it.
+- A let-bound width that Sail's solver proves equal to a size variable (`8 * 'n`, `8 * ('p / 8)` with `'p == 8 * 'n`) is that variable.
+
+Still, inside such a function:
+
+- an extension or truncation of a bitvector whose width is a size variable is a foreign call to the extern (`sail_zero_extend`, …);
 - a width that depends on the *value* of a parameter (`val f : forall 'n. (itself('n), …)` with `bits('n)` in its body) or that divides a size variable (`bits(8 * ('n / 8))`) is a hole (`NYI`), with a message that says so;
 - a call to a function whose result type alone mentions a type variable (`internal_error : … -> 'a`), whose value is discarded, gets the type `unit`.
 
+A union with a type parameter used at a bitvector of open width (`MemoryOpResult(bits('n))`) is one family indexed by the width,
+`Inductive MemoryOpResult_bits (kid__n : nat)` with the tag `Umemoryopresult_bits (kid__n : nat)`; its uses at closed widths are the family at that width.
+A function polymorphic in a type that such a union takes (`forall ('t : Type). MemoryOpResult('t) -> ...`) is copied per type it is called at when there are one or two (a single copy keeps its name), and inlined at each call otherwise.
+See the test `tests/coq-tests/unions-width-family`.
+
+A struct with one numeric parameter is a record family indexed by it, as a union width family:
+
+```sail
+struct S('m) = { value : bits(8 * 'm), tag : bool }
+```
+```coq
+Record S (kid__m : nat) : Set := MkS { S_value : bv (8 * kid__m); S_tag : bool }.
+| Rs (kid__m : nat)                                (* in Records; EqDec via N * nat *)
+ty.record (Rs 4)                                   (* S(4) *)
+exp_record (Rs kid__n) [...]                       (* construction gives the index *)
+stm_match_record (Rs _) ...                        (* field access: Rocq infers it *)
+```
+
+- Constructor and projections take the index implicitly (`MkS v t`, `S_value r`).
+- A struct with several parameters, or a type parameter, is not a family.
+- An alias with parameters is expanded: `mybits(8 * 'm)` is `bits(8 * 'm)`.
+- Not yet: a field whose width Sail renamed in a signature (`bits(8 * 'n)` becomes `bits('p8_times_n)` by Sail's `toplevel_nexps`); Rocq sees `bv p` against `bv (8 * n)` and would need a cast.
+
+See the tests `tests/coq-tests/records-width-family` and `tests/coq-tests/bitvectors-variables`.
+
 Explicit monomorphisation (`monomorphize`) is unaffected.
-See the test `tests/coq-tests/size-parameters-implicit`.
+See the tests `tests/coq-tests/size-parameters-implicit` and `tests/coq-tests/size-constraints-hypotheses`.
+
+### Exceptions
+
+- `throw e` is `stm_fail τ "failure"`: µSail has no exceptions.
+- `try { e } catch { ... }` is the translation of `e`; the handlers are dropped (one warning per `try`).
+  A `throw` inside `e` fails instead of being caught.
+
+```sail
+function foo(x) = try check(x) catch { Error_bad() => 0 }
+```
+```coq
+Definition fun_foo : Stm [ "x" ∷ ty.int ] (ty.int) :=
+  stm_call check (env.snoc (env.nil) (_::_) ((exp_var "x"))%exp).
+```
+
+See the test `tests/coq-tests/try-catch-dropped`.
 
 ### `$include`
 
@@ -397,7 +470,7 @@ The following Slang-functions can prove useful:
 
 * `(generate string)` causes `string` to be generated.
 * `(untranslated-definitions?)` returns `#t` if there were any untranslated definitions.
-* `(untranslated-definitions)` returns a string containing all untranslated definitions.
+* `(untranslated-definitions)` returns a string containing all untranslated definitions (their Sail source and locations), escaped so that it is valid inside a Rocq comment.
 * `(base-translation)` returns a string with translation of the base module.
 * `(program-translation)` returns a string with the translation of the program module.
 

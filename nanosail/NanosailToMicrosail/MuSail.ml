@@ -467,18 +467,16 @@ module Statement = struct
         ~(binders       : PP.t list)
         ~(body          : PP.t     ) : PP.t
       =
+      (* tuplepat_snoc adds a binder at the end: the first element is innermost *)
       let binders =
-        let rec build_binder_list elements =
-          match elements with
-          | []        -> PP.string "tuplepat_nil"
-          | elt::elts -> Coq.pp_application
-                           (PP.string "tuplepat_snoc")
-                           [
-                             PP.(surround parens) @@ build_binder_list elts;
-                             elt
-                           ]
-        in
-        build_binder_list binders
+        List.fold binders ~init:(PP.string "tuplepat_nil") ~f:(fun pattern binder ->
+            Coq.pp_application
+              (PP.string "tuplepat_snoc")
+              [
+                PP.(surround parens) pattern;
+                binder
+              ]
+          )
       in
       PP.annotate [%here] begin
           Coq.pp_hanging_application

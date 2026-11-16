@@ -56,6 +56,12 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertTrue(rocq.needs_probe(text))
         self.assertFalse(rocq.needs_probe('Definition a := 1.\n'))
 
+    def test_a_call_to_a_missing_function_needs_the_probe(self):
+        text = ('Definition fun_f : Stm [] ty.unit :=\n  stm_call g env.nil.\n\n'
+                'Definition fun_h : Stm [] ty.unit :=\n  stm_call f env.nil.\n')
+        self.assertTrue(rocq.needs_probe(text))
+        self.assertFalse(rocq.needs_probe(text.replace('stm_call g', 'stm_call h')))
+
     def test_holes_are_one_argument_with_a_list_of_numbers(self):
         # NYI[1] as an argument would be two arguments, and [1] may be read as a bitvector literal
         text = 'From Katamaran Require Import Base.\n\nDefinition a := f NYI[1] NYI[23] (g NYI[4]).\n'
@@ -95,6 +101,30 @@ class ProbeSourceTests(unittest.TestCase):
         self.assertEqual(lines[10], '      NYI (cons 0%nat nil). (* tests/cheriot: the body has holes or calls a missing function *)')
         self.assertEqual(lines[13], '      stm_call clean env.nil.')
         self.assertEqual(lines[17], '  Admitted. (* tests/cheriot: some bodies are the NYI axiom *)')
+        self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + inserted)
+
+    def test_multi_line_bindfree_proof_is_admitted(self):
+        text = '\n'.join([
+            'From Katamaran Require Import Base.',
+            '',
+            '    Definition fun_holes : Stm [] (ty.int) :=',
+            '      stm_exp NYI[0].',
+            '',
+            '  Lemma fundef_bindfree (Δ : PCtx) (τ : Ty) (f : Fun Δ τ) :',
+            '    stm_bindfree (FunDef f).',
+            '  Proof.',
+            '    destruct f; cbv [FunDef fun_store];',
+            '      now vm_compute.',
+            '  Qed.',
+            '',
+            '  Lemma other : True.',
+            '  Proof. Qed.',
+        ])
+        copy, at, inserted = rocq.probe_source(text)
+        lines = copy.split('\n')[at - 1 + inserted:]
+        self.assertEqual(lines[5], '  Admitted. (* tests/cheriot: some bodies are the NYI axiom *)')
+        self.assertEqual(lines[6:9], ['', '', ''])
+        self.assertEqual(lines[11], '  Proof. Qed.')
         self.assertEqual(len(copy.split('\n')), len(text.split('\n')) + inserted)
 
     def test_command_definition(self):

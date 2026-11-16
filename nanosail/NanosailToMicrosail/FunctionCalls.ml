@@ -8,6 +8,121 @@ end
 
 
 (*
+   The callee of a call to a function of the program. A size variable that is a parameter of the
+   callee only because its constraints relate it to the types (see TypeLevelParameters.of_signature)
+   cannot be inferred by Rocq; it is passed by name, from the argument whose Sail type is int('n):
+
+     (store_bytes (kid__n := 4))
+
+   A size variable whose instantiation is not known this way (or mentions a size variable that is not
+   in scope) is left to Rocq, which reports it.
+*)
+let pp_callee
+    (function_identifier : Ast.Identifier.t     )
+    (arguments           : Ast.Expression.t list) : PP.t GC.t
+  =
+  let pp_name = Identifier.pp function_identifier
+  in
+  let* function_definition =
+    GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ function_definition_named function_identifier)
+  in
+  match function_definition with
+  | None                     -> GC.return pp_name
+  | Some function_definition -> begin
+      let signature =
+        TypeLevelParameters.of_function function_definition
+      in
+      let not_inferable =
+        List.filter signature.parameters ~f:(fun (identifier, _) ->
+            not (List.mem signature.inferable identifier ~equal:Ast.Identifier.equal)
+          )
+      in
+      (* the sizes of the callee's size variables that its parameter types show, from the arguments' types *)
+      let shown : (Ast.Identifier.t * Ast.Numeric.Expression.t) list =
+        match List.zip function_definition.function_type.parameters arguments with
+        | Unequal_lengths -> []
+        | Ok pairs        -> begin
+            List.filter_map pairs ~f:(fun ((_, parameter_type), argument) ->
+                let argument_type =
+                  try Some (Ast.Type.strip_aliases (Ast.Expression.infer_type argument))
+                  with Ast.Expression.UnimplementedTypeInference -> None
+                in
+                match Ast.Type.strip_aliases parameter_type, argument, argument_type with
+                | Int (Some (Var identifier)), Value (Int value), _                                         -> Some (identifier, Ast.Numeric.Expression.Constant value)
+                | Int (Some (Var identifier)), _, Some (Int (Some size))                                    -> Some (identifier, Ast.Numeric.Expression.simplify size)
+                | Bitvector (Var identifier), _, Some (Bitvector size)                                      -> Some (identifier, Ast.Numeric.Expression.simplify size)
+                | Application (_, [ NumericExpression (Var identifier) ]), _, Some (Application (_, [ NumericExpression size ])) -> Some (identifier, Ast.Numeric.Expression.simplify size)
+                | _ -> None
+              )
+          end
+      in
+      let shown_size (identifier : Ast.Identifier.t) : Ast.Numeric.Expression.t option =
+        List.Assoc.find shown ~equal:Ast.Identifier.equal identifier
+      in
+      (*
+         The instantiation of a size variable Rocq cannot infer, printed: shown by an int('n) argument,
+         or derived from an equation 'p == c * 'n of the callee's hypotheses and a shown 'p, as p / c.
+      *)
+      let instantiation (identifier : Ast.Identifier.t) : (Ast.Numeric.Expression.t * Z.t option) option =
+        match shown_size identifier with
+        | Some size -> Some (size, None)
+        | None      -> begin
+            List.find_map signature.hypotheses ~f:(fun hypothesis ->
+                let derive (product_side : Ast.Numeric.Expression.t) (other_side : Ast.Numeric.Expression.t) =
+                  match product_side, other_side with
+                  | (BinaryOperation (Mul, Constant factor, Var identifier') | BinaryOperation (Mul, Var identifier', Constant factor)), Var multiple
+                    when Ast.Identifier.equal identifier identifier' && Z.gt factor Z.zero -> begin
+                      match shown_size multiple with
+                      (* 'p shown as c * X: 'n is X *)
+                      | Some (BinaryOperation (Mul, Constant factor', size) | BinaryOperation (Mul, size, Constant factor'))
+                        when Z.equal factor factor' -> Some (size, None)
+                      | Some size -> Some (size, Some factor)
+                      | None      -> None
+                    end
+                  | _ -> None
+                in
+                match hypothesis with
+                | Equal (NumericExpression left, NumericExpression right) -> begin
+                    match derive right left with
+                    | Some derived -> Some derived
+                    | None         -> derive left right
+                  end
+                | _ -> None
+              )
+          end
+      in
+      let* bound = GC.get_bound_type_level_identifiers
+      in
+      let in_scope (size : Ast.Numeric.Expression.t) : bool =
+        List.for_all (TypeLevelParameters.numeric_variables size) ~f:(fun identifier ->
+            match bound with
+            | Some bound -> Ast.Identifier.Set.mem bound identifier
+            | None       -> false
+          )
+      in
+      let* named_arguments =
+        GC.map not_inferable ~f:(fun (identifier, _) ->
+            match instantiation identifier with
+            | Some (size, divisor) when in_scope size -> begin
+                let* pp_size = Numeric.Expression.pp size
+                in
+                let pp_size =
+                  match divisor with
+                  | None         -> pp_size
+                  | Some divisor -> PP.horizontal [ PP.string "("; pp_size; PP.string " / "; PP.string (Z.to_string divisor); PP.string ")" ]
+                in
+                GC.return @@ Some (PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ Identifier.pp identifier; PP.string ":="; pp_size ])
+              end
+            | Some _ | None -> GC.return None
+          )
+      in
+      match List.filter_opt named_arguments with
+      | []                -> GC.return pp_name
+      | named_arguments   -> GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (pp_name :: named_arguments)
+    end
+
+
+(*
    Generates function call using the syntax specified in the configuration.
 *)
 let pp_function_call_using_configured_syntax
@@ -58,8 +173,9 @@ let translate_call
   | None                 -> begin
       let* pp_arguments =
         GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
+      and* pp_callee = pp_callee function_identifier arguments
       in
-      GC.return @@ pp_function_call_using_configured_syntax (Identifier.pp function_identifier) pp_arguments
+      GC.return @@ pp_function_call_using_configured_syntax pp_callee pp_arguments
     end
 
 
@@ -755,7 +871,7 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.t GC.t =
           let* pp_condition = Expressions.pp_expression condition
           in
           let pp_error_message =
-            MuSail.Expression.pp_string @@ PP.(surround dquotes) @@ PP.string error_message
+            MuSail.Expression.pp_string @@ Coq.pp_string error_message
           in
           GC.return @@ MuSail.Statement.pp_assert ~condition:pp_condition ~message:pp_error_message
         end
@@ -767,10 +883,15 @@ let translate_assertion (arguments : Ast.Expression.t list) : PP.t GC.t =
 let translate_bitvector_concatenation (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "bitvector_concat"
   in
+  (*
+     The width as Rocq should see it: behind type abbreviations and simplified (bits(xlen - log2_cap_size)
+     is bits(32 - 3) after Sail's rewrites, so 29); a width that stays symbolic is printed as in types.
+  *)
   let derive_vector_length (expression : Ast.Expression.t) : PP.t GC.t =
-    match Ast.Expression.infer_type expression with
+    match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type expression with
     | Bitvector (Constant n) -> GC.return @@ PP.string @@ Z.to_string n
-    | _                      -> GC.not_yet_implemented ~message:"expected constant in bitvector type" [%here]
+    | Bitvector width        -> Numeric.Expression.pp_argument width
+    | _                      -> GC.not_yet_implemented ~message:"expected a bitvector type" [%here]
   in
   match arguments with
   | [ bv1; bv2 ] -> begin
@@ -856,6 +977,59 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.t GC.t 
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
 
 
+(*
+   A linear numeric expression in normal form: the sum of its variables (with their coefficients) and
+   its constant, so that Sail's ('n - 1) - (0 - 1) is 'n. Returns None for an expression that is not
+   linear (a product of variables, a division, ...).
+*)
+let normalise_linear (expression : Ast.Numeric.Expression.t) : Ast.Numeric.Expression.t option =
+  let open Ast.Numeric.Expression in
+  (* coefficients of the atoms (Var or Id, by name), and the constant *)
+  let rec linear (expression : t) : ((t * Z.t) list * Z.t) option =
+    let scale (factor : Z.t) ((terms, constant) : (t * Z.t) list * Z.t) =
+      (List.map terms ~f:(fun (atom, coefficient) -> (atom, Z.mul factor coefficient)), Z.mul factor constant)
+    and add ((terms_1, constant_1) : (t * Z.t) list * Z.t) ((terms_2, constant_2) : (t * Z.t) list * Z.t) =
+      (terms_1 @ terms_2, Z.add constant_1 constant_2)
+    in
+    match expression with
+    | Constant value -> Some ([], value)
+    | Var _          -> Some ([ (expression, Z.one) ], Z.zero)
+    | Id _           -> Some ([ (expression, Z.one) ], Z.zero)
+    | Neg operand    -> Option.map (linear operand) ~f:(scale Z.minus_one)
+    | PowerOf2 _     -> None
+    | BinaryOperation (Add, left, right) -> Option.map2 (linear left) (linear right) ~f:add
+    | BinaryOperation (Sub, left, right) -> Option.map2 (linear left) (linear right) ~f:(fun l r -> add l (scale Z.minus_one r))
+    | BinaryOperation (Mul, Constant factor, operand)
+    | BinaryOperation (Mul, operand, Constant factor) -> Option.map (linear operand) ~f:(scale factor)
+    | BinaryOperation ((Mul | Div | Mod), _, _) -> None
+  in
+  match linear expression with
+  | None                   -> None
+  | Some (terms, constant) -> begin
+      (* collect the coefficients of each atom, in order of first appearance *)
+      let collected =
+        List.fold terms ~init:[] ~f:(fun collected (atom, coefficient) ->
+            match List.Assoc.find collected atom ~equal with
+            | Some sum -> List.Assoc.add collected atom (Z.add sum coefficient) ~equal
+            | None     -> collected @ [ (atom, coefficient) ]
+          )
+        |> List.filter ~f:(fun (_, coefficient) -> not (Z.equal coefficient Z.zero))
+      in
+      let term ((atom, coefficient) : t * Z.t) : t =
+        if Z.equal coefficient Z.one then atom else BinaryOperation (Mul, Constant coefficient, atom)
+      in
+      match collected with
+      | [] -> Some (Constant constant)
+      | first :: rest -> begin
+          let sum = List.fold rest ~init:(term first) ~f:(fun sum next -> BinaryOperation (Add, sum, term next))
+          in
+          if Z.equal constant Z.zero then Some sum
+          else if Z.gt constant Z.zero then Some (BinaryOperation (Add, sum, Constant constant))
+          else Some (BinaryOperation (Sub, sum, Constant (Z.neg constant)))
+        end
+    end
+
+
 let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP.t GC.t =
   let sail_name = "update_subrange_bits"
   in
@@ -905,10 +1079,32 @@ let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP
             pp_new_bitvector
         end
       | _ -> begin
-          let* low_index = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
-          and* length    = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
+          (*
+             The high index is not known, but the low one is (the second, as Sail's order is dec):
+             the length is the width of the new bitvector, bits('m - 'o + 1) in update_subrange_bits's
+             signature, which may be a size variable. cheriot-sail's align_down does this:
+
+               [bv with ('n - 1) .. 0 = zeros()]      becomes      bop.update_vector_subrange 0 kid__n
+
+             The side condition 0 + kid__n <= kid__m follows from the function's hypothesis (sail_constraint).
+          *)
+          let new_bitvector_width =
+            match Ast.Type.simplify @@ Ast.Type.strip_aliases @@ Ast.Expression.infer_type new_bitvector with
+            | Bitvector width -> Some (Option.value (normalise_linear width) ~default:width)
+            | _               -> None
           in
-          pp_slice low_index length pp_bitvector pp_new_bitvector
+          match second_index, new_bitvector_width with
+          | Some low_index, Some width -> begin
+              let* pp_width = Numeric.Expression.pp_argument width
+              in
+              pp_slice (PP.integer (Z.to_int low_index)) pp_width pp_bitvector pp_new_bitvector
+            end
+          | _ -> begin
+              let* low_index = GC.not_yet_implemented ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name) [%here]
+              and* length    = GC.not_yet_implemented ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name) [%here]
+              in
+              pp_slice low_index length pp_bitvector pp_new_bitvector
+            end
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
@@ -1104,9 +1300,11 @@ let translate
         match foreign_function with
         | Some foreign_function -> translate_extern_call foreign_function arguments pp_arguments
         | None                  -> begin
+            let* pp_callee = pp_callee function_identifier arguments
+            in
             GC.return begin
               pp_function_call_using_configured_syntax
-                (Identifier.pp function_identifier)
+                pp_callee
                 pp_arguments
             end
           end

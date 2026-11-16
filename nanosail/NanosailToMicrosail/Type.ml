@@ -161,6 +161,30 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
   | Bit                              -> GC.pp_annotate [%here] @@ ty "bvec 1"   (* Sail's library: type bit = bitvector(1) *)
   | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
   | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
+  | Application (Variant id, [ NumericExpression width ]) -> begin
+      (* a width family (see SailToNanosail.UnionInstances): ty.union (Ures_bits width) *)
+      let* pp_width = Numeric.Expression.pp_argument @@ Ast.Numeric.Expression.simplify width
+      in
+      GC.return @@ PP.annotate [%here] @@ PP.horizontal [
+        PP.string "ty.union (";
+        Identifier.pp @@ Identifier.reified_variant_name id;
+        PP.space;
+        pp_width;
+        PP.string ")";
+      ]
+    end
+  | Application (Record id, [ NumericExpression width ]) -> begin
+      (* a record family (see Types.Records): ty.record (Rs width) *)
+      let* pp_width = Numeric.Expression.pp_argument @@ Ast.Numeric.Expression.simplify width
+      in
+      GC.return @@ PP.annotate [%here] @@ PP.horizontal [
+        PP.string "ty.record (";
+        Identifier.pp @@ Identifier.reified_record_name id;
+        PP.space;
+        pp_width;
+        PP.string ")";
+      ]
+    end
   | Application (constructor, targs) -> GC.pp_annotate [%here] @@ pp_application constructor targs
   | Enum id                          -> GC.pp_annotate [%here] @@ pp_enum id
   | List typ                         -> GC.pp_annotate [%here] @@ pp_list typ
@@ -225,7 +249,12 @@ and coq_type_of_nanotype (nanotype : Ast.Type.t) =
     | []       -> GC.fail [%here] "should not occur"
     | [_]      -> GC.fail [%here] "should not occur"
     | [t1; t2] -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type [ t1; t2 ]
-    | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type ts'
+    (*
+       Three or more elements are muSail's ty.tuple, whose values are Katamaran's EnvRec:
+       Val (ty.tuple [σ1; σ2; σ3]) is ((unit * Val σ1) * Val σ2) * Val σ3, so a record field of
+       such a type must be unit * T1 * T2 * T3 for record_fold to fit (a pair is ty.prod, just T1 * T2).
+    *)
+    | _        -> GC.return @@ PP.annotate [%here] @@ Coq.pp_tuple_type (PP.string "unit" :: ts')
 
   (*
      The values of ty.sum σ τ are of type Val σ + Val τ.

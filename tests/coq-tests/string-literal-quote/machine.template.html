@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                font-family: monospace, monospace;
+            }
+
+            .tooltipped {
+                position: relative;
+            }
+
+            .tooltip {
+                background-color: white;
+                visibility: hidden;
+                border: black 1px solid;
+                position: absolute;
+                z-index: 1;
+                padding: 1em;
+                top: 100%;
+                left: 0;
+            }
+
+            .tooltipped:hover {
+                border: 1px solid black;
+            }
+            
+            .tooltipped:hover > .tooltip {
+                visibility: visible;
+            }
+        </style>
+    </head>
+    <body>
+(*<
+          (generate (program-html-translation))
+>*)
+    </body>
+</html>

@@ -8,14 +8,13 @@ Two compilations are useful while the translation is incomplete:
     probe   copies of base.v and machine.v in which NYI is an axiom
             (Axiom NYI : forall {A : Type}, list nat -> A), so that every hole
             type-checks. Its first error is the first *real* problem beyond the
-            holes; that is the progress signal until base.v compiles. The
-            templates' marker for untranslated definitions
-            (Theorem UNTRANSLATED_DEFINITIONS : False. Qed., which always fails)
-            and everything after it are blanked out in the copies: untranslated
-            definitions are holes too, and the probe goes on to machine.v. (After
-            the marker, the template has a comment with the Sail source of the
-            untranslated definitions, which Rocq's lexer need not accept: it reads
-            string literals in comments, and Sail's quotes need not be balanced.)
+            holes; that is the progress signal until base.v compiles. A template
+            marker Theorem UNTRANSLATED_DEFINITIONS : False. Qed. (which always
+            fails; the e2e tests' templates use it) and everything after it are
+            blanked out in the copies: untranslated definitions are holes too.
+            The CHERIoT template marks them with a comment instead, and the
+            translator escapes the listing of their Sail source, so plain
+            compilation gets through base.v.
 
 The first error of a compilation is mapped to the generated definition that
 contains it, and to how many of the file's definitions come before it.
@@ -163,6 +162,30 @@ def import_end(lines: list[str]) -> int:
 
 
 BINDFREE_PROOF = re.compile(r'^(\s*)Proof\. destruct f; now vm_compute\. Qed\.\s*$')
+BINDFREE_LEMMA = re.compile(r'^\s*Lemma fundef_bindfree\b')
+ADMITTED = 'Admitted. (* tests/cheriot: some bodies are the NYI axiom *)'
+
+
+def admit_bindfree(lines: list[str]) -> list[str]:
+    """
+    The proof of fundef_bindfree admitted, keeping the number of lines: the one-line proof, or the
+    proof from Proof. to Qed. (which case-splits on the branches Sail's flow typing specialises).
+    """
+    result = [BINDFREE_PROOF.sub(r'\1' + ADMITTED, line) for line in lines]
+    lemma = next((index for index, line in enumerate(result) if BINDFREE_LEMMA.match(line)), None)
+    if lemma is None:
+        return result
+    start = next((index for index in range(lemma + 1, min(lemma + 4, len(result))) if result[index].strip() == 'Proof.'), None)
+    if start is None:
+        return result
+    end = next((index for index in range(start, len(result)) if result[index].strip() == 'Qed.'), None)
+    if end is None:
+        return result
+    indentation = result[start][:len(result[start]) - len(result[start].lstrip())]
+    result[start:end + 1] = [indentation + ADMITTED] + [''] * (end - start)
+    return result
+
+
 FUN_DEFINITION_START = re.compile(r'^\s*Definition fun_[A-Za-z0-9_#]+\b')
 
 
@@ -200,7 +223,7 @@ def axiomatise_function_bodies_with_holes(lines: list[str]) -> list[str]:
         index = body_end + 1
     if result != lines:
         # fundef_bindfree computes stm_bindfree of every body, which is stuck on the axiom
-        result = [BINDFREE_PROOF.sub(r'\1Admitted. (* tests/cheriot: some bodies are the NYI axiom *)', line) for line in result]
+        result = admit_bindfree(result)
     return result
 
 
@@ -232,9 +255,13 @@ def original_line(line: int, inserted_at: int, inserted: int) -> int:
 def needs_probe(text: str) -> bool:
     """
     Whether the probe copy of a generated file can compile differently from the file: when it
-    mentions NYI or has the marker for untranslated definitions.
+    mentions NYI, has the marker for untranslated definitions, or has a function body that calls
+    a function the file does not define (the probe replaces such a body by the axiom).
     """
-    return NYI_TOKEN.search(text) is not None or UNTRANSLATED_MARKER in text
+    if NYI_TOKEN.search(text) is not None or UNTRANSLATED_MARKER in text:
+        return True
+    lines = text.split('\n')
+    return axiomatise_function_bodies_with_holes(lines) != lines
 
 
 # --------------------------------------------------------------------------

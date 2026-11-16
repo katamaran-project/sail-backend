@@ -138,6 +138,12 @@ end = struct
             in
             match UnionInstances.lookup union_instances identifier type_arguments with
             | Instance instance -> TC.return @@ Ast.Type.Variant instance.identifier
+            | Family (instance, width) -> begin
+                (* a width family at a width: ty.union (U_bits width) *)
+                let* width' = Numeric.translate_numeric_expression width
+                in
+                TC.return @@ Ast.Type.Application (Ast.Type.Variant instance.identifier, [ Ast.TypeArgument.NumericExpression width' ])
+              end
             | NoInstance reason -> TC.not_yet_implemented ~message:reason [%here] location
             | NotSpecialised    -> begin
             let* sum_definition : Ast.Definition.Type.Sum.t option =
@@ -146,9 +152,28 @@ end = struct
             match sum_definition with
             | Some sum_definition -> nanotype_of_sum sum_definition type_arguments'
             | None                -> begin
-                let* constructor = nanotype_of_identifier identifier
+                let* type_definition : Ast.Definition.Type.t option =
+                  TC.lookup_definition_opt (Ast.Definition.Select.(type_definition @@ of_anything_named identifier'))
                 in
-                TC.return @@ Ast.Type.Application (constructor, type_arguments')
+                let application () =
+                  let* constructor = nanotype_of_identifier identifier
+                  in
+                  TC.return @@ Ast.Type.Application (constructor, type_arguments')
+                in
+                match type_definition with
+                | Some (Abbreviation { identifier = _; abbreviation = Alias (type_quantifier, aliased_type) }) -> begin
+                    (* an alias with parameters is expanded: mybits(8 * 'm) is bits(8 * 'm) *)
+                    match Ast.Definition.Type.instantiate_types type_quantifier type_arguments' with
+                    | Some instantiate_type -> TC.return @@ instantiate_type aliased_type
+                    | None                  -> TC.fail [%here] "type arguments do not match the parameters of the alias"
+                  end
+                | Some (Abbreviation { identifier = _; abbreviation = NumericExpression (_, _) }) -> application ()
+                | Some (Abbreviation { identifier = _; abbreviation = NumericConstraint (_, _) }) -> application ()
+                | Some (Variant _)                                                              -> application ()
+                | Some (Sum _)                                                                  -> application ()
+                | Some (Record _)                                                               -> application ()
+                | Some (Enum _)                                                                 -> application ()
+                | None                                                                          -> application ()
               end
               end
           end
@@ -494,6 +519,7 @@ end = struct
       | S.NC_var kind_id                           -> TC.return @@ Ast.Numeric.Constraint.Var (Identifier.translate_kind_identifier kind_id)
       | S.NC_true                                  -> TC.return @@ Ast.Numeric.Constraint.True
       | S.NC_false                                 -> TC.return @@ Ast.Numeric.Constraint.False
+      | S.NC_set (Nexp_aux (Nexp_var kind_id, _), values) -> TC.return @@ Ast.Numeric.Constraint.Set (Identifier.translate_kind_identifier kind_id, values)
       | S.NC_set (_, _)                            -> TC.not_yet_implemented [%here] location
       | S.NC_id _                                  -> TC.not_yet_implemented [%here] location
     end

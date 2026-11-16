@@ -123,10 +123,10 @@ let rec normalize_expression (expression : Ast.Expression.t) : Ast.Expression.t 
       return @@ Ast.Expression.BinaryOperation (operator, left_operand, right_operand)
     end
 
-  | Record { type_identifier; fields } -> begin
+  | Record { type_identifier; indices; fields } -> begin
       let* fields = map ~f:substitute_identifier fields
       in
-      return @@ Ast.Expression.Record { type_identifier; fields }
+      return @@ Ast.Expression.Record { type_identifier; indices; fields }
     end
 
   | Enum _ -> return @@ expression
@@ -351,6 +351,19 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
 
   | Fail _ -> return statement
   | Unconstrained _ -> return statement
+
+  | Specialize { equalities; facts; rebinds; result_type; body } -> begin
+      let* rebinds =
+        let substitute_rebind ((identifier, typ) : Ast.Identifier.t * Ast.Type.t) =
+          let* identifier = substitute_identifier identifier
+          in
+          return (identifier, typ)
+        in
+        map ~f:substitute_rebind rebinds
+      and* body = normalize_statement body
+      in
+      return @@ Ast.Statement.Specialize { equalities; facts; rebinds; result_type; body }
+    end
 
 
 let rec normalize_pattern_tree (tree : SailToNanosail.Translate.Match.PatternTree.t) : SailToNanosail.Translate.Match.PatternTree.t Monad.t =

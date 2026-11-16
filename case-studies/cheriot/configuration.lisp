@@ -65,6 +65,8 @@
     ;; called by exceptionType_to_bits (trap handling), so they are translated.
     (and (string-starts-with? "num_of_" identifier)
          (not (contains? '("num_of_ExceptionType" "num_of_ext_exc_type") identifier)))
+    ;; Sail's undefined_<type>: the ones in-scope code calls are excluded as unconstrained
+    ;; (tests/cheriot/scope.toml), so that each call is an unconstrained value.
     (string-starts-with? "undefined_" identifier)
     (string-starts-with? "regval_of_" identifier)
     (string-ends-with? "_of_regval" identifier)

@@ -8,13 +8,13 @@ module GC = struct
 end
 
 
-(* The type-level parameters of a function's signature (see TypeLevelParameters) *)
+(* The type-level parameters and hypothesis of a function's signature (see TypeLevelParameters) *)
+let signature (function_definition : Ast.Definition.Function.t) : TypeLevelParameters.signature =
+  TypeLevelParameters.of_function function_definition
+
+
 let type_level_parameters (function_definition : Ast.Definition.Function.t) : (Ast.Identifier.t * Ast.Kind.t) list =
-  TypeLevelParameters.of_types begin
-    List.append
-      (List.map ~f:snd function_definition.function_type.parameters)
-      [ function_definition.function_type.return_type ]
-  end
+  (signature function_definition).parameters
 
 
 let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
@@ -56,7 +56,7 @@ let pp_fun_inductive_type (function_definitions : Ast.Definition.Function.t list
     in
     (* widths and type variables of the signature become implicit arguments (see TypeLevelParameters) *)
     let pp_parameters =
-      TypeLevelParameters.pp_binders @@ type_level_parameters function_definition
+      TypeLevelParameters.pp_signature_binders @@ signature function_definition
     in
     GC.return (
       PP.annotate [%here] name,
@@ -137,6 +137,49 @@ let pp_unconstrained_inhabitant () : PP.t =
   ]
 
 
+(*
+   For functions with hypotheses (Sail's constraints on their size variables, see TypeLevelParameters)
+   and branches that Sail's flow typing specialises (Ast.Statement.Specialize):
+
+   - sail_constraint proves an IsTrue side condition from the IsTrue hypotheses and equalities in scope,
+     by lia; Katamaran's own hint only computes closed booleans. Both run during type class search,
+     for the hypotheses of a callee and for side conditions such as uop.vector_subrange's.
+   - sail_cast casts an expression along an equality of size variables (F is the type as a function of it).
+   - sail_decide decides a branch fact (a constraint that Sail's flow typing adds in a branch).
+*)
+let pp_hypothesis_support () : PP.t =
+  PP.vertical @@ List.map ~f:PP.string [
+    "Ltac sail_constraint :=";
+    "  repeat match goal with H : IsTrue _ |- _ => apply IsTrue.from, Is_true_eq_true in H end;";
+    "  constructor; apply Is_true_eq_left;";
+    "  (* unification can leave widths unfolded (8 * n as a chain of fix add): refold them for lia *)";
+    "  change (fix add (n m : nat) {struct n} : nat := match n with | Datatypes.O => m | Datatypes.S p => Datatypes.S (add p m) end) with Nat.add in *;";
+    "  try change (fix mul (n m : nat) {struct n} : nat := match n with | Datatypes.O => Datatypes.O | Datatypes.S p => Nat.add m (mul p m) end) with Nat.mul in *;";
+    "  rewrite ?Nat2Z.inj_div, ?Nat2Z.inj_mod in *;";
+    "  repeat rewrite ?Bool.andb_true_iff, ?Bool.orb_true_iff, ?Bool.negb_true_iff, ?Z.leb_le, ?Z.ltb_lt, ?Z.eqb_eq, ?Z.eqb_neq,";
+    "                 ?Nat.leb_le, ?Nat.ltb_lt, ?Nat.eqb_eq, ?Nat.eqb_neq in *;";
+    "  Z.div_mod_to_equations; lia.";
+    "";
+    "#[export] Hint Extern 20 (IsTrue _) => sail_constraint : typeclass_instances.";
+    "";
+    "Definition sail_cast {Γ : LCtx} (F : nat -> Ty) {m n : nat} (H : m = n) (e : Exp Γ (F m)) : Exp Γ (F n) :=";
+    "  match H with eq_refl => e end.";
+    "";
+    "Definition sail_decide (b : bool) : {IsTrue b} + {~ IsTrue b} :=";
+    "  match b return {IsTrue b} + {~ IsTrue b} with";
+    "  | true  => left (@IsTrue.mk true I)";
+    "  | false => right (fun H => IsTrue.from H)";
+    "  end.";
+  ]
+
+
+let needs_hypothesis_support (function_definitions : Ast.Definition.Function.t list) : bool =
+  List.exists function_definitions ~f:(fun (function_definition : Ast.Definition.Function.t) ->
+      not (List.is_empty (signature function_definition).hypotheses)
+      || Ast.Statement.contains_specialize function_definition.function_body (* sail_cast, sail_decide *)
+    )
+
+
 let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
   GC.generation_block [%here] "FunDeclKit" begin
     let* pp_fun_inductive_type = pp_fun_inductive_type function_definitions
@@ -158,9 +201,12 @@ let generate (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t
       ]
     in
     GC.return begin
-      PP.paragraphs [
-        pp_unconstrained_inhabitant ();
-        Coq.pp_section (PP.string "FunDeclKit") contents
-      ]
+      PP.paragraphs begin
+        List.build_list (fun { add; _ } ->
+            add @@ pp_unconstrained_inhabitant ();
+            if needs_hypothesis_support function_definitions then add @@ pp_hypothesis_support ();
+            add @@ Coq.pp_section (PP.string "FunDeclKit") contents
+          )
+      end
     end
   end

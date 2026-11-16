@@ -37,7 +37,7 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 4. **translate**: the plugin at `VERBOSE=4` (lower levels lose which definition each warning belongs to, and save little time).
 5. **rocq**: plain and probe compilation (below).
 6. **analyse**: items (untranslated definitions, holes, warnings, coqc errors), reachability, missing calls, definition statuses, clean instructions.
-   Fails if `machine.v` calls an excluded definition other than from a dispatcher (the scope is wrong).
+   Fails if `machine.v` calls an excluded definition (the scope or an exclusion is wrong).
 7. **ratchet**: compare with the baseline.
 
 ## Scope file
@@ -46,15 +46,16 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 
 ```toml
 instruction-files = ["sail-riscv/model/riscv_insts_base.sail", "src/cheri_insts.sail", ...]  # constructors of `ast` declared there
+instructions = ["FENCE_RESERVED", "FENCEI_RESERVED"]                                       # single constructors, from files not in scope as a whole
 roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
 
 [dispatchers]
-execute = "execute_"          # from execute, follow only the calls to execute_<C> for in-scope C
+execute = "execute_"          # from execute, follow only the calls to execute_<C> for in-scope C; the others are failures
 
 [policy-excluded]
 no-op = ["print_reg", ...]
 failure = ["translate32", ...]
-unconstrained = ["bits_str", ...]
+unconstrained = ["bits_str", ..., "undefined_*"]   # a pattern: what in-scope code reaches
 registers = ["tlb32", ...]
 
 [policy-excluded.value]
@@ -65,13 +66,15 @@ sys_pmp_count = "0"
 - The call graph comes from Sail's AST dump after the rewrites, cached in `~/.cache/sail-backend/cheriot-dumps` (key: Sail version, `sail_plugin/Rewrites.ml`, the model's sources).
   On a miss, a Sail run makes it in about 20 s. The translation's own dump must be identical, or the cache key misses an input.
 - Out of scope: ignored with `ignore-functions` and `ignore-values`. Types are never ignored.
+- A dispatcher's calls for out-of-scope instructions become failures (`exclude-functions-as-failure`; `undispatched` in `scope.json`).
 
 ### Policy exclusions
 
 - Each `[policy-excluded]` entry is removed together with its uses (`exclude-functions-as-*`, `exclude-registers`; [usage](../../../docs/usage.md)). Why each is sound: [design](design.md#policy-exclusions).
 - The scope does not follow edges into them; excluded registers are not roots.
+- A name ending in `*` is a prefix pattern (`"undefined_*"`), for functions only: the definitions it matches that in-scope code mentions are excluded by name.
 - Counted on their own line of the report, not as failures; recorded in the baseline.
-- Warnings: a name the model does not define, a register under a function key (or the reverse), an excluded root.
+- Warnings: a name the model does not define, a pattern that matches nothing, a register under a function key (or the reverse), an excluded root.
 
 ## Rocq
 
@@ -79,7 +82,7 @@ sys_pmp_count = "0"
 - **Probe**: copies in `probe/` where holes are an axiom, so the first error shows the first problem beyond the holes:
   - `Axiom NYI : forall {A}, list nat -> A.` after the imports; each `NYI[n]` becomes `(NYI (cons n%nat nil))`;
   - the body of a function with a hole or a call to a missing function is replaced by the axiom;
-  - the proof of `fundef_bindfree` is admitted; the untranslated-definitions marker and comment are left out;
+  - the proof of `fundef_bindfree` is admitted; a `Theorem UNTRANSLATED_DEFINITIONS : False` marker and what follows it are left out (the CHERIoT template uses a comment instead);
   - line numbers are mapped back to the original file.
 - A file without `NYI` compiles once; plain and probe run in parallel.
 - **Watchdog**: `coqc -time`; a command running longer than `--coq-stall` seconds stops it, and the compilation is `STUCK` on that command.
