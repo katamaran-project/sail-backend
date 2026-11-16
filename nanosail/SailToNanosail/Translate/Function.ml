@@ -753,6 +753,10 @@ let rec normalise_widths
   let normalise_nexp (nexp : S.nexp) : S.nexp =
     let S.Nexp_aux (unwrapped_nexp, _) = nexp
     in
+    (* a width whose value the solver finds unique is that value (bits(n - 1 + 1) after assert(n == 32)) *)
+    match (try Libsail.Type_check.solve_unique environment nexp with _ -> None) with
+    | Some value when not (match unwrapped_nexp with Nexp_constant _ -> true | _ -> false) -> Libsail.Ast_util.nconstant value
+    | Some _ | None ->
     match unwrapped_nexp with
     | Nexp_constant _ | Nexp_var _ | Nexp_id _ -> nexp
     | Nexp_app _ | Nexp_times _ | Nexp_sum _ | Nexp_minus _ | Nexp_neg _ | Nexp_exp _ | Nexp_if _ -> begin
@@ -2340,6 +2344,72 @@ let rewrite_zero_extended_low_slice (expression : Sail.type_annotation S.exp) : 
 
 
 (*
+   Indices of slices and updates that Sail's solver knows, made literals.
+
+     let n = unsigned(vlenb);
+     assert(n == 32);
+     let w = v[n - 1 .. 0]                 (subrange_bits(v, sub_atom(n, 1), 0))
+
+   After the assert, Sail's flow typing knows n == 32, so the slice has type bits(32), but its index
+   is not a literal, and muSail's slice operations take their indices as Rocq numbers. Each integer
+   argument of such a call without an effect, whose value the solver finds unique in the environment
+   of the call, becomes that value: subrange_bits(v, 31, 0). The call is type checked again in its
+   environment; if that fails, it is kept as it is.
+*)
+let rewrite_solved_indices (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let indexing_functions = [ "subrange_bits"; "vector_subrange"; "update_subrange_bits"; "bitvector_access"; "vector_access"; "bitvector_update"; "vector_update"; "slice" ]
+  in
+  let solved_value (argument : Sail.type_annotation S.exp) : Z.t option =
+    match sail_integer_value argument with
+    | Some _ -> None   (* already a constant *)
+    | None   -> begin
+        if
+          Libsail.Ast_util.effectful (TypeCheck.effect_of argument)
+        then
+          None
+        else
+          let environment = TypeCheck.env_of argument
+          in
+          match TypeCheck.destruct_atom_nexp environment (TypeCheck.typ_of argument) with
+          | None      -> None
+          | Some nexp -> (try TypeCheck.solve_unique environment nexp with _ -> None)
+      end
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : S.l * Sail.type_annotation   ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    match sail_application_of original with
+    | Some (name, arguments) when List.mem indexing_functions name ~equal:String.equal -> begin
+        let solved = List.map arguments ~f:solved_value
+        in
+        if
+          List.for_all solved ~f:Option.is_none
+        then
+          original
+        else begin
+          let replacement =
+            untyped_sail_call name @@ List.map2_exn arguments solved ~f:(fun argument value ->
+                match value with
+                | Some value -> Libsail.Ast_util.mk_lit_exp (S.L_num value)
+                | None       -> TypeCheck.strip_exp argument
+              )
+          in
+          try TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation)
+          with _ -> original
+        end
+      end
+    | Some _ -> original
+    | None   -> original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
+(*
    An if whose condition is known at compile time becomes its live branch.
 
      if gteq_int(32, 64) then A else B          (sail-riscv: if sizeof(xlen) >= 64 then ... in execute_STORE)
@@ -2495,7 +2565,7 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ rewrite_constant_conditions @@ replace_calls_by_values body_without_messages
+       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ rewrite_constant_conditions @@ rewrite_solved_indices @@ replace_calls_by_values body_without_messages
        and return_type = Libsail.Type_check.typ_of raw_body
        in
        let* locally_bound_identifiers =

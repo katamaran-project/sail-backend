@@ -50,6 +50,8 @@
   "execute_MRET",
   "execute_MUL",
   "execute_MULW",
+  "execute_NOT_CAPMODE",
+  "execute_NOT_C_CAPMODE",
   "execute_REM",
   "execute_REMW",
   "execute_RISCV_JAL",
@@ -65,7 +67,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "64414328+dirty",
+ "commit": "83ef37cc+dirty",
  "date": "2026-11-16",
  "definitions": {
   "CGP_IDX": "ok",
@@ -616,7 +618,7 @@
   "NYI holes": 0,
   "functions generated": 482,
   "hard failures": 0,
-  "instructions clean": 63,
+  "instructions clean": 65,
   "instructions generated": 67,
   "missing calls": 11,
   "untranslated definitions": 33
@@ -1650,6 +1652,6 @@
    "file": null
   }
  },
- "run": "20261116T094636-64414328-dirty",
+ "run": "20261116T100758-83ef37cc-dirty",
  "scope": "4ab347182e49"
 }

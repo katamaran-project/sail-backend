@@ -25,6 +25,15 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 (* after  *) | DOUBLE => stm_call report_invalid_width ...
 ```
 
+### Slice indices known only to Sail's solver were holes
+- Found: e2e `assert-flow-typing-constrained-width`; in CHERIoT, `NOT_CAPMODE` and `NOT_C_CAPMODE` were not clean.
+- Cause: µSail's slices take their indices as Rocq numbers; the translator only accepted literals, not an index whose value Sail's flow typing knows (`assert(n == 32); v[n - 1 .. 0]`).
+- Fix: such an index (an argument without an effect whose value `solve_unique` finds) becomes a literal before the translation (`rewrite_solved_indices`), and a width the solver determines becomes a constant (`normalise_widths`).
+```coq
+(* before *) stm_let "w" (ty.bvec (NYI[0])) (stm_exp (exp_unop (uop.vector_subrange NYI[1] NYI[2]) (exp_var "v")))
+(* after  *) stm_let "w" (ty.bvec (32))      (stm_exp (exp_unop (uop.vector_subrange 0 32) (exp_var "v")))
+```
+
 ### Struct patterns untranslated
 - Found: e2e `match-record` failed ("expected pattern AP_struct (_, _) while matching type Record").
 - Cause: the pattern translation had no case for struct patterns.

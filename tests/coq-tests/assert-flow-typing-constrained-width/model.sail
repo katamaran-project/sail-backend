@@ -9,12 +9,8 @@ $include <prelude.sail>
    after the assert, Sail knows n == 32, so the slice v[n - 1 .. 0] has type bits(32),
    a width known at compile time.
 
-   Status: expected to fail. Sail and the translation to nanoSail handle it, but the
-   generation of muSail only accepts slice indices that are constants in the code,
-   and does not use the constraint n == 32, so the slice is generated as
-   `uop.vector_subrange NYI NYI` (see FunctionCalls.ml, "indices should be known at compile time").
-   It should pass once the code generator takes the constraints of the type checker into
-   account; that does not need bitvectors whose width is only known at run time.
+   The slice's index n - 1 is not a literal, but Sail's solver knows it is 31: the translation
+   replaces it by that value (rewrite_solved_indices), and the width of w by 32.
 */
 
 register vlenb : bits(8)
