@@ -21,8 +21,7 @@ Proof. cbn. auto. Qed.
 
 (* The call to pmp_allows is an unconstrained Boolean *)
 Goal fun_checked_read =
-  stm_let "ga#0" ty.bool (stm_foreign (unconstrained ty.bool) env.nil)
-    (stm_if (stm_exp (exp_var "ga#0"))
-       (stm_exp (exp_val (ty.bvec 8) [bv 0]))
-       (stm_exp (exp_val (ty.bvec 8) [bv 255]))).
+  stm_if (stm_foreign (unconstrained ty.bool) env.nil)
+    (stm_exp (exp_val (ty.bvec 8) [bv 0]))
+    (stm_exp (exp_val (ty.bvec 8) [bv 255])).
 Proof. reflexivity. Qed.

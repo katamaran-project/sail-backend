@@ -55,6 +55,88 @@ let rec extract_compile_time_integer_from_statement (statement : Ast.Statement.t
 
 
 (*
+   The statement a match matches on: the matched variable, or the statement that computes it
+   when pp_let leaves out a let that only binds the scrutinee (see inlined_scrutinee_match).
+*)
+let pp_scrutinee
+    (matched   : Ast.Identifier.t)
+    (scrutinee : PP.t option     ) : PP.t
+  =
+  match scrutinee with
+  | Some scrutinee -> PP.(surround parens) scrutinee
+  | None           -> PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+
+
+(*
+   Whether the cases of a match use the variable (other than as the matched value).
+*)
+let match_cases_use (variable : Ast.Identifier.t) (match_pattern : Ast.Statement.match_pattern) : bool =
+  let uses (statement : Ast.Statement.t) (binders : Ast.Identifier.t list) : bool =
+    Ast.Identifier.Set.mem (Ast.Statement.free_variables statement) variable
+    && not (List.mem binders variable ~equal:Ast.Identifier.equal)
+  in
+  match match_pattern with
+  | MatchList { when_cons = (id_head, id_tail, when_cons); when_nil; _ } -> uses when_nil [] || uses when_cons [ id_head; id_tail ]
+  | MatchProduct { id_fst; id_snd; body; _ }                             -> uses body [ id_fst; id_snd ]
+  | MatchTuple { binders; body; _ }                                      -> uses body (List.map ~f:fst binders)
+  | MatchBool { when_true; when_false; _ }                               -> uses when_true [] || uses when_false []
+  | MatchEnum { cases; _ }                                               -> List.exists (Ast.Identifier.Map.data cases) ~f:(fun clause -> uses clause [])
+  | MatchVariant { cases; _ }                                            -> List.exists (Ast.Identifier.Map.data cases) ~f:(fun (binders, clause) -> uses clause binders)
+  | MatchSum { when_left = (id_left, when_left); when_right = (id_right, when_right); _ } -> uses when_left [ id_left ] || uses when_right [ id_right ]
+
+
+(*
+   The variable a match matches on.
+*)
+let matched_variable (match_pattern : Ast.Statement.match_pattern) : Ast.Identifier.t =
+  match match_pattern with
+  | MatchList { matched; _ }      -> matched
+  | MatchProduct { matched; _ }   -> matched
+  | MatchTuple { matched; _ }     -> matched
+  | MatchBool { condition; _ }    -> condition
+  | MatchEnum { matched; _ }      -> matched
+  | MatchVariant { matched; _ }   -> matched
+  | MatchSum { matched; _ }       -> matched
+
+
+(*
+   In
+
+     let x = S in match x { ... }        (Sail's ANF names every matched value)
+
+   the let can be left out when the cases do not use x: muSail matches on a statement, so this is
+
+     match S { ... }
+
+   which has the same meaning. It matters for Rocq: each let extends the context of everything after it,
+   and the decoder (encdec_backwards) is a chain of about 130 such matches, one per encoding, nested in each
+   other's last case; with the lets, coqc took 608 s on it.
+   A match on unit is left alone: it is printed as its only case, without the matched value.
+*)
+let rec inlined_scrutinee_match
+    (binder         : Ast.Identifier.t)
+    (body_statement : Ast.Statement.t ) : Ast.Statement.match_pattern option
+  =
+  match body_statement with
+  | Located (_, inner) -> inlined_scrutinee_match binder inner
+  | Match match_pattern -> begin
+      let is_unit_match =
+        match match_pattern with
+        | MatchEnum { matched_type; _ } -> Ast.Identifier.equal matched_type (Ast.Identifier.mk "unit")
+        | MatchList _ | MatchProduct _ | MatchTuple _ | MatchBool _ | MatchVariant _ | MatchSum _ -> false
+      in
+      if
+        Ast.Identifier.equal (matched_variable match_pattern) binder
+        && not (match_cases_use binder match_pattern)
+        && not is_unit_match
+      then Some match_pattern
+      else None
+    end
+  | Expression _ | Call (_, _) | Let _ | Seq (_, _) | ReadRegister _ | WriteRegister _ | AssignVariable _
+  | DestructureRecord _ | Cast (_, _) | Fail (_, _) | Unconstrained _ -> None
+
+
+(*
 
    Converts the following Sail code
 
@@ -65,6 +147,7 @@ let rec extract_compile_time_integer_from_statement (statement : Ast.Statement.t
 
 *)
 let rec pp_match_list
+    ?(scrutinee : PP.t option = None                                   )
     ~(matched   : Ast.Identifier.t                                     )
     ~(when_nil  : Ast.Statement.t                                      )
     ~(when_cons : Ast.Identifier.t * Ast.Identifier.t * Ast.Statement.t) : PP.t GC.t
@@ -72,11 +155,7 @@ let rec pp_match_list
   let id_head, id_tail, when_cons_body = when_cons
   in
   let* pp_matched =
-    GC.return begin
-      PP.(surround parens) begin
-        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-      end
-    end
+    GC.return @@ pp_scrutinee matched scrutinee
   and* pp_when_nil  = parenthesize @@ pp_statement when_nil
   (* the head and tail binders shadow any outer binding of the same name *)
   and* pp_when_cons =
@@ -99,17 +178,14 @@ let rec pp_match_list
   end
 
 and pp_match_product
+    ?(scrutinee : PP.t option = None)
     ~(matched : Ast.Identifier.t)
     ~(id_fst  : Ast.Identifier.t)
     ~(id_snd  : Ast.Identifier.t)
     ~(body    : Ast.Statement.t ) : PP.t GC.t
   =
   let* pp_matched =
-    GC.return begin
-      PP.(surround parens) begin
-        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-      end
-    end
+    GC.return @@ pp_scrutinee matched scrutinee
   (* the binders shadow any outer binding of the same name *)
   and* pp_body =
     GC.with_compile_time_integers [ (id_fst, None); (id_snd, None) ] begin
@@ -130,16 +206,13 @@ and pp_match_product
     end
 
 and pp_match_tuple
+    ?(scrutinee : PP.t option = None                 )
     ~(matched  : Ast.Identifier.t                    )
     ~(binders  : (Ast.Identifier.t * Ast.Type.t) list)
     ~(body     : Ast.Statement.t                     ) : PP.t GC.t
   =
   let* pp_matched =
-    GC.return begin
-      PP.(surround parens) begin
-        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-      end
-    end
+    GC.return @@ pp_scrutinee matched scrutinee
   (* the binders shadow any outer binding of the same name *)
   and* pp_body =
     GC.with_compile_time_integers (List.map binders ~f:(fun (id, _) -> (id, None))) begin
@@ -159,16 +232,13 @@ and pp_match_tuple
   end
 
 and pp_match_bool
+    ?(scrutinee  : PP.t option = None)
     ~(condition  : Ast.Identifier.t)
     ~(when_true  : Ast.Statement.t )
     ~(when_false : Ast.Statement.t ) : PP.t GC.t
   =
   let* pp_condition =
-    GC.return begin
-      PP.(surround parens) begin
-        MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp condition
-      end
-    end
+    GC.return @@ pp_scrutinee condition scrutinee
   and* pp_when_true  = pp_statement when_true
   and* pp_when_false = pp_statement when_false
   in
@@ -190,6 +260,7 @@ and pp_match_bool
    - ugly printed using the raw pp_match_enum
 *)
 and pp_match_enum
+    ?(scrutinee    : PP.t option = None                  )
     ~(matched      : Ast.Identifier.t                    )
     ~(matched_type : Ast.Identifier.t                    )
     ~(cases        : Ast.Statement.t Ast.Identifier.Map.t) : PP.t GC.t
@@ -217,7 +288,9 @@ and pp_match_enum
        turn into a statement.
     *)
     and pp_matched_statement : PP.t =
-      PP.annotate [%here] @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
+      match scrutinee with
+      | Some scrutinee -> PP.annotate [%here] scrutinee
+      | None           -> PP.annotate [%here] @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
     in
     (*
        Translates match statement using muSail's special notation.
@@ -399,6 +472,7 @@ and pp_match_enum
                             Logic.I
 *)
 and pp_match_variant
+    ?(scrutinee    : PP.t option = None                                            )
     ~(matched      : Ast.Identifier.t                                              )
     ~(matched_type : Ast.Identifier.t                                              )
     ~(cases        : (Ast.Identifier.t list * Ast.Statement.t) Ast.Identifier.Map.t) : PP.t GC.t
@@ -416,9 +490,7 @@ and pp_match_variant
      turn into a statement.
   *)
   and pp_matched_statement =
-    PP.annotate [%here] begin
-      PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-    end
+    PP.annotate [%here] @@ pp_scrutinee matched scrutinee
   in
 
   (* List of match cases *)
@@ -460,14 +532,13 @@ and pp_match_variant
 
 
 and pp_match_sum
+    ?(scrutinee  : PP.t option = None                 )
     ~(matched    : Ast.Identifier.t                   )
     ~(when_left  : Ast.Identifier.t * Ast.Statement.t)
     ~(when_right : Ast.Identifier.t * Ast.Statement.t) : PP.t GC.t
   =
   let pp_matched_statement =
-    PP.annotate [%here] begin
-      PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
-    end
+    PP.annotate [%here] @@ pp_scrutinee matched scrutinee
   in
   let pp_case ((binder, clause) : Ast.Identifier.t * Ast.Statement.t) : (PP.t * PP.t) GC.t =
     (* the binder shadows any outer binding of the same name *)
@@ -493,15 +564,18 @@ and pp_match_sum
   end
 
 
-and pp_match (match_pattern : Ast.Statement.match_pattern) : PP.t GC.t =
+and pp_match
+    ?(scrutinee     : PP.t option = None         )
+    (match_pattern : Ast.Statement.match_pattern) : PP.t GC.t
+  =
   match match_pattern with
-  | MatchList { matched; when_nil; when_cons; _ }     -> pp_match_list ~matched ~when_nil ~when_cons
-  | MatchProduct { matched; id_fst; id_snd; body; _ } -> pp_match_product ~matched ~id_fst ~id_snd ~body
-  | MatchBool { condition; when_true; when_false }    -> pp_match_bool ~condition ~when_true ~when_false
-  | MatchEnum { matched; matched_type; cases }        -> pp_match_enum ~matched ~matched_type ~cases
-  | MatchVariant { matched; matched_type; cases }     -> pp_match_variant ~matched ~matched_type ~cases
-  | MatchTuple { matched; binders; body }             -> pp_match_tuple ~matched ~binders ~body
-  | MatchSum { matched; when_left; when_right; _ }    -> pp_match_sum ~matched ~when_left ~when_right
+  | MatchList { matched; when_nil; when_cons; _ }     -> pp_match_list ~scrutinee ~matched ~when_nil ~when_cons
+  | MatchProduct { matched; id_fst; id_snd; body; _ } -> pp_match_product ~scrutinee ~matched ~id_fst ~id_snd ~body
+  | MatchBool { condition; when_true; when_false }    -> pp_match_bool ~scrutinee ~condition ~when_true ~when_false
+  | MatchEnum { matched; matched_type; cases }        -> pp_match_enum ~scrutinee ~matched ~matched_type ~cases
+  | MatchVariant { matched; matched_type; cases }     -> pp_match_variant ~scrutinee ~matched ~matched_type ~cases
+  | MatchTuple { matched; binders; body }             -> pp_match_tuple ~scrutinee ~matched ~binders ~body
+  | MatchSum { matched; when_left; when_right; _ }    -> pp_match_sum ~scrutinee ~matched ~when_left ~when_right
 
 
 and pp_call
@@ -532,7 +606,11 @@ and pp_let
      resolve the right hand x to the outer one.
   *)
   let* pp_binding_statement      = pp_statement binding_statement
-  and* pp_binding_statement_type = Type.pp_type binding_statement_type
+  in
+  match inlined_scrutinee_match binder body_statement with
+  | Some match_pattern -> pp_match ~scrutinee:(Some pp_binding_statement) match_pattern
+  | None ->
+  let* pp_binding_statement_type = Type.pp_type binding_statement_type
   and* compile_time_value        =
     (* A mutable variable (one the body assigns to) has no fixed value *)
     if

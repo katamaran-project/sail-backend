@@ -13,6 +13,16 @@ Commit hashes are those on the branch at the time of writing.
 let r = Ok(width > 4)    // r : Res(bool('p)), now the instance Res(bool)
 ```
 
+### The decoder took 608 s in `coqc`
+- Found: the probe stalled at `encdec_backwards` (45 s limit); a diagnostic run without the limit took 608 s, then 72 s at `End FunDefKit`.
+- Cause: Sail's ANF names every matched value, `let x = S in match x { ... }`; the decoder is a chain of about 130 such matches (one per encoding), each nested in the previous one's last case, so every `let` lengthens the context of all later ones (a synthetic chain of 160: 49 s with the lets, 6.5 s without).
+  Closing the `FunDefKit` section, which has no variables, made Rocq check every definition in it again.
+- Fix: a `let` whose body is a match on it, with cases that do not use it, is printed as a match on the bound statement; `FunDefKit` is no longer a section. `encdec_backwards` 6 s, `End FunDefKit` gone. Test `match-scrutinee-without-let`.
+```coq
+(* before *) stm_let "ga#2252" (ty.sum (ty.union Uast) ty.unit) (...) (stm_match_sum (stm_exp (exp_var "ga#2252")) ...)
+(* after  *) stm_match_sum (...) ...
+```
+
 ### Discarded call to a type-polymorphic function behind argument lets: `stm_seq`'s type not inferable
 - Found: by hand-compiling `machine.v` past the probe's stop, after the decoders' fallbacks entered the scope (`execute_NOT_C_CAPMODE`).
 - Cause: `pp_sequence` fixes the discarded type of a call such as `internal_error : forall ('a : Type). ... -> 'a` to `ty.unit`, but only for a bare call; with a computed argument the call sits under a `let`, and Rocq cannot infer `σ`.

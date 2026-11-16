@@ -65,7 +65,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "79b870b4+dirty",
+ "commit": "48db0066+dirty",
  "date": "2026-11-16",
  "definitions": {
   "CGP_IDX": "ok",
@@ -2187,6 +2187,6 @@
    "file": "machine.v"
   }
  },
- "run": "20261116T090320-79b870b4-dirty",
+ "run": "20261116T092651-48db0066-dirty",
  "scope": "4ab347182e49"
 }
