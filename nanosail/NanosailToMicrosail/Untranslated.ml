@@ -61,19 +61,3 @@ let generate
       ]
     end
   )
-
-
-(*
-   Makes text safe inside a Rocq comment.
-   Rocq's lexer nests comments and reads string literals inside them:
-   - comment delimiters become "( *" and "* )";
-   - an odd number of double quotes would leave a string open, so they all become single quotes.
-*)
-let escape_for_rocq_comment (text : string) : string =
-  let text =
-    String.substr_replace_all ~pattern:"*)" ~with_:"* )" @@
-    String.substr_replace_all ~pattern:"(*" ~with_:"( *" text
-  in
-  if Int.equal (Int.rem (String.count text ~f:(Char.equal '"')) 2) 0
-  then text
-  else String.tr ~target:'"' ~replacement:'\'' text
