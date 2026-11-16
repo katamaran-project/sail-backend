@@ -116,3 +116,4 @@ timestamp,commit,dirty,scope,instructions total,instructions clean,instructions 
 2026-11-16T09:15:58,79b870b4,True,core,67,64,67,506,505,1,2,0,2,machine.v:2518,machine.v:19062,PROGRESS,20261116T091344-79b870b4-dirty
 2026-11-16T09:24:20,79b870b4,True,core,67,64,67,506,505,1,2,0,2,machine.v:2522,stuck machine.v:22043,STUCK,20261116T092009-79b870b4-dirty
 2026-11-16T09:32:16,cfde26d7,True,core,67,64,67,506,505,1,2,0,2,machine.v:2522,stuck machine.v:22043,STUCK (baseline updated),20261116T092929-cfde26d7-dirty
+2026-11-16T09:57:51,0fa572c1,True,core,67,64,67,506,505,1,2,0,2,machine.v:2522,stuck machine.v:21865,STUCK,20261116T095519-0fa572c1-dirty

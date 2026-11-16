@@ -799,6 +799,25 @@ let specialise_branch
   in
   let inner_environment = branch_annotation.env
   in
+  let proves_false (environment : Libsail.Type_check.Env.t) : bool =
+    try Libsail.Type_check.prove __POS__ environment Libsail.Ast_util.nc_false with _ -> false
+  in
+  (*
+     A branch whose constraints Sail proves contradictory (if 32 >= 64 then ...) is dead: Sail typed its
+     body under false, so it need not type-check in Rocq (a callee's hypothesis 32 = 8 * 8 would make
+     type class search backtrack for a long time). It fails, as unreachable.
+  *)
+  if
+    proves_false inner_environment && not (proves_false outer_environment)
+  then
+    TC.recover
+      begin
+        let* result_type = Type.translate_type branch_type
+        in
+        TC.return @@ Ast.Statement.Fail (result_type, "unreachable: Sail's typing rules this branch out")
+      end
+      (fun _ -> TC.return statement)
+  else
   let locals : (S.id * S.typ) list =
     List.map ~f:(fun (identifier, (_mutability, typ)) -> (identifier, typ)) @@ Bindings.bindings @@ Libsail.Type_check.Env.get_locals inner_environment
   in
