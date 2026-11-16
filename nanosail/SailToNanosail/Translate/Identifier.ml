@@ -32,7 +32,7 @@ let translate_identifier
     let S.Id_aux (unwrapped_identifier, sail_location) = identifier
     in
     match unwrapped_identifier with
-    | Id id       -> TC.return @@ Ast.Identifier.mk id
+    | Id id       -> TC.return @@ Ast.Identifier.mk (Configuration.renamed id)   (* the configuration's rename *)
     | Operator op -> TC.return @@ Ast.Identifier.mk (Sail.mangle_sail_operator_name op)
     | And_bool    -> TC.return @@ Ast.Identifier.mk "and_bool"
     | Or_bool     -> TC.return @@ Ast.Identifier.mk "or_bool"

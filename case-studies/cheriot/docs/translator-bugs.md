@@ -25,6 +25,18 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 (* after  *) | DOUBLE => stm_call report_invalid_width ...
 ```
 
+### Function names clash with Katamaran's
+- Found: e2e `model-008` failed: a Sail function named like a Katamaran definition clashes in `machine.v`.
+- Cause: the translation keeps Sail's names; Katamaran's `DefaultRegStoreKit` declares `read_register` and `write_register`.
+- Fix: the configuration function `rename` (no automatic scheme, by decision: a clash fails in Rocq until the configuration renames it). `model-008` renames both.
+```sail
+function write_register(r, w) = { ... }
+```
+```
+(* before *) machine.v: Error: The label write_register is already declared.    (* DefaultRegStoreKit *)
+(* after  *) (rename '(("read_register" "read_register_model") ("write_register" "write_register_model")))
+```
+
 ### The decoder took 608 s in `coqc`
 - Found: the probe stalled at `encdec_backwards` (45 s limit); a diagnostic run without the limit took 608 s, then 72 s at `End FunDefKit`.
 - Cause: Sail's ANF names every matched value, `let x = S in match x { ... }`; the decoder is a chain of about 130 such matches (one per encoding), each nested in the previous one's last case, so every `let` lengthens the context of all later ones (a synthetic chain of 160: 49 s with the lets, 6.5 s without).
@@ -281,15 +293,6 @@ Definition fun_tag_addr_to_addr : Stm [...] ... :=
 - `FunctionCalls.ml` (slices, `update_vector_subrange`) passes `"%s's indices should be known at compile time"` as the message without formatting it.
 ```coq
 [1] : Not yet implemented; see nanosail/NanosailToMicrosail/FunctionCalls.ml line 908 (%s's indices should be known at compile time)
-```
-
-### Function names clash with Katamaran's
-- A Sail function named like a Katamaran definition clashes in `machine.v`; e2e `model-008`.
-```sail
-function write_register(r, w) = { ... }
-```
-```
-machine.v: Error: The label write_register is already declared.    (* DefaultRegStoreKit *)
 ```
 
 ### Record field of a tuple type with three or more elements

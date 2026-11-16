@@ -89,6 +89,7 @@ module Implementation :
         val excluded_registers : Base.Set.M(Base.String).t ConfigLib.Setting.t
         val foreign_function_semantics :
           ForeignFunctionSemantics.t Base.Map.M(Base.String).t ConfigLib.Setting.t
+        val renamed_identifiers : string Base.Map.M(Base.String).t ConfigLib.Setting.t
         val template_block_left_delimiter : string ConfigLib.Setting.t
         val template_block_right_delimiter : string ConfigLib.Setting.t
         val template_translations :
@@ -132,6 +133,7 @@ val excluded_functions :
 val excluded_registers : Base.Set.M(Base.String).t ConfigLib.Setting.t
 val foreign_function_semantics :
   ForeignFunctionSemantics.t Base.Map.M(Base.String).t ConfigLib.Setting.t
+val renamed_identifiers : string Base.Map.M(Base.String).t ConfigLib.Setting.t
 val template_block_left_delimiter : string ConfigLib.Setting.t
 val template_block_right_delimiter : string ConfigLib.Setting.t
 val template_translations : template_translation list ConfigLib.Setting.t
@@ -147,4 +149,5 @@ val should_ignore_top_level_type_constraint : string -> bool
 val should_ignore_value_definition : string -> bool
 val function_exclusion : string -> FunctionExclusion.t option
 val is_excluded_register : string -> bool
+val renamed : string -> string
 val foreign_function_semantics_for : string -> ForeignFunctionSemantics.t option

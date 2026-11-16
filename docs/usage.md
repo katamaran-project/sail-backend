@@ -238,6 +238,21 @@ These names are ignored whether the predicates are set before or after, and each
 The CHERIoT loop (`tests/cheriot/run.py`) uses them to ignore everything outside its scope.
 See `tests/coq-tests/ignore-functions-by-name`.
 
+### Renaming identifiers
+
+A Sail definition named like a Katamaran definition clashes in Rocq (`write_register` is already declared by `DefaultRegStoreKit`).
+There is no automatic renaming scheme: the clash fails in Rocq until the configuration renames the identifier.
+
+```lisp
+(rename '(("read_register" "read_register_model") ("write_register" "write_register_model")))
+```
+
+* Every occurrence of the identifier in the output is renamed: its definition and all its uses.
+* The other configuration functions (`ignore-functions`, `exclude-functions-as-*`, ...) still take Sail's names.
+* Renaming one identifier to two different names is an error; each call adds to the earlier ones.
+
+See `tests/coq-tests/model-008`.
+
 ### Excluding definitions together with their uses
 
 Ignoring a function only drops its definition: its callers still call it, so they refer to a function that `machine.v` does not define.

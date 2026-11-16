@@ -343,6 +343,11 @@ module Implementation = struct
     *)
     let foreign_function_semantics                 = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
 
+    (*
+       New names for Sail identifiers in the output, by Sail name; see the Slang function rename below.
+    *)
+    let renamed_identifiers                        = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : string Base.Map.M(Base.String).t)
+
     let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
     let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
 
@@ -614,6 +619,34 @@ module Implementation = struct
 
 
   (*
+     Slang function that gives Sail identifiers another name in the output.
+
+       (rename '(("write_register" "write_register_model")))
+
+     Every occurrence of the identifier is renamed: its definition and all its uses. For a Sail
+     definition whose name clashes with one of Katamaran's (write_register: DefaultRegStoreKit).
+     There is no automatic scheme: a clash fails in Rocq until the configuration renames it.
+     The names in the rest of the configuration (ignore-functions, ...) stay Sail's names.
+     Renaming one identifier to two different names is an error; each call adds to the earlier ones.
+  *)
+  let () =
+    export_strict_function "rename" begin fun evaluated_arguments ->
+      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
+      in
+      let add
+          (renamed           : string Base.Map.M(Base.String).t)
+          ((name, new_name)  : string * string                 ) : string Base.Map.M(Base.String).t
+        =
+        match Base.Map.find renamed name with
+        | None                                           -> Base.Map.set renamed ~key:name ~data:new_name
+        | Some earlier when String.equal earlier new_name -> renamed
+        | Some earlier                                   -> failwith @@ Printf.sprintf "Error: %s is renamed to both %s and %s" name earlier new_name
+      in
+      ConfigLib.Setting.update Exported.renamed_identifiers ~f:(fun renamed -> List.fold pairs ~init:renamed ~f:add)
+    end
+
+
+  (*
      Slang function to translate a union to muSail's ty.sum instead of to a ty.union of its own.
      Multiple calls are allowed, one per union.
 
@@ -782,5 +815,9 @@ let is_excluded_register (identifier : string) : bool =
    The semantics the configuration gives to the foreign function with the given (Sail) name, if any;
    see foreign-function-semantics and foreign-functions-unconstrained.
 *)
+let renamed (identifier : string) : string =
+  Option.value (Base.Map.find (get renamed_identifiers) identifier) ~default:identifier
+
+
 let foreign_function_semantics_for (identifier : string) : ForeignFunctionSemantics.t option =
   Base.Map.find (get foreign_function_semantics) identifier
