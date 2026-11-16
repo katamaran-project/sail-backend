@@ -389,6 +389,22 @@ See the test `tests/coq-tests/unions-width-family`.
 Explicit monomorphisation (`monomorphize`) is unaffected.
 See the tests `tests/coq-tests/size-parameters-implicit` and `tests/coq-tests/size-constraints-hypotheses`.
 
+### Exceptions
+
+- `throw e` is `stm_fail τ "failure"`: µSail has no exceptions.
+- `try { e } catch { ... }` is the translation of `e`; the handlers are dropped (one warning per `try`).
+  A `throw` inside `e` fails instead of being caught.
+
+```sail
+function foo(x) = try check(x) catch { Error_bad() => 0 }
+```
+```coq
+Definition fun_foo : Stm [ "x" ∷ ty.int ] (ty.int) :=
+  stm_call check (env.snoc (env.nil) (_::_) ((exp_var "x"))%exp).
+```
+
+See the test `tests/coq-tests/try-catch-dropped`.
+
 ### `$include`
 
 ```lisp

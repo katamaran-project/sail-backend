@@ -20,7 +20,7 @@ All 67 instructions are clean.
 
 ## Later
 
-- **Exceptions**: `try` in `try_execute` (untranslated; called by `step`). Not needed for now.
+- **Exceptions as values**: `try` is its body, `throw` a failure ([design](design.md#exceptions-fail)); an RV32E register >= 16 fails instead of trapping.
 - **Minimal faithful PMP**: 16 entries instead of `sys_pmp_count = 0`.
   - Register arrays (`pmpcfg_n`, `pmpaddr_n`) as one register per entry: a constant index is that register, a run-time index a `match`.
   - Loops with constant bounds (`foreach`) unrolled or as a recursive helper; `pmpCheck`'s `return` inside a `foreach`.

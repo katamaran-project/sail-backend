@@ -1,12 +1,13 @@
 default Order dec
 $include <prelude.sail>
 
-union exception = { Oops : unit }
-
-// Untranslated (try); its listing in base.v has an odd number of quotes and comment delimiters
+// Untranslated (foreach); its listing in base.v has an odd number of quotes and comment delimiters
 val guarded : unit -> int
-function guarded() =
-  try { print_endline("an odd \" quote, a *) and a (*"); 1 } catch { Oops() => 0 }
+function guarded() = {
+  var n : int = 0;
+  foreach (i from 0 to 3) { print_endline("an odd \" quote, a *) and a (*"); n = n + i };
+  n
+}
 
 val answer : unit -> int
 function answer() = 42
