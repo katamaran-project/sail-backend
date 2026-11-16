@@ -22,6 +22,7 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 | `--update-baseline` | accept this run as the baseline, even if worse |
 | `--keep-dumps` | keep Sail's AST dump after every rewrite (75 MB), not only the last |
 | `--output-dir DIR` | default `tests/cheriot/output` |
+| `--translate-to DIR` | only translate (stages inputs, scope, translate) into `DIR`; `make cheriot-translate` uses `case-studies/cheriot/output` |
 | `--keep-runs N` | keep the `N` newest runs, delete older ones; 0 keeps all (default 5) |
 
 - About 1.5 minutes. Uses `bin/sail-local` and needs Sail 0.20.3 on `PATH`.

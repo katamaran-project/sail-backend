@@ -26,6 +26,8 @@ katamaran
 ocamldoc.out
 tests/coq-tests/test-output/
 tests/cheriot/output/
+case-studies/cheriot/output/
+sail_smt_cache
 
 # Python bytecode
 __pycache__/

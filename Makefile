@@ -34,11 +34,21 @@ cheriot-lib-tests:
 
 # The CHERIoT progress loop (case-studies/cheriot/docs/loop.md). Needs a cheriot-sail
 # checkout; the case study is case-studies/cheriot (CHERIOT_CASE_STUDY overrides it), e.g.
-#   gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
+#   make cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
 # CHERIOT_ARGS passes extra options to tests/cheriot/run.py, e.g. CHERIOT_ARGS=--keep-dumps.
 .PHONY: cheriot
 cheriot: build
 	tests/cheriot/run.py $(CHERIOT_ARGS)
+
+
+# Translate the CHERIoT core to Rocq (base.v, machine.v) in CHERIOT_OUTPUT, replacing what is there, e.g.
+#   make cheriot-translate CHERIOT_SAIL_DIR=/path/to/cheriot-sail
+# CHERIOT_ARGS=--no-scope translates the whole model.
+CHERIOT_OUTPUT := case-studies/cheriot/output
+.PHONY: cheriot-translate
+cheriot-translate: build
+	rm -rf $(CHERIOT_OUTPUT)
+	tests/cheriot/run.py --translate-to $(CHERIOT_OUTPUT) $(CHERIOT_ARGS)
 
 
 .PHONY: template-tests tt

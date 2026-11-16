@@ -5,8 +5,13 @@ The outer loop: translate the CHERIoT model with this checkout's plugin, and mea
 Usage:
     tests/cheriot/run.py --cheriot-sail DIR --case-study DIR [--update-baseline] [--no-scope] [--no-coq]
                          [--coq-stall S] [--no-coq-cache] [--keep-dumps] [--output-dir DIR]
+    tests/cheriot/run.py --cheriot-sail DIR --translate-to DIR [--no-scope]
 
-or `gmake cheriot CHERIOT_SAIL_DIR=...`. See case-studies/cheriot/docs/loop.md.
+or `make cheriot CHERIOT_SAIL_DIR=...`. See case-studies/cheriot/docs/loop.md.
+
+--translate-to DIR only translates (stages inputs, scope and translate), into DIR,
+which must not exist or be empty; no Rocq, analysis, ratchet or history line.
+This is `make cheriot-translate`.
 
 Inputs:
     --cheriot-sail DIR   a cheriot-sail checkout, with its sail-riscv submodule
@@ -402,7 +407,7 @@ def compute_scope(sources: list[Path], cheriot_sail: Path, sandbox: Path, sail_v
     return stage, result, dump
 
 
-def translate(sources: list[Path], case_study: Path, sandbox: Path, with_scope: bool) -> Stage:
+def translate(sources: list[Path], case_study: Path, sandbox: Path, with_scope: bool, verbose: str = VERBOSE) -> Stage:
     stage = Stage('translate')
     for template in [case_study / 'configuration.lisp', *sorted(case_study.glob('*.template.v'))]:
         shutil.copy2(template, sandbox / template.name)
@@ -413,7 +418,7 @@ def translate(sources: list[Path], case_study: Path, sandbox: Path, with_scope: 
     command = [str(SAIL_LOCAL), '--ddump-rewrite-ast', 'dump/rw',
                '--katamaran', '--katamaran-config', 'configuration.lisp', *map(str, sources)]
     start = time.monotonic()
-    code = run_command(command, sandbox, sandbox / 'log.txt', {'VERBOSE': VERBOSE})
+    code = run_command(command, sandbox, sandbox / 'log.txt', {'VERBOSE': verbose})
     stage.seconds = time.monotonic() - start
     outputs = (sandbox / 'base.v').is_file() and (sandbox / 'machine.v').is_file()
     stage.ok, stage.summary = classify_translation(code, (sandbox / 'log.txt').read_text(errors='replace'), outputs)
@@ -656,9 +661,36 @@ def parse_arguments(argv: Optional[list[str]]) -> argparse.Namespace:
     parser.add_argument('--no-coq-cache', action='store_true', help='compile without the Rocq cache (ROCQ_CACHE)')
     parser.add_argument('--keep-dumps', action='store_true', help='keep the Sail AST dump of every rewrite')
     parser.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument('--translate-to', type=Path, metavar='DIR',
+                        help='only translate, into DIR (must not exist or be empty)')
     parser.add_argument('--keep-runs', type=int, default=DEFAULT_KEEP_RUNS, metavar='N',
                         help=f'keep the N newest runs in the output dir, delete older ones; 0 keeps all (default: {DEFAULT_KEEP_RUNS})')
     return parser.parse_args(argv)
+
+
+def translate_only(cheriot_sail: Path, case_study: Path, output: Path, with_scope: bool) -> int:
+    """Translate into `output`, without the stages after the translation."""
+    if output.exists() and (not output.is_dir() or any(output.iterdir())):
+        print(f'run.py: --translate-to: {output} exists and is not an empty directory', file=sys.stderr)
+        return 2
+    try:
+        stage, inputs, sources = check_inputs(cheriot_sail, case_study, with_coq=False)
+    except InputError as error:
+        print(f'run.py: {error}', file=sys.stderr)
+        return 2
+    output.mkdir(parents=True, exist_ok=True)
+    (output / 'sources.txt').write_text(''.join(f'{s}\n' for s in sources))
+    stages = [stage]
+    in_scope = None
+    if with_scope:
+        stage, in_scope, _ = compute_scope(sources, cheriot_sail, output, inputs['sail'], DUMP_CACHE)
+        stages.append(stage)
+    if stages[-1].ok:
+        # VERBOSE=2 (warnings): the analysis, which needs 4, does not run.
+        stages.append(translate(sources, case_study, output, in_scope is not None, verbose='2'))
+        shutil.rmtree(output / 'dump', ignore_errors=True)
+    print(report(inputs, stages, None, output))
+    return 0 if all(s.ok for s in stages) else 1
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -669,6 +701,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     except InputError as error:
         print(f'run.py: {error}', file=sys.stderr)
         return 2
+
+    if arguments.translate_to is not None:
+        return translate_only(cheriot_sail, case_study, arguments.translate_to.resolve(), not arguments.no_scope)
 
     try:
         stage, inputs, sources = check_inputs(cheriot_sail, case_study, not arguments.no_coq)

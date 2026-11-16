@@ -6,6 +6,7 @@ Translates the core of the [CHERIoT Sail model](https://github.com/microsoft/che
 
 - `configuration.lisp`: the translation's configuration (Slang); names the templates below.
 - `base.template.v`, `machine.template.v`: templates for the generated `base.v` (types, registers) and `machine.v` (functions).
+- `output/`: the output of `make cheriot-translate` (not tracked).
 - `printvar.mak`: prints a variable of cheriot-sail's Makefile; the loop uses it to get the model's sources (`SAIL_SRCS`).
 - `docs/`: design, roadmap, progress and the loop's manual (below).
 
@@ -14,11 +15,13 @@ Translates the core of the [CHERIoT Sail model](https://github.com/microsoft/che
 From the repository root, with a cheriot-sail checkout (and its `sail-riscv` submodule):
 
 ```sh
-gmake cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail
-gmake cheriot CHERIOT_SAIL_DIR=... CHERIOT_ARGS=--no-coq      # translation and analysis only
+make cheriot-translate CHERIOT_SAIL_DIR=/path/to/cheriot-sail    # translation only
+make cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail              # the loop
+make cheriot CHERIOT_SAIL_DIR=... CHERIOT_ARGS=--no-coq          # the loop without Rocq
 ```
 
-- Translates the core with this checkout's plugin, compiles with `coqc`, reports metrics; about 1.5 minutes.
+- `cheriot-translate`: writes `base.v` and `machine.v` to `output/`; about a minute. Walkthrough from scratch: [usage](../../docs/usage.md#worked-example-cheriot-from-scratch).
+- `cheriot`: translates the core with this checkout's plugin, compiles with `coqc`, reports metrics; about 1.5 minutes.
 - Fails if anything got worse than in `tests/cheriot/baseline.json`.
 - Output: `tests/cheriot/output/latest/`.
 - Details: [docs/loop.md](docs/loop.md).

@@ -13,6 +13,68 @@ Next, run the following command to perform the translation.
 $ sail --katamaran --katamaran-config configuration.lisp SAILFILE...
 ```
 
+## Worked example: CHERIoT from scratch
+
+From nothing to Rocq files for the [CHERIoT Sail model](https://github.com/CHERIoT-Platform/cheriot-sail).
+Needs opam, git, Python 3.11 or later, make, GNU make 4 or later for cheriot-sail's Makefile (macOS: install it as `gmake`), and Sail's system dependencies (GMP, Z3; see [installation](installation.md)).
+
+### 1. Create an opam switch with the dependencies
+
+```bash
+opam switch create sail-backend --packages=ocaml.5.2.1,sail.0.20.3,dune,base,stdio,pprint,ppx_here,ocaml_intrinsics_kernel,ounit2
+eval $(opam env --switch=sail-backend)
+```
+
+### 2. Build the plugin
+
+```bash
+git clone https://github.com/katamaran-project/sail-backend.git
+cd sail-backend/
+dune build
+bin/sail-local --katamaran
+# No configuration file specified; use --katamaran-config to specify one
+cd ..
+```
+
+- The plugin: `_build/default/sail_plugin/sail_plugin_katamaran.cmxs`.
+- `bin/sail-local` is `sail` with this plugin loaded.
+  Optional: `dune install` installs the plugin in the switch, so that plain `sail --katamaran` works too.
+
+### 3. Get the CHERIoT model
+
+```bash
+git clone --recurse-submodules https://github.com/CHERIoT-Platform/cheriot-sail.git
+git -C cheriot-sail checkout 518813e        # the commit the case study is tested against
+git -C cheriot-sail submodule update        # sail-riscv at the matching commit
+```
+
+### 4. Translate
+
+```bash
+cd sail-backend/
+make cheriot-translate CHERIOT_SAIL_DIR=$PWD/../cheriot-sail
+```
+
+- About a minute. Output in `case-studies/cheriot/output/`: `base.v` (types, registers) and `machine.v` (functions).
+- Translates the core: 67 instructions and what they reach ([scope](../case-studies/cheriot/docs/design.md#scope)).
+  `CHERIOT_ARGS=--no-scope` translates the whole model, which has holes (`NYI`) outside the core.
+- The output directory also holds the inputs: the configuration and templates from [`case-studies/cheriot`](../case-studies/cheriot/README.md), `sources.txt` (the model's Sail files, in order), and `scope-ignores.lisp` (what is outside the core).
+- `log.txt` is large (about 80 MB): the configuration's `(dump-nanosail-ast)` prints every definition's AST.
+
+### 5. Compile with Rocq
+
+Needs Rocq and Katamaran in the switch ([installation](installation.md#end-to-end-tests)).
+
+```bash
+cd case-studies/cheriot/output/
+coqc base.v
+coqc machine.v
+```
+
+- Both compile: `base.v` in about 7 seconds, `machine.v` in about a minute.
+  Current state: [progress](../case-studies/cheriot/docs/progress.md).
+- `make cheriot CHERIOT_SAIL_DIR=...` does steps 4 and 5 and measures the result: [the loop](../case-studies/cheriot/docs/loop.md).
+
 ## Configuration File
 
 The configuration is specified using the [Slang language](./slang.md) in `configuration.lisp`.
