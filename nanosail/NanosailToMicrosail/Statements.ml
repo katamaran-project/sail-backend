@@ -607,7 +607,14 @@ and pp_let
   *)
   let* pp_binding_statement      = pp_statement binding_statement
   in
-  match inlined_scrutinee_match binder body_statement with
+  (* a width family's match has the width as _ in its union tag: only the let's type determines it *)
+  let is_width_family =
+    match Ast.Type.strip_aliases binding_statement_type with
+    | Application (Variant _, [ NumericExpression _ ]) -> true
+    | Application (_, _) | Int _ | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _)
+    | Variant _ | Record _ | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ | Alias (_, _) -> false
+  in
+  match if is_width_family then None else inlined_scrutinee_match binder body_statement with
   | Some match_pattern -> pp_match ~scrutinee:(Some pp_binding_statement) match_pattern
   | None ->
   let* pp_binding_statement_type = Type.pp_type binding_statement_type
