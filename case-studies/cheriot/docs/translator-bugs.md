@@ -5,6 +5,11 @@ Commit hashes are those on the branch at the time of writing.
 
 ## Fixed
 
+### Inlined scrutinee lost a width family's width
+- Found: e2e `unions-width-family` failed after merging the read path.
+- Cause: `let x = S in match x` printed as `match S` dropped the `let`'s type; a width family's union tag prints its width as `_` (`Ures_bits _`), so Rocq could not infer it.
+- Fix: `cce22be3`: no inlining when the bound type is a width family.
+
 ### Tuple match binders were bound in reverse order
 - Found: Rocq rejected a 3-tuple match of `(bits(8), bool, enum)` in a new test.
 - Cause: `stm_match_tuple` binders `[a; b; c]` were printed `tuplepat_snoc (tuplepat_snoc (tuplepat_snoc tuplepat_nil c) b) a`; `tuplepat_snoc` adds at the end, so `a` was bound to the last component.
@@ -338,6 +343,9 @@ print_reg(BitStr(v[VLEN - 1 .. 0]))            // ...that this slice needs
 - `add_bits_int` failed with a run-time int and with a width behind an alias (`xlenbits`).
 
 ## Open
+
+### Scrutinee inlining checks only the bound type for width families
+- `cce22be3` keeps the `let` only when its own type is a width family. A tuple, sum or list containing one, or a union with other type parameters, is still inlined; built from constructors, its tag prints `(tag _)` and the width may be undetermined. No test hits it yet.
 
 ### `NYI` numbers do not match their explanations
 - The code numbers holes with a global counter (`GC.fresh_index`); the comment above each definition numbers them per definition (frame) from 0.
