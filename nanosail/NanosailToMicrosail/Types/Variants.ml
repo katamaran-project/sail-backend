@@ -11,6 +11,37 @@ end
 let variants_inductive_type_identifier = Ast.Identifier.mk "Unions"
 
 
+(*
+   The parameters of a variant: those of a width family (see SailToNanosail.UnionInstances),
+   Inductive MemoryOpResult_bits (kid__n : nat), whose tag in Unions takes them too.
+*)
+let parameter_identifiers (variant_definition : Ast.Definition.Type.Variant.t) : Ast.Identifier.t list =
+  let Ast.TypeQuantifier.TypeQuantifier items = variant_definition.type_quantifier
+  in
+  List.map ~f:fst items
+
+
+let is_family (variant_definition : Ast.Definition.Type.Variant.t) : bool =
+  let Ast.TypeQuantifier.TypeQuantifier items = variant_definition.type_quantifier
+  in
+  not (List.is_empty items) && List.for_all items ~f:(fun (_, kind) -> match kind with Int -> true | Type | Bool -> false)
+
+
+(* name applied to the parameters of the variant: Ures_bits kid__n, MemoryOpResult_bits kid__n *)
+let applied_to_parameters (variant_definition : Ast.Definition.Type.Variant.t) (name : PP.t) : PP.t =
+  PP.separate_horizontally ~separator:PP.space (name :: List.map ~f:Identifier.pp (parameter_identifiers variant_definition))
+
+
+(* The tag of the variant in Unions, as a pattern binding its parameters *)
+let tag_pattern (variant_definition : Ast.Definition.Type.Variant.t) : PP.t =
+  applied_to_parameters variant_definition (Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier)
+
+
+(* The Rocq type of the variant at the parameters bound by tag_pattern *)
+let denoted_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.t =
+  applied_to_parameters variant_definition (Identifier.pp variant_definition.identifier)
+
+
 let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t) : PP.t GC.t =
   let { identifier; type_quantifier; constructors } : Ast.Definition.Type.Variant.t = variant_definition
   in
@@ -21,7 +52,7 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
     let pp_constructor_types (field_nanotypes : Ast.Type.t list) =
       let* ts = GC.map ~f:Type.coq_type_of_nanotype field_nanotypes
       in
-      let ts = ts @ [ identifier' ]
+      let ts = ts @ [ denoted_type variant_definition ]
       in
       GC.return @@ PP.separate_horizontally ~separator:(PP.string " -> ") ts
     in
@@ -49,8 +80,24 @@ let generate_inductive_type (variant_definition : Ast.Definition.Type.Variant.t)
   let block_label =
     Printf.sprintf "Union Inductive Type for %s" @@ Ast.Identifier.to_string variant_definition.identifier
   in
+  (* the constructors of a family take its parameters implicitly: Val_bits v, not Val_bits n v *)
+  let arguments =
+    match parameter_identifiers variant_definition with
+    | []         -> []
+    | parameters -> begin
+        List.map constructors ~f:(fun (constructor, _) ->
+            PP.string @@ Printf.sprintf "#[global] Arguments %s {%s}."
+              (Ast.Identifier.to_string constructor)
+              (String.concat ~sep:" " @@ List.map ~f:Ast.Identifier.to_string parameters)
+          )
+      end
+  in
   GC.generation_block [%here] block_label @@ begin
-    GC.block inductive_type
+    GC.block begin
+      let* inductive_type = inductive_type
+      in
+      GC.return @@ PP.vertical (inductive_type :: arguments)
+    end
   end
 
 
@@ -95,6 +142,10 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
     let id = Identifier.reified_variant_name variant_definition.identifier
     in
     Identifier.pp id
+  and tag_parameters (variant_definition : Ast.Definition.Type.Variant.t) : PP.t =
+    PP.separate_horizontally ~separator:PP.space @@ List.map (parameter_identifiers variant_definition) ~f:(fun identifier ->
+        PP.(surround parens @@ separate_horizontally ~separator:space [ Identifier.pp identifier; colon; string "nat" ])
+      )
   in
   GC.block begin
     GC.pp_inductive_type
@@ -103,8 +154,8 @@ let generate_tags (variant_definitions : (Sail.sail_definition * Ast.Definition.
       (
         fun add_constructor -> begin
             GC.iter
-              ~f:(fun variant_identifier ->
-                  add_constructor @@ tag_of_variant variant_identifier
+              ~f:(fun variant_definition ->
+                  add_constructor ~parameters:(tag_parameters variant_definition) @@ tag_of_variant variant_definition
                 )
               variant_definitions
           end

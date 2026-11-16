@@ -197,9 +197,17 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
         instance
           Types.Enums.enums_inductive_type_identifier
           (Registers.regname_tag :: List.map enum_definitions ~f:(fun (definition : Ast.Definition.Type.Enum.t) -> Identifier.reified_enum_name definition.identifier));
-        instance
-          Types.Variants.variants_inductive_type_identifier
-          (List.map variant_definitions ~f:(fun (definition : Ast.Definition.Type.Variant.t) -> Identifier.reified_variant_name definition.identifier));
+        if
+          List.exists variant_definitions ~f:Types.Variants.is_family
+        then
+          EqDec.pp_indexed_tag_instance
+            ~type_name:(Identifier.pp Types.Variants.variants_inductive_type_identifier)
+            ~values:(List.map variant_definitions ~f:(fun (definition : Ast.Definition.Type.Variant.t) ->
+                (Identifier.pp @@ Identifier.reified_variant_name definition.identifier, Types.Variants.is_family definition)))
+        else
+          instance
+            Types.Variants.variants_inductive_type_identifier
+            (List.map variant_definitions ~f:(fun (definition : Ast.Definition.Type.Variant.t) -> Identifier.reified_variant_name definition.identifier));
         instance
           Types.Records.records_inductive_type_identifier
           (List.map record_definitions ~f:(fun (definition : Ast.Definition.Type.Record.t) -> Identifier.reified_record_name definition.identifier));

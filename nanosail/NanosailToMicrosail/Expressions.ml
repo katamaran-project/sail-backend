@@ -35,6 +35,28 @@ let pp_infix_binary_operation (binary_operator : Ast.BinaryOperator.t) : PP.t GC
   end
 
 
+(*
+   The tag of a union in Unions, as an argument of exp_union and of a union match: Ures_bool,
+   or (Ures_bits _) for a width family (see SailToNanosail.UnionInstances), whose width Rocq infers
+   from the type of the constructed or matched value.
+*)
+let pp_union_tag (type_identifier : Ast.Identifier.t) : PP.t GC.t =
+  let tag = Identifier.pp @@ Identifier.reified_variant_name type_identifier
+  in
+  let* definition =
+    GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ type_definition @@ of_variant_named type_identifier)
+  in
+  match definition with
+  | None            -> GC.return tag
+  | Some definition -> begin
+      let Ast.TypeQuantifier.TypeQuantifier items = definition.type_quantifier
+      in
+      match items with
+      | []     -> GC.return tag
+      | _ :: _ -> GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (tag :: List.map items ~f:(fun _ -> PP.string "_"))
+    end
+
+
 let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
   let rec pp_value (value : Ast.Value.t) : PP.t GC.t =
     GC.pp_annotate [%here] begin
@@ -227,9 +249,11 @@ let rec pp_expression (expression : Ast.Expression.t) : PP.t GC.t =
     and reified_constructor_identifier =
       Identifier.reified_variant_constructor_name constructor_identifier
     in
-    let pp_variant_identifier =
-      Identifier.pp reified_variant_identifier
-    and pp_constructor_identifier =
+    let _ = reified_variant_identifier
+    in
+    let* pp_variant_identifier = pp_union_tag type_identifier
+    in
+    let pp_constructor_identifier =
       Identifier.pp reified_constructor_identifier
     in
     let* pp_fields =

@@ -138,6 +138,12 @@ end = struct
             in
             match UnionInstances.lookup union_instances identifier type_arguments with
             | Instance instance -> TC.return @@ Ast.Type.Variant instance.identifier
+            | Family (instance, width) -> begin
+                (* a width family at a width: ty.union (U_bits width) *)
+                let* width' = Numeric.translate_numeric_expression width
+                in
+                TC.return @@ Ast.Type.Application (Ast.Type.Variant instance.identifier, [ Ast.TypeArgument.NumericExpression width' ])
+              end
             | NoInstance reason -> TC.not_yet_implemented ~message:reason [%here] location
             | NotSpecialised    -> begin
             let* sum_definition : Ast.Definition.Type.Sum.t option =

@@ -66,7 +66,17 @@ let rec sail_conjuncts (numeric_constraint : S.n_constraint) : S.n_constraint li
   | NC_app _ | NC_var _ | NC_id _ | NC_true | NC_false -> [ numeric_constraint ]
 
 
-let translate_conjuncts (numeric_constraints : S.n_constraint list) : Ast.Numeric.Constraint.t list TC.t =
+let translate_conjuncts
+    ?(environment       : Libsail.Type_check.Env.t option = None)
+    (numeric_constraints : S.n_constraint list                  ) : Ast.Numeric.Constraint.t list TC.t
+  =
+  (* type synonyms expanded ('n <= xlen_bytes is 'n <= 4): lia does not unfold Rocq definitions *)
+  let numeric_constraints =
+    match environment with
+    | None             -> numeric_constraints
+    | Some environment -> ExtBase.List.map numeric_constraints ~f:(fun numeric_constraint ->
+        try Libsail.Type_check.Env.expand_constraint_synonyms environment numeric_constraint with _ -> numeric_constraint)
+  in
   let translate_conjunct (numeric_constraint : S.n_constraint) : Ast.Numeric.Constraint.t option TC.t =
     TC.recover
       (TC.lift ~f:ExtBase.Option.some @@ Numeric.translate_numeric_constraint numeric_constraint)
@@ -84,7 +94,10 @@ let translate_conjuncts (numeric_constraints : S.n_constraint list) : Ast.Numeri
 
 
 (* The constraints of a type quantifier, as translated conjuncts (see translate_conjuncts) *)
-let translate_type_quantifier_constraints (type_quantifier : Libsail.Ast.typquant) : Ast.Numeric.Constraint.t list TC.t =
+let translate_type_quantifier_constraints
+    ?(environment     : Libsail.Type_check.Env.t option = None)
+    (type_quantifier : Libsail.Ast.typquant                  ) : Ast.Numeric.Constraint.t list TC.t
+  =
   let numeric_constraints =
     ExtBase.List.filter_map type_quantifier ~f:(fun (S.QI_aux (item, _)) ->
         match item with
@@ -92,4 +105,4 @@ let translate_type_quantifier_constraints (type_quantifier : Libsail.Ast.typquan
         | QI_id _                          -> None
       )
   in
-  translate_conjuncts numeric_constraints
+  translate_conjuncts ~environment numeric_constraints

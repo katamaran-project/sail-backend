@@ -232,6 +232,7 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
     let S.DEF_aux (unwrapped_sail_definition, annotation) = sail_definition
     in
     let* specialised_union = is_specialised_union sail_definition
+    and* union_instances = TC.union_instances
     in
     if
       should_ignore_definition sail_definition
@@ -265,6 +266,20 @@ let translate_definition (sail_definition : Sail.sail_definition) : (Sail.sail_d
       specialised_union
     then
       (* The union is translated to its monomorphic copies, which are emitted separately (see UnionInstances) *)
+      TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
+    else if
+      UnionInstances.is_inlined_definition union_instances sail_definition
+    then
+      let* () =
+        let message = lazy begin
+          PP.vertical [
+            PP.string "Skipping this definition: it is polymorphic in a type over a specialised union, its calls are inlined";
+            pp_sail_definition
+          ]
+        end
+        in
+        TC.log [%here] Logging.info message
+      in
       TC.return (sail_definition, Ast.Definition.IgnoredDefinition)
     else begin
       translate_with_recovery sail_definition begin
@@ -319,7 +334,12 @@ let translate_union_instance (instance : UnionInstances.Instance.t) : (Sail.sail
               in
               List.map ~f:make_constructor instance.constructors
             in
-            let* variant = Translate.Variant.translate_regular_variant instance.identifier (Ast.TypeQuantifier.TypeQuantifier []) constructors
+            let type_quantifier =
+              if instance.family
+              then Ast.TypeQuantifier.TypeQuantifier [ (Translate.Identifier.translate_kind_identifier UnionInstances.family_index_kid, Ast.Kind.Int) ]
+              else Ast.TypeQuantifier.TypeQuantifier []
+            in
+            let* variant = Translate.Variant.translate_regular_variant instance.identifier type_quantifier constructors
             in
             TC.return @@ Ast.Definition.TypeDefinition variant
           end
@@ -333,13 +353,17 @@ let translate_union_instance (instance : UnionInstances.Instance.t) : (Sail.sail
    Translates a definition, followed by the monomorphic copies of unions that are emitted after it.
 *)
 let translate_indexed_definition ((index, sail_definition) : int * Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) list TC.t =
-  let* translated = translate_definition sail_definition
-  in
   let* union_instances = TC.union_instances
+  in
+  (* a function polymorphic in a type over a specialised union is translated as its copies per type (see UnionInstances) *)
+  let* translated =
+    match UnionInstances.copies_of_definition union_instances sail_definition with
+    | None        -> TC.lift ~f:(fun translated -> [ translated ]) @@ translate_definition sail_definition
+    | Some copies -> TC.map ~f:translate_definition copies
   in
   let* copies = TC.map ~f:translate_union_instance (UnionInstances.instances_after union_instances index)
   in
-  TC.return @@ translated :: List.concat copies
+  TC.return @@ translated @ List.concat copies
 
 
 (*

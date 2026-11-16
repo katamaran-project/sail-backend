@@ -406,8 +406,8 @@ and pp_match_variant
   (*
      Reified union type
   *)
-  let pp_matched_type =
-    PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name matched_type
+  let* pp_matched_type = GC.lift ~f:(PP.annotate [%here]) @@ Expressions.pp_union_tag matched_type
+  in
    (*
      Statement whose value is being matched
 
@@ -415,7 +415,7 @@ and pp_match_variant
      so we start with an identifier, which we turn into an expression, which we
      turn into a statement.
   *)
-  and pp_matched_statement =
+  let pp_matched_statement =
     PP.annotate [%here] begin
       PP.(surround parens) @@ MuSail.Statement.pp_expression @@ MuSail.Expression.pp_variable @@ Identifier.pp matched
     end

@@ -805,7 +805,8 @@ let specialise_branch
   let outer_size_variables = Libsail.Type_check.Env.get_typ_vars outer_environment
   in
   let candidates : S.kid list =
-    List.concat_map locals ~f:(fun (_, typ) -> Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_typ typ)
+    List.concat_map (("", branch_type) :: List.map locals ~f:(fun (identifier, typ) -> (Libsail.Ast_util.string_of_id identifier, typ))) ~f:(fun (_, typ) ->
+        Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_typ typ)
     |> List.dedup_and_sort ~compare:Libsail.Ast_compare.Kid.compare
     |> List.filter ~f:(fun kid ->
         match Libsail.Ast_compare.KBindings.find_opt kid outer_size_variables with
@@ -843,7 +844,7 @@ let specialise_branch
         in
         not (List.is_empty kids) && List.for_all kids ~f:is_candidate
       )
-    |> TypeQuantifier.translate_conjuncts
+    |> TypeQuantifier.translate_conjuncts ~environment:(Some inner_environment)
   in
   match fixed, facts with
   | [], [] -> TC.return statement
@@ -1145,7 +1146,7 @@ let rec statement_of_aexp
           *)
           let* constructed_type = Type.translate_type typ
           in
-          match Ast.Type.strip_aliases constructed_type with
+          match Ast.Type.strip_family @@ Ast.Type.strip_aliases constructed_type with
           | Variant instance_identifier -> begin
               let constructor_identifier = UnionInstances.constructor_in union_instances instance_identifier receiver_identifier'
               in
@@ -2338,6 +2339,66 @@ let replace_calls_by_values (expression : Sail.type_annotation S.exp) : Sail.typ
   Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
 
 
+(*
+   Inlines each call to a function polymorphic in a type over a specialised union (see UnionInstances.collect):
+
+     MemoryOpResult_drop_meta(r)    becomes    let r' : ... = r in match r' { MemValue((v, m)) => MemValue(v), ... }
+
+   with the function's parameter pattern and body, type-checked again at the call's type in the call's
+   environment, so that the union instances are those of the call. A call that does not type-check stays.
+*)
+let inline_calls
+    (union_instances : UnionInstances.t                  )
+    (expression      : Sail.type_annotation S.exp        ) : Sail.type_annotation S.exp
+  =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let rewrite
+      (unwrapped_expression : Sail.type_annotation S.exp_aux)
+      (annotation           : Sail.type_annotation S.annot  ) : Sail.type_annotation S.exp
+    =
+    let original = S.E_aux (unwrapped_expression, annotation)
+    in
+    match unwrapped_expression with
+    | S.E_app (identifier, arguments) when Option.is_some (UnionInstances.renamed_call union_instances identifier original) -> begin
+        (* a call to a function with a copy per type: a call to the copy at the call's type *)
+        match UnionInstances.renamed_call union_instances identifier original with
+        | None -> original
+        | Some (copy_identifier, type_quantifier, typ) -> begin
+            let typed (argument : Sail.type_annotation S.exp) : S.uannot S.exp =
+              Libsail.Ast_util.mk_exp (S.E_typ (TypeCheck.typ_of argument, TypeCheck.strip_exp argument))
+            in
+            let environment = TypeCheck.Env.update_val_spec copy_identifier (type_quantifier, typ) (TypeCheck.env_of_annot annotation)
+            in
+            try TypeCheck.check_exp environment (Libsail.Ast_util.mk_exp (S.E_app (copy_identifier, List.map ~f:typed arguments))) (TypeCheck.typ_of_annot annotation)
+            with _ -> original
+          end
+      end
+    | S.E_app (identifier, arguments) -> begin
+        match UnionInstances.inlined_function union_instances identifier with
+        | None                   -> original
+        | Some (pattern, body) -> begin
+            (* each argument with its type, as the body's match needs to know the type of what it matches *)
+            let typed (argument : Sail.type_annotation S.exp) : S.uannot S.exp =
+              Libsail.Ast_util.mk_exp (S.E_typ (TypeCheck.typ_of argument, TypeCheck.strip_exp argument))
+            in
+            let argument =
+              match arguments with
+              | [ single ] -> typed single
+              | several    -> Libsail.Ast_util.mk_exp (S.E_tuple (List.map ~f:typed several))
+            in
+            let inlined =
+              Libsail.Ast_util.mk_exp (S.E_let (TypeCheck.strip_pat pattern, argument, TypeCheck.strip_exp body))
+            in
+            try TypeCheck.check_exp (TypeCheck.env_of_annot annotation) inlined (TypeCheck.typ_of_annot annotation)
+            with _ -> original
+          end
+      end
+    | _ -> original
+  in
+  Libsail.Rewriter.fold_exp { Libsail.Rewriter.id_exp_alg with e_aux = (fun (unwrapped_expression, annotation) -> rewrite unwrapped_expression annotation) } expression
+
+
 let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.funcl) : sail_function_parts TC.t =
   let S.FCL_aux (S.FCL_funcl (identifier, clause), (_def_annot, _type_annotation)) = function_clause
   in
@@ -2362,8 +2423,11 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
          in
          TC.iter ~f:warn effectful_message_locations
        in
-       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values body_without_messages
-       and return_type = Libsail.Type_check.typ_of raw_body
+       let* union_instances = TC.union_instances
+       in
+       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ replace_calls_by_values @@ inline_calls union_instances body_without_messages
+       (* the body's type, with widths that Sail proves equal to a size variable replaced by it (see normalise_widths) *)
+       and return_type = normalise_widths (Libsail.Type_check.env_of raw_body) (Libsail.Type_check.typ_of raw_body)
        in
        let* locally_bound_identifiers =
          let sail_identifiers =
@@ -2701,7 +2765,7 @@ let translate_function_definition
           let environment = Libsail.Type_check.env_of_pat parts.parameter_bindings
           in
           match Libsail.Type_check.Env.get_val_spec_orig parts.identifier environment with
-          | (type_quantifier, _)           -> TypeQuantifier.translate_type_quantifier_constraints type_quantifier
+          | (type_quantifier, _)           -> TypeQuantifier.translate_type_quantifier_constraints ~environment:(Some environment) type_quantifier
           | exception Libsail.Type_error.Type_error _ -> TC.return []
         in
         let* () =

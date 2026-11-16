@@ -1539,7 +1539,7 @@ let rec adorn_pattern_tree
             then
               TC.not_yet_implemented [%here] location
             else begin
-              match matched_type with
+              match Ast.Type.strip_family matched_type with
               | Variant variant_identifier -> begin
                   let* expanded_node =
                     build_variant_node
@@ -2461,6 +2461,8 @@ let rec translate_pattern
   =
   let S.AP_aux (unwrapped_sail_pattern, _annotation) = sail_pattern
   in
+  let matched_type = Ast.Type.strip_family matched_type
+  in
 
   let translate_variable_pattern (sail_name : S.Jib.name) : Pattern.t TC.t =
     let* identifier = Identifier.translate_identifier [%here] @@ Sail.id_of_name sail_name
@@ -2879,6 +2881,25 @@ let replace_merged_cases
       end
   in
   replace cases false
+
+
+(* Does every value that pattern_2 matches also match pattern_1? (A sufficient test, on the patterns' structure.) *)
+let rec subsumes (pattern_1 : Pattern.t) (pattern_2 : Pattern.t) : bool =
+  match pattern_1, pattern_2 with
+  | Binder _, _                                        -> true
+  | Unit, Unit                                         -> true
+  | ListNil, ListNil                                   -> true
+  | ListCons (head_1, tail_1), ListCons (head_2, tail_2) -> subsumes head_1 head_2 && subsumes tail_1 tail_2
+  | Tuple subpatterns_1, Tuple subpatterns_2           -> begin
+      match List.zip subpatterns_1 subpatterns_2 with
+      | Ok pairs        -> List.for_all pairs ~f:(fun (x, y) -> subsumes x y)
+      | Unequal_lengths -> false
+    end
+  | EnumCase identifier_1, EnumCase identifier_2       -> Ast.Identifier.equal identifier_1 identifier_2
+  | VariantCase (constructor_1, field_1), VariantCase (constructor_2, field_2) -> Ast.Identifier.equal constructor_1 constructor_2 && subsumes field_1 field_2
+  | SumCase (side_1, value_1), SumCase (side_2, value_2) -> Ast.SumSide.equal side_1 side_2 && subsumes value_1 value_2
+  | BoolCase value_1, BoolCase value_2                 -> Bool.equal value_1 value_2
+  | (Unit | ListNil | ListCons (_, _) | Tuple _ | EnumCase _ | VariantCase (_, _) | SumCase (_, _) | BoolCase _), _ -> false
 
 
 (* Is the pattern nested, i.e., something else than a binder or unit? *)
@@ -3392,12 +3413,12 @@ let rec translate_cases
     (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
   =
   (* a match on a value of an abbreviated type is a match on the type it abbreviates (type ext_data_addr_error = (CapEx, capreg_idx)) *)
-  match Ast.Type.strip_aliases matched_type with
+  match Ast.Type.strip_family @@ Ast.Type.strip_aliases matched_type with
   | List element_type            -> translate_list_match location matched_identifier element_type cases
   | Unit                         -> translate_unit_match location matched_identifier cases output_type
   | Enum enum_identifier         -> translate_enum_match location matched_identifier enum_identifier cases output_type
   | Variant variant_identifier   -> translate_variant_match location matched_identifier variant_identifier cases output_type
-  | Tuple element_types          -> translate_tuple_match location matched_identifier element_types cases output_type
+  | Tuple element_types          -> translate_tuple_match_splitting_unions location matched_identifier element_types cases output_type
   | Sum (left_type, right_type)  -> translate_sum_match location matched_identifier left_type right_type cases output_type
   | Int _                        -> TC.not_yet_implemented [%here] location
   | Bool                         -> translate_bool_match location matched_identifier cases output_type
@@ -3413,6 +3434,236 @@ let rec translate_cases
   | Nat                          -> TC.not_yet_implemented [%here] location
   | Vector _                     -> TC.not_yet_implemented [%here] location
   | Implicit _                   -> TC.not_yet_implemented [%here] location
+
+
+(*
+   A tuple match with a pattern nested inside a constructor of a union in one of its columns, e.g.,
+
+     match (t, r) {
+       (Execute(_), None()) => b1,
+       (Read(Data), None()) => b2,       // Data nested inside Read
+       (_, None())          => b3,
+       (_, Some((v, m)))    => b4
+     }
+
+   The pattern tree of a tuple match only supports binders for the fields of a constructor. The union's column is
+   matched first, one case per constructor, and in each the constructor's fields together with the other columns
+   are matched as a tuple, with the rows for that constructor and the catch-all rows, in their order:
+
+     match t {
+       Read(f) => match (f, r) { (Data, None()) => b2, (_, None()) => b3, (_, Some((v, m))) => b4 },
+       ...
+     }
+
+   Bodies of catch-all rows are copied into each constructor's case. Tuple matches without such a column are left alone.
+*)
+and translate_tuple_match_splitting_unions
+    (location           : S.l                               )
+    (matched_identifier : Ast.Identifier.t                  )
+    (element_types      : Ast.Type.t list                   )
+    (cases              : (Pattern.t * Ast.Statement.t) list)
+    (output_type        : Ast.Type.t                        ) : Ast.Statement.t TC.t
+  =
+  let rows : (Pattern.t list * Ast.Statement.t) list option =
+    List.fold_right cases ~init:(Some []) ~f:(fun (pattern, body) rows ->
+        match pattern, rows with
+        | Tuple subpatterns, Some rows when List.length subpatterns = List.length element_types -> Some ((subpatterns, body) :: rows)
+        | _                                                                                   -> None
+      )
+  in
+  (* the field pattern of a constructor or sum side, if the pattern is one *)
+  let constructor_field_pattern (pattern : Pattern.t) : Pattern.t option =
+    match pattern with
+    | VariantCase (_, field_pattern) -> Some field_pattern
+    | SumCase (_, field_pattern)     -> Some field_pattern
+    | Binder _ | Unit | ListCons (_, _) | ListNil | Tuple _ | EnumCase _ | BoolCase _ -> None
+  in
+  let has_nested_constructor_pattern (column : int) : bool =
+    match rows with
+    | None      -> false
+    | Some rows -> begin
+        List.exists rows ~f:(fun (subpatterns, _) ->
+            let pattern = List.nth_exn subpatterns column
+            in
+            match constructor_field_pattern pattern with
+            | Some (Tuple subpatterns) -> begin
+                (* the fields of a constructor, but the one value of a sum's side *)
+                match pattern with
+                | SumCase (_, _) -> true
+                | VariantCase (_, _) | Binder _ | Unit | ListCons (_, _) | ListNil | Tuple _ | EnumCase _ | BoolCase _ -> List.exists subpatterns ~f:is_nested_pattern
+              end
+            | Some (Binder _ | Unit)   -> false
+            | Some (ListCons (_, _) | ListNil | EnumCase _ | VariantCase (_, _) | SumCase (_, _) | BoolCase _) -> true
+            | None                     -> false
+          )
+      end
+  in
+  (*
+     A column to split: its constructors (how a pattern for each is recognised and built, and its field types),
+     and the match on the column once each constructor's case is built.
+  *)
+  let split_column : (int * Ast.Type.t * ((Pattern.t -> Pattern.t option) * (Pattern.t -> Pattern.t) * Ast.Type.t list) list TC.t * (Ast.Identifier.t -> (Pattern.t * Ast.Statement.t) list -> Ast.Statement.t TC.t)) option =
+    List.find_mapi element_types ~f:(fun column element_type ->
+        if not (has_nested_constructor_pattern column) then None
+        else
+        match Ast.Type.strip_family @@ Ast.Type.strip_aliases element_type with
+        | Variant variant_identifier -> begin
+            let constructors =
+              let* variant_definition =
+                TC.lookup_definition Ast.Definition.Select.(type_definition @@ of_variant_named variant_identifier)
+              in
+              (* the field types of a width family at the width of the column *)
+              let instantiate (typ : Ast.Type.t) : Ast.Type.t =
+                let Ast.TypeQuantifier.TypeQuantifier parameters = variant_definition.type_quantifier
+                in
+                match parameters, Ast.Type.strip_aliases element_type with
+                | [ (index, _) ], Application (_, [ NumericExpression width ]) -> begin
+                    Ast.Type.substitute_numeric_expression_identifier
+                      (fun identifier -> if Ast.Identifier.equal identifier index then width else Ast.Numeric.Expression.Var identifier)
+                      typ
+                  end
+                | _ -> typ
+              in
+              TC.return @@ List.map variant_definition.constructors ~f:(fun (constructor_identifier, field_types) ->
+                  let recognise (pattern : Pattern.t) : Pattern.t option =
+                    match pattern with
+                    | VariantCase (case_constructor, field_pattern) when Ast.Identifier.equal case_constructor constructor_identifier -> Some field_pattern
+                    | VariantCase (_, _) | SumCase (_, _) | Binder _ | Unit | ListCons (_, _) | ListNil | Tuple _ | EnumCase _ | BoolCase _ -> None
+                  and build (field_pattern : Pattern.t) : Pattern.t = VariantCase (constructor_identifier, field_pattern)
+                  in
+                  (recognise, build, List.map ~f:instantiate field_types))
+            in
+            Some (column, element_type, constructors, fun column_identifier cases -> translate_variant_match location column_identifier variant_identifier cases output_type)
+          end
+        | Sum (left_type, right_type) -> begin
+            let side (side : Ast.SumSide.t) (typ : Ast.Type.t) =
+              let recognise (pattern : Pattern.t) : Pattern.t option =
+                match pattern with
+                | SumCase (case_side, field_pattern) when Ast.SumSide.equal case_side side -> Some field_pattern
+                | VariantCase (_, _) | SumCase (_, _) | Binder _ | Unit | ListCons (_, _) | ListNil | Tuple _ | EnumCase _ | BoolCase _ -> None
+              and build (field_pattern : Pattern.t) : Pattern.t = SumCase (side, field_pattern)
+              in
+              (* a side holding a tuple has its components as fields, as a constructor with several fields *)
+              let field_types =
+                match Ast.Type.strip_aliases typ with
+                | Tuple types -> types
+                | _           -> [ typ ]
+              in
+              (recognise, build, field_types)
+            in
+            Some (column, element_type, TC.return [ side Left left_type; side Right right_type ], fun column_identifier cases -> translate_sum_match location column_identifier left_type right_type cases output_type)
+          end
+        | _ -> None
+      )
+  in
+  match split_column, rows with
+  | None, _ | _, None -> translate_tuple_match location matched_identifier element_types cases output_type
+  | Some (column, element_type, constructors, match_column), Some rows -> begin
+      let* constructors = constructors
+      in
+      create_tuple_match matched_identifier element_types begin fun column_identifiers ->
+        let column_identifier = List.nth_exn column_identifiers column
+        and other_columns = List.filteri (List.zip_exn column_identifiers element_types) ~f:(fun index _ -> index <> column)
+        in
+        let case_for_constructor ((recognise, build, field_types) : (Pattern.t -> Pattern.t option) * (Pattern.t -> Pattern.t) * Ast.Type.t list) : (Pattern.t * Ast.Statement.t) TC.t =
+          let field_count = List.length field_types
+          in
+          let* field_identifiers = TC.repeat field_count ~f:(TC.generate_unique_identifier ())
+          in
+          let wildcards () : Pattern.t list TC.t =
+            TC.repeat field_count ~f:(let* binder = Binder.generate_wildcard in TC.return @@ Pattern.Binder binder)
+          in
+          let tuple_of (variables : (Ast.Identifier.t * Ast.Type.t) list) : Ast.Expression.t option =
+            match List.map variables ~f:(fun (identifier, typ) -> Ast.Expression.Variable (identifier, typ)) with
+            | []       -> None
+            | [ x ]    -> Some x
+            | [ x; y ] -> Some (Ast.Expression.BinaryOperation (Pair, x, y))
+            | elements -> Some (Ast.Expression.Tuple elements)
+          and type_of (types : Ast.Type.t list) : Ast.Type.t =
+            match types with
+            | [ typ ] -> typ
+            | _       -> Ast.Type.Tuple types
+          in
+          let fields = List.zip_exn field_identifiers field_types
+          in
+          (* the rows for this constructor: its fields' patterns and the other columns' *)
+          let* specialised_rows : (Pattern.t list * Ast.Statement.t) list =
+            TC.filter_map rows ~f:(fun (subpatterns, body) ->
+                let others = List.filteri subpatterns ~f:(fun index _ -> index <> column)
+                in
+                let pattern = List.nth_exn subpatterns column
+                in
+                match recognise pattern, pattern with
+                | Some field_pattern, _ -> begin
+                    match field_count, field_pattern with
+                    | 0, _                 -> TC.return @@ Some (others, body)
+                    | 1, _                 -> TC.return @@ Some (field_pattern :: others, body)
+                    | _, Tuple subpatterns -> TC.return @@ Some (subpatterns @ others, body)
+                    | _, Binder binder     -> begin
+                        let* field_wildcards = wildcards ()
+                        in
+                        let body : Ast.Statement.t =
+                          match binder.wildcard, tuple_of fields with
+                          | false, Some tuple -> Let { binder = binder.identifier; binding_statement_type = type_of field_types; binding_statement = Expression tuple; body_statement = body }
+                          | _                 -> body
+                        in
+                        TC.return @@ Some (field_wildcards @ others, body)
+                      end
+                    | _, _ -> TC.fail [%here] "pattern is incompatible with the fields of the constructor"
+                  end
+                | None, (VariantCase (_, _) | SumCase (_, _)) -> TC.return None
+                | None, Binder binder -> begin
+                    let* field_wildcards = wildcards ()
+                    in
+                    let body : Ast.Statement.t =
+                      if binder.wildcard
+                      then body
+                      else Let { binder = binder.identifier; binding_statement_type = element_type; binding_statement = Expression (Variable (column_identifier, element_type)); body_statement = body }
+                    in
+                    TC.return @@ Some (field_wildcards @ others, body)
+                  end
+                | None, (Unit | ListCons (_, _) | ListNil | Tuple _ | EnumCase _ | BoolCase _) -> TC.fail [%here] "pattern is incompatible with type of value being matched"
+              )
+          in
+          (* a row that an earlier row subsumes is unreachable (Sail takes the first match), and would clash in the pattern tree *)
+          let specialised_rows =
+            List.filteri specialised_rows ~f:(fun index (subpatterns, _) ->
+                not (List.existsi specialised_rows ~f:(fun index' (subpatterns', _) -> index' < index && subsumes (Tuple subpatterns') (Tuple subpatterns)))
+              )
+          in
+          let inner_variables = fields @ other_columns
+          in
+          let* inner_match : Ast.Statement.t =
+            match specialised_rows, inner_variables with
+            | [], _ -> TC.return @@ Ast.Statement.Fail (output_type, "unreachable: no case for this constructor")
+            | _, [ (identifier, typ) ] -> begin
+                translate_cases location identifier typ (List.map specialised_rows ~f:(fun (subpatterns, body) -> (List.hd_exn subpatterns, body))) output_type
+              end
+            | _, _ -> begin
+                let* tuple_identifier = TC.generate_unique_identifier ()
+                in
+                let tuple_type = Ast.Type.Tuple (List.map ~f:snd inner_variables)
+                in
+                let* inner = translate_cases location tuple_identifier tuple_type (List.map specialised_rows ~f:(fun (subpatterns, body) -> (Pattern.Tuple subpatterns, body))) output_type
+                in
+                match tuple_of inner_variables with
+                | Some tuple -> TC.return @@ Ast.Statement.Let { binder = tuple_identifier; binding_statement_type = tuple_type; binding_statement = Expression tuple; body_statement = inner }
+                | None       -> TC.fail [%here] "empty tuple"
+              end
+          in
+          let field_pattern : Pattern.t =
+            match List.map field_identifiers ~f:(fun identifier -> Pattern.Binder { identifier; wildcard = false }) with
+            | []         -> Pattern.Unit
+            | [ binder ] -> binder
+            | binders    -> Tuple binders
+          in
+          TC.return (build field_pattern, inner_match)
+        in
+        let* outer_cases = TC.map ~f:case_for_constructor constructors
+        in
+        match_column column_identifier outer_cases
+      end
+    end
 
 
 and translate_sum_match

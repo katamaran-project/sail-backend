@@ -161,6 +161,18 @@ let rec pp_type (typ : Ast.Type.t) : PP.t GC.t =
   | Bit                              -> GC.pp_annotate [%here] @@ ty "bvec 1"   (* Sail's library: type bit = bitvector(1) *)
   | Record id                        -> GC.pp_annotate [%here] @@ pp_record id
   | Variant id                       -> GC.pp_annotate [%here] @@ pp_variant id
+  | Application (Variant id, [ NumericExpression width ]) -> begin
+      (* a width family (see SailToNanosail.UnionInstances): ty.union (Ures_bits width) *)
+      let* pp_width = Numeric.Expression.pp_argument @@ Ast.Numeric.Expression.simplify width
+      in
+      GC.return @@ PP.annotate [%here] @@ PP.horizontal [
+        PP.string "ty.union (";
+        Identifier.pp @@ Identifier.reified_variant_name id;
+        PP.space;
+        pp_width;
+        PP.string ")";
+      ]
+    end
   | Application (constructor, targs) -> GC.pp_annotate [%here] @@ pp_application constructor targs
   | Enum id                          -> GC.pp_annotate [%here] @@ pp_enum id
   | List typ                         -> GC.pp_annotate [%here] @@ pp_list typ

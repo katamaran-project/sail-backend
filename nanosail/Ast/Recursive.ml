@@ -336,6 +336,7 @@ module rec Type : sig
   val substitute_type_variable                 : (Identifier.t -> t option) -> t -> t
   val simplify                                 : t -> t
   val strip_aliases                            : t -> t
+  val strip_family                             : t -> t
 end = struct
   type t =
     | Int          of NumericExpression.t option
@@ -459,7 +460,18 @@ end = struct
      Removes the aliases around a type, e.g., Alias (xlenbits, Bitvector 32) becomes Bitvector 32.
      Only the outermost aliases are removed; aliases inside the type are kept.
   *)
-  let rec strip_aliases (typ : t) : t =
+  (*
+     A width family at a width (Application (Variant U_bits, [width]), see SailToNanosail.UnionInstances)
+     as the union, for what does not depend on the width (its constructors, matches on it); aliases are stripped too.
+  *)
+  let rec strip_family (typ : t) : t =
+    match typ with
+    | Application (Variant identifier, [ NumericExpression _ ]) -> Variant identifier
+    | Alias (_identifier, aliased_type)                        -> strip_family aliased_type
+    | Application (_, _) | Int _ | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _)
+    | Variant _ | Record _ | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> typ
+
+  and strip_aliases (typ : t) : t =
     match typ with
     | Alias (_identifier, aliased_type) -> strip_aliases aliased_type
     | Int _                             -> typ

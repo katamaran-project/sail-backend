@@ -164,10 +164,19 @@ let rec constraint_variables (numeric_constraint : Ast.Numeric.Constraint.t) : A
 
 
 let of_signature
+    ?(value_parameters : Ast.Identifier.t list = [] )
     ~(types       : Ast.Type.t list                )
     ~(constraints : Ast.Numeric.Constraint.t list  ) : signature
   =
   let from_types = of_types types
+  in
+  (* size variables only an int('n) parameter mentions, but that the body needs (see of_function) *)
+  let from_values =
+    List.filter_map value_parameters ~f:(fun identifier ->
+        if List.exists from_types ~f:(fun (identifier', _) -> Ast.Identifier.equal identifier identifier')
+        then None
+        else Some (identifier, Ast.Kind.Int))
+    |> List.dedup_and_sort ~compare:(fun (x, _) (y, _) -> Ast.Identifier.compare x y)
   in
   let expressible : (Ast.Numeric.Constraint.t * Ast.Identifier.t list) list =
     List.filter_map constraints ~f:(fun numeric_constraint ->
@@ -191,7 +200,7 @@ let of_signature
     then parameters
     else close (List.append parameters (List.map added ~f:(fun identifier -> (identifier, Ast.Kind.Int))))
   in
-  let parameters = close from_types
+  let parameters = close (List.append from_types from_values)
   in
   let hypotheses =
     List.filter_map expressible ~f:(fun (numeric_constraint, variables) ->
@@ -303,3 +312,28 @@ let pp_signature_explicit_application (name : PP.t) (signature : signature) : PP
   match arguments with
   | []     -> name
   | _ :: _ -> PP.separate_horizontally ~separator:PP.space (PP.horizontal [ PP.string "@"; name ] :: arguments)
+
+
+(*
+   The signature of a function: the size variables of its parameter and result types, and
+   those of its int('n) parameters that a type in its body mentions (bits(8 * 'n) for read(width)
+   in read_is_val(width : int('n))), which callers pass by name; then those its constraints relate to them.
+*)
+let of_function (function_definition : Ast.Definition.Function.t) : signature =
+  let parameter_types = List.map ~f:snd function_definition.function_type.parameters
+  in
+  let in_integer_parameters =
+    List.concat_map parameter_types ~f:(fun typ ->
+        match Ast.Type.strip_aliases typ with
+        | Int (Some size) -> numeric_variables size
+        | Int None | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Variant _ | Record _
+        | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> []
+      )
+  in
+  let in_body =
+    List.concat_map (Ast.Statement.types function_definition.function_body) ~f:(fun typ -> List.map ~f:fst (of_type typ))
+  in
+  of_signature
+    ~value_parameters:(List.filter in_integer_parameters ~f:(fun identifier -> List.mem in_body identifier ~equal:Ast.Identifier.equal))
+    ~types:(List.append parameter_types [ function_definition.function_type.return_type ])
+    ~constraints:function_definition.type_constraints

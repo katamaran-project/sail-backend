@@ -30,31 +30,62 @@ let pp_callee
   | None                     -> GC.return pp_name
   | Some function_definition -> begin
       let signature =
-        TypeLevelParameters.of_signature
-          ~types:(List.append (List.map ~f:snd function_definition.function_type.parameters) [ function_definition.function_type.return_type ])
-          ~constraints:function_definition.type_constraints
+        TypeLevelParameters.of_function function_definition
       in
       let not_inferable =
         List.filter signature.parameters ~f:(fun (identifier, _) ->
             not (List.mem signature.inferable identifier ~equal:Ast.Identifier.equal)
           )
       in
-      (* the size of the argument whose parameter has type int('identifier) *)
-      let instantiation (identifier : Ast.Identifier.t) : Ast.Numeric.Expression.t option =
+      (* the sizes of the callee's size variables that its parameter types show, from the arguments' types *)
+      let shown : (Ast.Identifier.t * Ast.Numeric.Expression.t) list =
         match List.zip function_definition.function_type.parameters arguments with
-        | Unequal_lengths -> None
+        | Unequal_lengths -> []
         | Ok pairs        -> begin
-            List.find_map pairs ~f:(fun ((_, parameter_type), argument) ->
-                match Ast.Type.strip_aliases parameter_type with
-                | Int (Some (Var identifier')) when Ast.Identifier.equal identifier identifier' -> begin
-                    match argument with
-                    | Value (Int value) -> Some (Ast.Numeric.Expression.Constant value)
-                    | _ -> begin
-                        match Ast.Type.strip_aliases (Ast.Expression.infer_type argument) with
-                        | Int (Some size)   -> Some (Ast.Numeric.Expression.simplify size)
-                        | _                 -> None
-                        | exception Ast.Expression.UnimplementedTypeInference -> None
-                      end
+            List.filter_map pairs ~f:(fun ((_, parameter_type), argument) ->
+                let argument_type =
+                  try Some (Ast.Type.strip_aliases (Ast.Expression.infer_type argument))
+                  with Ast.Expression.UnimplementedTypeInference -> None
+                in
+                match Ast.Type.strip_aliases parameter_type, argument, argument_type with
+                | Int (Some (Var identifier)), Value (Int value), _                                         -> Some (identifier, Ast.Numeric.Expression.Constant value)
+                | Int (Some (Var identifier)), _, Some (Int (Some size))                                    -> Some (identifier, Ast.Numeric.Expression.simplify size)
+                | Bitvector (Var identifier), _, Some (Bitvector size)                                      -> Some (identifier, Ast.Numeric.Expression.simplify size)
+                | Application (_, [ NumericExpression (Var identifier) ]), _, Some (Application (_, [ NumericExpression size ])) -> Some (identifier, Ast.Numeric.Expression.simplify size)
+                | _ -> None
+              )
+          end
+      in
+      let shown_size (identifier : Ast.Identifier.t) : Ast.Numeric.Expression.t option =
+        List.Assoc.find shown ~equal:Ast.Identifier.equal identifier
+      in
+      (*
+         The instantiation of a size variable Rocq cannot infer, printed: shown by an int('n) argument,
+         or derived from an equation 'p == c * 'n of the callee's hypotheses and a shown 'p, as p / c.
+      *)
+      let instantiation (identifier : Ast.Identifier.t) : (Ast.Numeric.Expression.t * Z.t option) option =
+        match shown_size identifier with
+        | Some size -> Some (size, None)
+        | None      -> begin
+            List.find_map signature.hypotheses ~f:(fun hypothesis ->
+                let derive (product_side : Ast.Numeric.Expression.t) (other_side : Ast.Numeric.Expression.t) =
+                  match product_side, other_side with
+                  | (BinaryOperation (Mul, Constant factor, Var identifier') | BinaryOperation (Mul, Var identifier', Constant factor)), Var multiple
+                    when Ast.Identifier.equal identifier identifier' && Z.gt factor Z.zero -> begin
+                      match shown_size multiple with
+                      (* 'p shown as c * X: 'n is X *)
+                      | Some (BinaryOperation (Mul, Constant factor', size) | BinaryOperation (Mul, size, Constant factor'))
+                        when Z.equal factor factor' -> Some (size, None)
+                      | Some size -> Some (size, Some factor)
+                      | None      -> None
+                    end
+                  | _ -> None
+                in
+                match hypothesis with
+                | Equal (NumericExpression left, NumericExpression right) -> begin
+                    match derive right left with
+                    | Some derived -> Some derived
+                    | None         -> derive left right
                   end
                 | _ -> None
               )
@@ -72,8 +103,13 @@ let pp_callee
       let* named_arguments =
         GC.map not_inferable ~f:(fun (identifier, _) ->
             match instantiation identifier with
-            | Some size when in_scope size -> begin
+            | Some (size, divisor) when in_scope size -> begin
                 let* pp_size = Numeric.Expression.pp size
+                in
+                let pp_size =
+                  match divisor with
+                  | None         -> pp_size
+                  | Some divisor -> PP.horizontal [ PP.string "("; pp_size; PP.string " / "; PP.string (Z.to_string divisor); PP.string ")" ]
                 in
                 GC.return @@ Some (PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space [ Identifier.pp identifier; PP.string ":="; pp_size ])
               end

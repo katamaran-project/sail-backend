@@ -10,13 +10,7 @@ end
 
 (* The type-level parameters and hypothesis of a function's signature (see TypeLevelParameters) *)
 let signature (function_definition : Ast.Definition.Function.t) : TypeLevelParameters.signature =
-  TypeLevelParameters.of_signature
-    ~types:begin
-      List.append
-        (List.map ~f:snd function_definition.function_type.parameters)
-        [ function_definition.function_type.return_type ]
-    end
-    ~constraints:function_definition.type_constraints
+  TypeLevelParameters.of_function function_definition
 
 
 let type_level_parameters (function_definition : Ast.Definition.Function.t) : (Ast.Identifier.t * Ast.Kind.t) list =
@@ -158,9 +152,13 @@ let pp_hypothesis_support () : PP.t =
     "Ltac sail_constraint :=";
     "  repeat match goal with H : IsTrue _ |- _ => apply IsTrue.from, Is_true_eq_true in H end;";
     "  constructor; apply Is_true_eq_left;";
+    "  (* unification can leave widths unfolded (8 * n as a chain of fix add): refold them for lia *)";
+    "  change (fix add (n m : nat) {struct n} : nat := match n with | O => m | S p => S (add p m) end) with Nat.add in *;";
+    "  try change (fix mul (n m : nat) {struct n} : nat := match n with | O => O | S p => Nat.add m (mul p m) end) with Nat.mul in *;";
+    "  rewrite ?Nat2Z.inj_div, ?Nat2Z.inj_mod in *;";
     "  repeat rewrite ?Bool.andb_true_iff, ?Bool.orb_true_iff, ?Bool.negb_true_iff, ?Z.leb_le, ?Z.ltb_lt, ?Z.eqb_eq, ?Z.eqb_neq,";
     "                 ?Nat.leb_le, ?Nat.ltb_lt, ?Nat.eqb_eq, ?Nat.eqb_neq in *;";
-    "  lia.";
+    "  Z.div_mod_to_equations; lia.";
     "";
     "#[export] Hint Extern 20 (IsTrue _) => sail_constraint : typeclass_instances.";
     "";

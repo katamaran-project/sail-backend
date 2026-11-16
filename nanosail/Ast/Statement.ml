@@ -1577,3 +1577,20 @@ let make_sequence (statements : t list) : t =
   match List.rev statements with
   | []                          -> failwith "Cannot build a sequence of zero statements"
   | last :: preceding_reversed -> List.fold_left preceding_reversed ~init:last ~f:(fun sequence statement -> Seq (statement, sequence))
+
+
+(* The types that a statement's lets, matches and the like mention (not those inside expressions) *)
+let types (statement : t) : Type.t list =
+  let collected : Type.t list ref = ref []
+  in
+  let collector =
+    object
+      inherit identity_rewriter
+
+      method! foreign_visit_type (typ : Type.t) : Type.t =
+        collected := typ :: !collected;
+        typ
+    end
+  in
+  ignore (collector#visit statement : t);
+  List.rev !collected

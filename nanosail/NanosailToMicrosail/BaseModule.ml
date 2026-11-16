@@ -249,16 +249,13 @@ let pp_enum_denote (enum_definitions : Ast.Definition.Type.Enum.t list) : PP.t G
 let pp_union_denote (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.t GC.t =
   GC.generation_block [%here] "Union Denote" begin
     let denotations =
-      let variant_identifiers =
-        List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
-      in
-      let denotation_pair_for variant_identifier =
+      let denotation_pair_for (variant_definition : Ast.Definition.Type.Variant.t) =
         (
-          PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
-          PP.annotate [%here] @@ Identifier.pp variant_identifier
+          PP.annotate [%here] @@ Types.Variants.tag_pattern variant_definition,
+          PP.annotate [%here] @@ Types.Variants.denoted_type variant_definition
         )
       in
-      List.map ~f:denotation_pair_for variant_identifiers
+      List.map ~f:denotation_pair_for variant_definitions
 
     and parameter_identifier = PP.annotate [%here] @@ PP.string "u"
     and tag_type_identifier  = PP.annotate [%here] @@ PP.string "Unions"
@@ -339,16 +336,13 @@ let pp_typedenotekit () : PP.t GC.t =
 let pp_union_constructor (variant_definitions : Ast.Definition.Type.Variant.t list) : PP.t GC.t =
   GC.generation_block [%here] "Union Constructor" begin
     let denotations =
-      let variant_identifiers =
-        List.map ~f:(fun variant_definition -> variant_definition.identifier) variant_definitions
-      in
-      let denotation_pair_for variant_identifier =
+      let denotation_pair_for (variant_definition : Ast.Definition.Type.Variant.t) =
         (
-          Identifier.pp @@ Identifier.reified_variant_name variant_identifier,
-          Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_identifier
+          Types.Variants.tag_pattern variant_definition,
+          Identifier.pp @@ Identifier.reified_variant_constructors_collection_name variant_definition.identifier
         )
       in
-      List.map ~f:denotation_pair_for variant_identifiers
+      List.map ~f:denotation_pair_for variant_definitions
 
     and parameter_identifier = PP.string "u"
     and tag_type_identifier  = PP.string "Unions"
@@ -438,7 +432,7 @@ let pp_union_constructor_type (variant_definitions : Ast.Definition.Type.Variant
           in
           GC.return begin
               (
-                PP.annotate [%here] @@ Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier,
+                PP.annotate [%here] @@ Types.Variants.tag_pattern variant_definition,
                 PP.annotate [%here] @@ PP.(horizontal [ string "fun k => "; match_constructor_cases ])
               )
             end
@@ -499,7 +493,7 @@ let pp_match_variant_constructors
         let parameter_identifier = Ast.Identifier.mk "Kv"
         in
         let pattern =
-          Identifier.pp @@ Identifier.reified_variant_name variant_definition.identifier
+          Types.Variants.tag_pattern variant_definition
         in
         let* expression =
           let* lambda_body =
