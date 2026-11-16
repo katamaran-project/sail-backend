@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-4 of 67 instructions are not clean, all on the memory read path: `LOAD`, `LoadCapImm`, `NOT_CAPMODE`, `NOT_C_CAPMODE`.
+2 of 67 instructions are not clean, both on the memory read path: `LOAD`, `LoadCapImm`.
 
 ## Memory path
 
