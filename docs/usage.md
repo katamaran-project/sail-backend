@@ -366,6 +366,11 @@ Still, inside such a function:
 - a width that depends on the *value* of a parameter (`val f : forall 'n. (itself('n), …)` with `bits('n)` in its body) or that divides a size variable (`bits(8 * ('n / 8))`) is a hole (`NYI`), with a message that says so;
 - a call to a function whose result type alone mentions a type variable (`internal_error : … -> 'a`), whose value is discarded, gets the type `unit`.
 
+A union with a type parameter used at a bitvector of open width (`MemoryOpResult(bits('n))`) is one family indexed by the width,
+`Inductive MemoryOpResult_bits (kid__n : nat)` with the tag `Umemoryopresult_bits (kid__n : nat)`; its uses at closed widths are the family at that width.
+A function polymorphic in a type that such a union takes (`forall ('t : Type). MemoryOpResult('t) -> ...`) is copied per type it is called at when there are one or two (a single copy keeps its name), and inlined at each call otherwise.
+See the test `tests/coq-tests/unions-width-family`.
+
 Explicit monomorphisation (`monomorphize`) is unaffected.
 See the tests `tests/coq-tests/size-parameters-implicit` and `tests/coq-tests/size-constraints-hypotheses`.
 
