@@ -25,6 +25,15 @@ DOUBLE if sizeof(xlen) >= 64 => mem_write_value(paddr, 8, rs2_val, aq, rl, false
 (* after  *) | DOUBLE => stm_call report_invalid_width ...
 ```
 
+### Scattered functions took their arguments as one tuple
+- Found: e2e `functions-ternary-scattered` failed: `scatfoo(XXX, 1)` passed two arguments to a `Fun` with one parameter.
+- Cause: Sail's `merge_function_clauses` makes the clauses one function of a single variable, `merge#var`, bound to the tuple of the arguments.
+- Fix: when the `val` declares several parameters and the pattern is one variable of a tuple type, the function gets one parameter per element and binds `merge#var` to their tuple first. Test `functions-ternary-scattered`.
+```coq
+(* before *) | scatfoo : Fun ["merge#var" ∷ ty.prod (ty.enum Emyenum) ty.int] ty.int
+(* after  *) | scatfoo : Fun ["merge#var#1" ∷ ty.enum Emyenum; "merge#var#2" ∷ ty.int] ty.int
+```
+
 ### Constructor patterns nested two levels deep
 - Found: e2e `match-unions-nested-2` failed ("pattern is incompatible with type of value being matched").
 - Cause: `merge_nested_constructor_patterns` built the inner match on a constructor's fields straight into a pattern tree, which takes no nested patterns; a pattern nested one level deeper (`C1(B1(A1(a, b)))`) reached it.

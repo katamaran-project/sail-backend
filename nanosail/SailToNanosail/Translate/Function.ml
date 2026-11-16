@@ -2752,6 +2752,51 @@ let translate_body
   TC.return translation
 
 
+(*
+   Sail's merge_function_clauses rewrite turns the clauses of a scattered function into one clause
+   whose parameter is a single variable, merge#var, bound to the tuple of the arguments:
+
+     val scatfoo : (MyEnum, int) -> int
+     function scatfoo merge#var = match merge#var { (XXX, x) => x, (YYY, x) => x + 1 }
+
+   Its callers pass the arguments separately (scatfoo(XXX, 1)), so the function gets one parameter
+   per element, and its body rebuilds the tuple first:
+
+     function scatfoo (merge#var#1, merge#var#2) = let merge#var = (merge#var#1, merge#var#2) in ...
+
+   Only when the val spec declares that many parameters: a function of one tuple keeps it.
+*)
+let split_tuple_parameter
+    (declared_parameter_count : int                             )
+    (parameters               : (Ast.Identifier.t * Ast.Type.t) list)
+    (body                     : Ast.Statement.t                 ) : (Ast.Identifier.t * Ast.Type.t) list * Ast.Statement.t
+  =
+  match parameters with
+  | [ (identifier, Tuple element_types) ] when declared_parameter_count > 1 && List.length element_types = declared_parameter_count -> begin
+      let element_parameters =
+        List.mapi element_types ~f:(fun index element_type ->
+            (Ast.Identifier.mk @@ Printf.sprintf "%s#%d" (Ast.Identifier.to_string identifier) (index + 1), element_type)
+          )
+      in
+      let tuple =
+        (* a pair is muSail's ty.prod, built with bop.pair; longer tuples are ty.tuple *)
+        match List.map element_parameters ~f:(fun (element, element_type) -> Ast.Expression.Variable (element, element_type)) with
+        | [ first; second ] -> Ast.Expression.BinaryOperation (Pair, first, second)
+        | elements          -> Ast.Expression.Tuple elements
+      in
+      let body =
+        Ast.Statement.Let {
+          binder                 = identifier;
+          binding_statement_type = Tuple element_types;
+          binding_statement      = Expression tuple;
+          body_statement         = body;
+        }
+      in
+      (element_parameters, body)
+    end
+  | _ -> (parameters, body)
+
+
 let translate_function_definition
     (full_sail_definition  : Sail.sail_definition         )
     (definition_annotation : Sail.definition_annotation   )
@@ -2851,6 +2896,17 @@ let translate_function_definition
               in
               TC.return false
             end
+        in
+        let parameters, function_body =
+          let declared_parameter_count =
+            let environment = Libsail.Type_check.env_of_pat parts.parameter_bindings
+            in
+            match Libsail.Type_check.Env.get_val_spec_orig parts.identifier environment with
+            | (_, S.Typ_aux (Typ_fn (parameter_types, _), _)) -> List.length parameter_types
+            | (_, _)                                         -> 1
+            | exception Libsail.Type_error.Type_error _      -> 1
+          in
+          split_tuple_parameter declared_parameter_count parameters function_body
         in
         let function_body =
           Ast.Statement.simplify function_body
