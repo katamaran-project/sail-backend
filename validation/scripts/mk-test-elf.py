@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Write a bare RV32 ELF for the CHERIoT C emulator, from a tiny assembly file.
-No cross toolchain needed. See validation/docs/emulator.md and validate.md.
+No cross toolchain needed. See validation/docs/validate.md.
 
 Usage:
     validation/scripts/mk-test-elf.py PROG.s OUT.elf [--base ADDR] [--tohost ADDR]

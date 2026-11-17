@@ -148,8 +148,7 @@ Definition render_depth : nat := 16.
 
 (*** Registers ***)
 
-(* Registers left out of the dump, with the reason (state-format.md, "Not
-   compared").  Everything else in [all_regs] is dumped. *)
+(* Registers left out of the dump, with the reason (state-format.md, "Coverage").  Everything else in [all_regs] is dumped. *)
 Definition excluded : list (string * string) :=
   map (fun i => ("vr" ++ dec_nat i, "vector register: vector extension out of scope; 65536 bits"))
       (seq 0 32).

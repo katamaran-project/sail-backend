@@ -1,5 +1,5 @@
 (* Harness for the generated CHERIoT µSail model: an oracle for its foreign
-   functions and an initial state.  See validation/docs/harness.md. *)
+   functions and an initial state.  See validation/docs/validate.md. *)
 
 From Stdlib Require Import
      Strings.String
@@ -73,10 +73,9 @@ Definition store_tag (m : Memory) (a : Z) (t : bool) : Memory :=
 
 (*** Platform constants ***)
 
-(* As the validation emulator runs: cheriot_sim_nozb --disable-compressed -F -W
+(* As the validation emulator runs: cheriot_sim_dump --disable-compressed -F -W
    (sail-riscv/c_emulator/riscv_platform_impl.c defaults, riscv_sim.c flags);
-   ELF layout of validation/scripts/mk-test-elf.py (entry = RAM base, tohost).
-   Table with source lines: validation/docs/harness.md, "Constants". *)
+   ELF layout of validation/scripts/mk-test-elf.py (entry = RAM base, tohost). *)
 Definition c_ram_base  : Z := 0x80000000.
 Definition c_ram_size  : Z := 0x4000000.
 Definition c_rom_base  : Z := 0x1000.

@@ -1,4 +1,4 @@
-/* Per-step state dump: the calls in the patched riscv_sim.c (validation/docs/emulator.md). */
+/* Per-step state dump: the calls in the patched riscv_sim.c (validation/docs/validate.md). */
 #ifndef DUMP_SIM_H
 #define DUMP_SIM_H
 

@@ -355,24 +355,24 @@ print_reg(BitStr(v[VLEN - 1 .. 0]))            // ...that this slice needs
 ## Open
 
 ### [validator] Tag writes leave `Memory` unchanged in `ForeignCall`
-- Found: the validation harness keeps tags in `Memory`; its oracle is not sound w.r.t. `ForeignCall` for `MEMw_tag` (`validation/docs/harness.md`, Limitations).
-- Cause: `ForeignFunctions.ml` emits `μ' = μ` for every extern declared pure; CHERIoT declares `val MEMw_tag = "write_tag_bool" : (bits(64), bool) -> unit` (`cheri_prelude.sail`) without effects. The comment's justification ("no foreign function reads the memory") fails once `MEMr_tag`/`__read_mem` are answered from memory.
+- Found: the harness keeps tags in `Memory`, so its tag writes break `ForeignCall`.
+- Cause: a pure extern gets `μ' = μ`; CHERIoT declares the tag write pure (`val MEMw_tag = "write_tag_bool" : (bits(64), bool) -> unit`).
 ```coq
-| @MEMw_tag => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v   (* μ' must be free, as for __write_mem *)
+| @MEMw_tag => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
 ```
 
 ### [validator] `bitvector_update` has no semantics
-- Found: the validation harness has to compute it itself (`validation/docs/harness.md`, foreign-function table).
-- Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for its binding, so the result is unconstrained: any bitvector, not `x` with bit `i` set to `b`. Proofs about callers (e.g. CSR field updates) cannot use its value.
+- Found: the harness computes it itself.
+- Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for it, so its result is any bitvector, not `x` with bit `i` set to `b`.
 ```coq
 | @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
 ```
 
 ### [validator] `Unconstrained` hint runs for minutes on wide bitvectors
-- Found: building every register's default through the hint, the harness stalled on the vector registers (`validation/docs/harness.md`, `reg_default`).
-- Cause: `construct_inhabitant` (`FunDeclKit.ml`) starts with `cbn`, which unfolds `ty.vregtype` (65536 bits, a unary `nat`) before `exact bv.zero` is tried. Not hit by `machine.v` itself (no in-scope `unconstrained` at that type).
+- Found: the harness stalled building the vector registers' defaults through the hint.
+- Cause: `construct_inhabitant` (`FunDeclKit.ml`) runs `cbn` before `exact bv.zero`, unfolding `ty.vregtype` (65536 bits, a unary `nat`). `machine.v` itself does not hit it.
 ```coq
-Ltac construct_inhabitant := cbn; first [ exact bv.zero | constructor; construct_inhabitant ].   (* try exact bv.zero before cbn *)
+Ltac construct_inhabitant := cbn; first [ exact bv.zero | constructor; construct_inhabitant ].
 ```
 
 ### Scrutinee inlining checks only the bound type for width families

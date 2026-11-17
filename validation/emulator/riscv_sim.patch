@@ -61,7 +61,7 @@
  
 -  while (!zhtif_done && (insn_limit == 0 || total_insns < insn_limit)) {
 +  /* --inst-limit counts every zstep call (dump_step_no), retired or not: a
-+     fetch-fault loop after a trap stops too (validation/docs/emulator.md). */
++     fetch-fault loop after a trap stops too (validation/docs/validate.md). */
 +  while (!zhtif_done && (insn_limit == 0 || dump_step_no < insn_limit)) {
  #ifdef RVFI_DII
      if (rvfi_dii) {

@@ -28,7 +28,7 @@ Import Harness.I.
 Set Default Proof Mode "Classic".
 Open Scope string_scope.
 
-(* Generous fuel: the cost is depth, not steps (harness.md). *)
+(* Generous fuel: the cost is depth, not steps (validate.md). *)
 Definition fuel : nat := 300.
 
 Definition run_addi : Outcome (list Dumped * Stop) := run_dumps fuel 1 mem_addi.
@@ -84,7 +84,7 @@ Proof. Time vm_compute. reflexivity. Qed.
 
 (* Register items whose value after reset depends on the start store
    (Dump.reg_alt vs Harness.reg_default): not set by init_model.
-   Listed in state-format.md, "Start values". *)
+   See state-format.md, "Coverage". *)
 Example start_dependent_regs :
   start_dependent fuel mem_addi =
     Done [ "MSHWM"; "MSHWMB"; "UART_DLAB"; "cur_inst"; "instbits"; "marchid"; "mccsr";

@@ -1,4 +1,4 @@
-# CHERIoT C emulator with a per-step state dump (validation/docs/emulator.md).
+# CHERIoT C emulator with a per-step state dump (validation/docs/validate.md).
 #
 #   gmake               build $(BUILD)/cheriot_sim_dump (~10 min: the model's C at -O1)
 #   gmake dump-sail     regenerate dump_state.sail from the Rocq dump's register set
@@ -15,7 +15,7 @@ BUILD    ?= $(VAL)/build/emulator
 ROCQ_RESET ?= $(VAL)/build/dumps/addi/reset.state
 
 C_OPT_FLAGS ?= -O1
-# Without Zb*/Zbk* (emulator.md, Configuration).
+# Without Zb*/Zbk* (validate.md, "Emulator").
 NOZB_INST = sail-riscv/model/riscv_insts_base.sail sail-riscv/model/riscv_insts_cext.sail \
   sail-riscv/model/riscv_insts_mext.sail sail-riscv/model/riscv_insts_zicsr.sail \
   sail-riscv/model/riscv_insts_hints.sail src/cheri_insts_begin.sail src/cheri_insts.sail \

@@ -28,7 +28,7 @@ Import Harness.I.
 Open Scope string_scope.
 Open Scope Z_scope.
 
-(* Fuel per call (depth, not steps; harness.md).  Generous: an instruction
+(* Fuel per call (depth, not steps; validate.md).  Generous: an instruction
    needing more shows up as OutOfFuel in the table. *)
 Definition fuel : nat := 1000.
 

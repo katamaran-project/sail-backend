@@ -1,5 +1,5 @@
 (* Fuel-based interpreter for µSail statements, generic over Katamaran programs.
-   See validation/docs/interp.md. *)
+   See validation/docs/validate.md. *)
 
 From Stdlib Require Import
      Strings.String.

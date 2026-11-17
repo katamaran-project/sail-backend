@@ -1,5 +1,5 @@
 (* One step of the generated CHERIoT model from reset on ADDI x1, x0, 5.
-   See validation/docs/harness.md. *)
+   See validation/docs/validate.md. *)
 
 From Stdlib Require Import
      Strings.String

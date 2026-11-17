@@ -1,4 +1,4 @@
-/* Per-step state dump of the C emulator (validation/docs/emulator.md).
+/* Per-step state dump of the C emulator (validation/docs/validate.md).
    Model side: included by the generated model (-c_include); riscv_sim.c uses dump_sim.h. */
 #ifndef DUMP_STATE_H
 #define DUMP_STATE_H
