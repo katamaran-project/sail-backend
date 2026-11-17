@@ -72,6 +72,18 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-rvc` | `C.ADDI`: compressed absent, traps illegal |
 | `trap-zb` | `ANDN`: Zb\* absent, traps illegal |
 | `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
+| `ecall-mret` | ECALL, EBREAK to the case's own handler; `mcause`, `mepc`, `mtval`, `mtvec`; return by MRET; MIE/MPIE |
+| `mret` | MRET to a written MEPCC, no trap: MIE := MPIE, MPIE := 1, MPP := M |
+| `system` | FENCE (every pred/succ arm), FENCE.TSO, FENCE.I, reserved fences, SFENCE.VMA in M, WFI (mtime := mtimecmp) |
+| `no-asr` | PCC without ASR: counter reads; CSR access, counter write, CSpecialR, MRET trap |
+| `misaligned-jump` | BEQ, CJAL, CJALR to a target not 4-byte aligned: trap; CJALR clears bit 0 |
+| `cap-faults` | CJALR, CLC, CSC: untagged, sealed, sentry kind, permissions, bounds; misaligned CLC/CSC |
+| `mem-faults` | LW, SW, LB, CLC, CSC outside RAM, byte store to the CLINT: access faults |
+| `trap-sret` | SRET in M without S-mode: illegal |
+| `trap-mret-untagged` | MEPCC written with bit 0 set (tag cleared), MRET: fetch tag violation on PCC |
+| `trap-pcc-bounds` | fetch past the end of a bounded PCC: bounds violation |
+| `trap-branch-bounds` | taken branch outside PCC bounds: the fetch faults |
+| `umode`, `untagged-mtcc`, `mepc-write` | MRET into U with `misa.U` = 0; trap to an untagged MTCC; CSRW `mepc` (expected divergences: both sides stop) |
 
 ### Adding a case
 
@@ -86,11 +98,15 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 
 - `validation/cases/divergences.toml`, one entry per case: the step, each side's changes at that step (lines of the state format), Rocq's stop and the emulator's exit code, the reason.
 - `expected divergence` only if the states are equal before that step and everything at it is exactly as recorded.
+- `emulator.exit = "none"`: the emulator stopped on a Sail assertion or uncaught exception, without an htif exit and without a state for that step (its delta is empty).
 
 | case | step | µSail | emulator | reason |
 |---|---|---|---|---|
 | `rv32e-rd` | 5 | `stm_fail` | illegal-instruction trap | `Error_not_rv32e_register` is thrown; µSail has no exceptions ([design](../../case-studies/cheriot/docs/design.md#exceptions-fail)) |
 | `rv32e-rs` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
+| `umode` | 11 | `stm_fail` | assertion, no state | first step in U: `dispatchInterrupt` asserts Machine when U-mode is absent; both sides stop |
+| `untagged-mtcc` | 7 | `stm_fail` | uncaught exception, no state | PCC and MTCC untagged: `ext_fetch_check_pc` calls `not_implemented`; both sides stop |
+| `mepc-write` | 6 | `stm_fail` | assertion, no state | CHERIoT's `set_xret_target` is `internal_error`; both sides stop |
 
 ## Rocq side
 
@@ -166,6 +182,7 @@ Rocq results cached as `gmake validate`'s, by the hash of `Cov.v`, the model and
 
 ## Limitations
 
-- Not covered: interrupts, `mret`/`ecall`, U-mode, sealing, `AUICGP`, PCC bounds faults.
+- Not covered: interrupts, sealing, `AUICGP`.
+- U-mode: reachable only for one step (MRET with MPP = 0), after which the model asserts; its CSR, ECALL and `check_Counteren` paths are unreachable on this configuration (`misa.U` = 0).
 - The interpreter's soundness is not proved.
 - `unconstrained` answers the type's inhabitant (`true` for `bool`); the emulator's undefined values are 0 or `false`. No case reads one.

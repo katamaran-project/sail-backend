@@ -2,7 +2,9 @@
 # validation/cases. validate.py reports `expected divergence at step N` only if
 #   - the states are equal up to step - 1 and differ at `step`;
 #   - Rocq stops there (`rocq.stop`) and its delta at `step` (vs step - 1) is `rocq.delta`;
-#   - the emulator's delta at `step` is `emulator.delta` and its htif exit code `emulator.exit`.
+#   - the emulator's delta at `step` is `emulator.delta` and its htif exit code `emulator.exit`
+#     ("none": no htif exit, the emulator stopped on a Sail assertion or exception
+#     and dumped no state at `step`, so its delta is empty).
 # Anything else (passes, diverges earlier/later or differently) fails, with the
 # recorded and actual deltas in validation/build/validate/<case>/divergence.txt.
 # Deltas: state-format.md lines, sorted as there.
@@ -52,3 +54,41 @@ emulator.delta = [
   'nextPC 0x80000030',
   'nextPCC.address 0x80000030',
 ]
+
+[umode]
+what = "MRET with `mstatus.MPP` = 0 enters User although `misa.U` = 0; the next step"
+reason = "both sides stop: `dispatchInterrupt` asserts the privilege is Machine when U-mode is absent; µSail `stm_fail`, the emulator aborts on the assertion before dumping the step"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 11
+rocq.stop = "Failed"
+rocq.delta = [
+  'step_result "invalid current privilege"',
+]
+emulator.exit = "none"
+emulator.delta = []
+
+[untagged-mtcc]
+what = "trap to an untagged MTCC: the fetch finds PCC and MTCC untagged"
+reason = "both sides stop: `ext_fetch_check_pc` calls `not_implemented` (a `throw`); µSail `stm_fail`, the emulator stops on the uncaught exception before dumping the step"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 7
+rocq.stop = "Failed"
+rocq.delta = [
+  'step_result "failure"',
+]
+emulator.exit = "none"
+emulator.delta = []
+
+[mepc-write]
+what = "`csrrw zero, mepc, a0`"
+reason = "both sides stop: CHERIoT's `set_xret_target` is `internal_error` (MEPCC is written with CSpecialW only); µSail `stm_fail` (the message is computed at run time and dropped), the emulator aborts on the assertion before dumping the step"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 6
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x34151073',
+  'nextPC 0x80000018',
+  'step_result "assertion failed (message computed at run time, dropped by the translation)"',
+]
+emulator.exit = "none"
+emulator.delta = []
