@@ -15,12 +15,13 @@ registers as x0..x31, c0..c31 or ABI names (a0, ca0, ...).
               lui rd, imm20          lb lh lw lbu lhu rd, off(rs1)    sb sh sw rs2, off(rs1)
               beq bne blt bge bltu bgeu rs1, rs2, label|offset
               jal [rd,] label|offset    j label    jalr/cjalr cd, off(cs1) | cd, cs1[, imm]
-              ecall ebreak mret nop
+              ecall ebreak mret nop wfi sret fence.i fence.tso
+              fence [pred, succ] (iorw letters; none: iorw, iorw)    sfence.vma [rs1, rs2]
     M         mul mulh mulhsu mulhu div divu rem remu   rd, rs1, rs2
     Zicsr     csrrw csrrs csrrc rd, csr, rs1    csrrwi csrrsi csrrci rd, csr, uimm5
               (csr: a name in CSR below, or a number)
-    CHERIoT   csetaddr cincaddr csetbounds csetboundsexact candperm cseal cunseal csub
-              ctestsubset cseqx csethigh   cd, cs1, rs2
+    CHERIoT   csetaddr cincaddr csetbounds csetboundsexact csetboundsrounddown candperm
+              cseal cunseal csub ctestsubset cseqx csethigh   cd, cs1, rs2
               cincaddrimm csetboundsimm  cd, cs1, imm
               cgetperm cgettype cgetbase cgetlen cgettag cgetaddr cgethigh cgettop
               cmove ccleartag crrl cram   rd, cs1
@@ -56,6 +57,7 @@ CSR = {
     "mtval": 0x343, "mip": 0x344, "mcycle": 0xB00, "minstret": 0xB02,
     "mcycleh": 0xB80, "minstreth": 0xB82, "mvendorid": 0xF11, "marchid": 0xF12,
     "mimpid": 0xF13, "mhartid": 0xF14, "mccsr": 0xBC0, "mshwm": 0xBC1, "mshwmb": 0xBC2,
+    "cycle": 0xC00, "time": 0xC01, "instret": 0xC02,
 }
 
 CHERI_OP = 0x5B
@@ -70,6 +72,7 @@ R_OPS = {
     "mulhu": (0x01, 3, 0x33), "div": (0x01, 4, 0x33), "divu": (0x01, 5, 0x33),
     "rem": (0x01, 6, 0x33), "remu": (0x01, 7, 0x33),
     "csetbounds": (0x08, 0, CHERI_OP), "csetboundsexact": (0x09, 0, CHERI_OP),
+    "csetboundsrounddown": (0x0A, 0, CHERI_OP),
     "cseal": (0x0B, 0, CHERI_OP), "cunseal": (0x0C, 0, CHERI_OP),
     "candperm": (0x0D, 0, CHERI_OP), "csetaddr": (0x10, 0, CHERI_OP),
     "cincaddr": (0x11, 0, CHERI_OP), "csub": (0x14, 0, CHERI_OP),
@@ -95,7 +98,8 @@ STORE_OPS = {"sb": 0, "sh": 1, "sw": 2, "csc": 3}
 BRANCH_OPS = {"beq": 0, "bne": 1, "blt": 4, "bge": 5, "bltu": 6, "bgeu": 7}
 CSR_OPS = {"csrrw": 1, "csrrs": 2, "csrrc": 3, "csrrwi": 5, "csrrsi": 6, "csrrci": 7}
 U_OPS = {"lui": 0x37, "auipcc": 0x17, "auicgp": 0x7B}
-FIXED = {"ecall": 0x00000073, "ebreak": 0x00100073, "mret": 0x30200073, "nop": 0x00000013}
+FIXED = {"ecall": 0x00000073, "ebreak": 0x00100073, "mret": 0x30200073, "nop": 0x00000013,
+         "wfi": 0x10500073, "sret": 0x10200073, "fence.i": 0x0000100F, "fence.tso": 0x8330000F}
 # Pseudo-instructions of two words.
 TWO_WORDS = {"li", "cla"}
 
@@ -176,6 +180,14 @@ def target(text, pc, labels):
     return int(text, 0)
 
 
+def fence_set(text):
+    """FENCE predecessor/successor set: letters of iorw (bits 3..0)."""
+    text = text.strip().lower()
+    if not text or any(c not in "iorw" for c in text):
+        raise ValueError(f"bad fence set: {text}")
+    return sum(1 << (3 - "iorw".index(c)) for c in set(text))
+
+
 def csr_num(text):
     text = text.strip().lower()
     return CSR[text] if text in CSR else imm(text, 12)
@@ -187,6 +199,12 @@ def encode(mnem, args, pc, labels):
         return [int(args[0], 0) & 0xFFFFFFFF]
     if mnem in FIXED:
         return [FIXED[mnem]]
+    if mnem == "fence":
+        pred, succ = (fence_set(args[0]), fence_set(args[1])) if args else (0xF, 0xF)
+        return [(pred << 24) | (succ << 20) | 0x0F]
+    if mnem == "sfence.vma":
+        rs1, rs2 = (reg(args[0]), reg(args[1])) if args else (0, 0)
+        return [r_type(0x09, rs2, rs1, 0, 0, 0x73)]
     if mnem in R_OPS:
         f7, f3, op = R_OPS[mnem]
         return [r_type(f7, reg(args[2]), reg(args[1]), f3, reg(args[0]), op)]
