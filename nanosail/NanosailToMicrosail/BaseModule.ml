@@ -931,15 +931,20 @@ let pp_record_unfold (record_definitions : Ast.Definition.Type.Record.t list) : 
     |}.
   Proof.
     - abstract (now intros [] []).
-    - abstract (intros [] [[] x]; cbn in x;
+    - abstract (intros [] [[] x];
                 repeat
                   match goal with
                   | x: unit     |- _ => destruct x
                   | x: prod _ _ |- _ => destruct x
+                  | x: _        |- _ => progress hnf in x
                   end; auto).
     - abstract (now intros [] []).
     - abstract (intros []; now apply env.Forall_forall).
   Defined.
+
+  The union proof reduces only the head of each value's type (hnf, not cbn), until the pairs and
+  units are exposed: reducing a whole bitvector type computes its width, a unary nat (minutes for
+  CHERIoT's 65536-bit vregtype).
 
  *)
 let pp_typedefkit_instance () : PP.t GC.t =
@@ -957,11 +962,12 @@ let pp_typedefkit_instance () : PP.t GC.t =
       "  |}.";
       "Proof.";
       "  - abstract (now intros [] []).";
-      "  - abstract (intros [] [[] x]; cbn in x;";
+      "  - abstract (intros [] [[] x];";
       "              repeat";
       "                match goal with";
       "                | x: unit     |- _ => destruct x";
       "                | x: prod _ _ |- _ => destruct x";
+      "                | x: _        |- _ => progress hnf in x";
       "                end; auto).";
       "  - abstract (now intros [] []).";
       "  - abstract (intros []; now apply env.Forall_forall).";
