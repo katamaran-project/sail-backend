@@ -3,7 +3,12 @@
 
   statefile.py check [--run] FILE...     grammar and order; exit 1 on the first error
   statefile.py delta BEFORE AFTER        lines of AFTER whose key is new or whose value changed
+  statefile.py split RUN DIR             DIR/reset.state (step 0), DIR/step<i>.state
+  statefile.py keys A B                  register keys of A and B are equal; else list the
+                                         missing (-) and extra (+) keys of B, exit 1
 """
+
+import os
 
 import re
 import sys
@@ -82,6 +87,23 @@ def delta(before, after):
     return [(k, v) for k, v in after if old.get(k) != v]
 
 
+def render(items):
+    return "".join(f"{k} {v}\n" for k, v in items)
+
+
+def split(run_path, out_dir):
+    steps = parse_run(read_lines(run_path), run_path)
+    os.makedirs(out_dir, exist_ok=True)
+    for step, items in steps.items():
+        name = "reset.state" if step == 0 else f"step{step}.state"
+        with open(os.path.join(out_dir, name), "w") as f:
+            f.write(render(items))
+
+
+def reg_keys(path):
+    return {k for k, _ in parse_state(read_lines(path), path) if not k.startswith(("mem ", "tag "))}
+
+
 def main(argv):
     if len(argv) >= 2 and argv[0] == "check":
         run = argv[1] == "--run"
@@ -103,6 +125,24 @@ def main(argv):
         for k, v in delta(before, after):
             print(k, v)
         return 0
+    if len(argv) == 3 and argv[0] == "split":
+        try:
+            split(argv[1], argv[2])
+        except FormatError as e:
+            print(e, file=sys.stderr)
+            return 1
+        return 0
+    if len(argv) == 3 and argv[0] == "keys":
+        try:
+            a, b = reg_keys(argv[1]), reg_keys(argv[2])
+        except FormatError as e:
+            print(e, file=sys.stderr)
+            return 1
+        for k in sorted(a - b, key=str.encode):
+            print("-", k)
+        for k in sorted(b - a, key=str.encode):
+            print("+", k)
+        return 0 if a == b else 1
     print(__doc__, file=sys.stderr)
     return 2
 
