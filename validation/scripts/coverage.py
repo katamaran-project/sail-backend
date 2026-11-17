@@ -7,7 +7,8 @@ Usage:
     validation/scripts/coverage.py [CASE...] [--jobs N] [--no-cache] [--cache-dir DIR]
 
 CASE: a name in validation/cases (default: all). Needs, built beforehand (gmake
-validate-coverage does it): validation/build/model/*.vo, validation/rocq/Coverage.vo.
+validate-coverage does it): validation/build/model/*.vos, validation/rocq/Coverage.vos
+(coqc -vos, as validate.py).
 
 Each case runs as in validate.py (reset, then up to its step limit), with the
 counting interpreter (InterpCov.v, Coverage.v). Per case, in
@@ -156,7 +157,7 @@ def run_rocq(out, source, cache):
         target.write_bytes(cache.read_bytes())
         return True, time.time() - start
     target.unlink(missing_ok=True)
-    p = subprocess.run(["coqc", "-Q", str(ROCQ), "Validation", "-R", str(MODEL), "CheriotModel",
+    p = subprocess.run(["coqc", "-vos", "-Q", str(ROCQ), "Validation", "-R", str(MODEL), "CheriotModel",
                         "-output-directory", str(out), "Cov.v"],
                        cwd=out, capture_output=True, text=True, timeout=validate.COQC_TIMEOUT)
     (out / "coqc.log").write_text(p.stdout + p.stderr)
@@ -188,7 +189,8 @@ def check(name, words, limit, why, steps):
     """'ok' if the validation run of the same program ended the same way; '-' if there is none."""
     run_v = VALIDATE_OUT / name / "Run.v"
     rocq_out = VALIDATE_OUT / name / "rocq.out"
-    if not (run_v.is_file() and rocq_out.is_file()) or run_v.read_text() != validate.run_v(words, limit):
+    if not (run_v.is_file() and rocq_out.is_file()) \
+            or run_v.read_text() not in (validate.run_v(words, limit, full) for full in (False, True)):
         return "-"
     lines = rocq_out.read_text().splitlines()
     v_why = lines[-1].removeprefix("end ") if lines and lines[-1].startswith("end ") else "?"
@@ -302,7 +304,7 @@ def main():
     a = p.parse_args()
 
     names = a.cases or sorted(c.stem for c in validate.CASES.glob("*.s"))
-    for prerequisite in (MODEL / "machine.vo", ROCQ / "Coverage.vo"):
+    for prerequisite in (MODEL / "machine.vos", ROCQ / "Coverage.vos"):
         if not prerequisite.exists():
             sys.exit(f"missing {prerequisite}: run gmake validate-coverage")
     funs, funx, calls, foreign_calls = model_graph(MACHINE.read_text())

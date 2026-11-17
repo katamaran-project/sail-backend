@@ -58,6 +58,10 @@ Definition run_dump : list string := or_outcome run_addi (fun ds => dump_run (fs
 Definition run_aas : Outcome (list Dumped * Stop) := run_dumps fuel 20 mem_addi_add_sw.
 Definition aas_dump : list string := or_outcome run_aas (fun ds => dump_run (fst ds)).
 
+(* The same run as a delta run file (gmake validate's format): rebuilt by
+   statefile.py undelta, it must equal aas_dump (gmake dumps). *)
+Definition aas_delta : list string := or_outcome run_aas (fun ds => delta_run (fst ds)).
+
 (*** Checks ***)
 
 (* The step's delta: PC and nextPC + 4, the instruction bits, minstret + 1,
@@ -138,6 +142,15 @@ Example render_other_types :
     "t.0 7"; "t.1 false" ].
 Proof. Time vm_compute. reflexivity. Qed.
 
+(* A delta lists a key that is gone as "-key": here a union register whose
+   constructor changed (no register of the model is a union yet). *)
+Example changes_removed_key :
+  map (change_line "")
+    (changes_dumped (mkDumped [("f", "F_RVC"); ("f.F_RVC", "0x1234"); ("x", "1")] [] [])
+                    (mkDumped [("f", "F_Base"); ("f.F_Base", "0x00000013"); ("x", "1")] [] [])) =
+  [ "f F_Base"; "f.F_Base 0x00000013"; "-f.F_RVC" ].
+Proof. vm_compute. reflexivity. Qed.
+
 (*** Output (gmake dumps) ***)
 
 Goal True.
@@ -146,6 +159,7 @@ Goal True.
   Redirect "addi/step1.delta" ltac2:(print_lines constr:(step1_delta)).
   Redirect "addi/run.states" ltac2:(print_lines constr:(run_dump)).
   Redirect "addi-add-sw/run.states" ltac2:(print_lines constr:(aas_dump)).
+  Redirect "addi-add-sw/run.delta" ltac2:(print_lines constr:(aas_delta)).
   Redirect "excluded" ltac2:(print_lines constr:(excluded_lines)).
   exact I.
 Qed.

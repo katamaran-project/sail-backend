@@ -12,8 +12,14 @@
 From Stdlib Require Import
      Strings.Ascii
      Strings.String
-     Lists.List.
+     Lists.List
+     NArith.NArith
+     ZArith.ZArith.
+From Stdlib Require
+     Strings.PrimString
+     Numbers.Cyclic.Int63.Uint63.
 From Ltac2 Require Import Ltac2.
+From Ltac2 Require Pstring.
 
 (* The goal [named a]: the name of [a]'s head constructor.  Reduces to [string]. *)
 Definition named {A : Type} (a : A) : Set := string.
@@ -98,3 +104,38 @@ Ltac2 print_lines (c : constr) : unit :=
     | _ => ()
     end in
   go v.
+
+(*** Fast printing: primitive strings ***)
+
+(* [print_lines] reads every character back from a [string] term (8 [bool]s
+   each): slow for long outputs.  A primitive string is one constant, read
+   back and printed as it is. *)
+
+Definition pchar (c : ascii) : PrimString.char63 := Uint63.of_Z (Z.of_N (N_of_ascii c)).
+
+(* [acc] followed by [s]: one [cat] per character, for short strings (lines). *)
+Fixpoint pstring_app (acc : PrimString.string) (s : string) : PrimString.string :=
+  match s with
+  | EmptyString => acc
+  | String c s' => pstring_app (PrimString.cat acc (PrimString.make (Uint63.of_Z 1) (pchar c))) s'
+  end.
+
+Definition pstring_of_string (s : string) : PrimString.string :=
+  pstring_app (PrimString.make (Uint63.of_Z 0) (Uint63.of_Z 0)) s.
+
+(* Prints a closed [list PrimString.string], one element per line, as one
+   message.  The list is computed with vm_compute first. *)
+Ltac2 print_plines (c : constr) : unit :=
+  let v := Std.eval_vm None c in
+  let rec go l acc :=
+    match Constr.Unsafe.kind l with
+    | Constr.Unsafe.App _ args =>
+        if Int.equal (Array.length args) 3 then
+          match Constr.Unsafe.kind (Array.get args 1) with
+          | Constr.Unsafe.String p => go (Array.get args 2) (Pstring.to_string p :: acc)
+          | _ => Control.throw (Invalid_argument (Some (Message.of_constr (Array.get args 1))))
+          end
+        else List.rev acc                       (* nil *)
+    | _ => List.rev acc
+    end in
+  Message.print (Message.of_string (String.concat (String.make 1 (Char.of_int 10)) (go v []))).
