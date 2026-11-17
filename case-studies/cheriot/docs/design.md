@@ -41,8 +41,14 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 
 ## Platform settings
 
-Sail's platform settings are externs (`sys_enable_*`, `plat_*`): each emulator answers them from its configuration.
-- **Fixed where CHERIoT fixes them**: a value exclusion with CHERIoT's value in `scope.toml`, so a proof is about CHERIoT's platform, not every platform the model allows.
+Sail's platform settings are externs (`sys_enable_*`, `plat_*`, `sys_pmp_count`): each emulator answers them from its configuration.
+Translated as-is they are unconstrained foreign functions, so every call may return any value.
+
+- **The rule**: a setting that CHERIoT's configuration fixes is a value exclusion with CHERIoT's value; a setting it leaves open stays unconstrained.
+  - Why: a proof is about the platform being verified, CHERIoT, not about every platform the model allows; the same mechanism as `sys_pmp_count` and `haveZb*` (value exclusions, [scope](#scope)).
+  - Why not more: a value CHERIoT does not fix (the simulator's memory map, say) would let a proof rely on what the hardware does not promise; unconstrained is the weakest assumption.
+  - What counts as fixed: a source in cheriot-sail (its ISA document, its build, its changes to sail-riscv), cited next to the value in `scope.toml`.
+- **Fixed** (value exclusions in `scope.toml`):
 
   | setting | value | why (cheriot-sail) |
   |---|---|---|
