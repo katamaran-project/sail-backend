@@ -8,3 +8,5 @@ Names.v
 Dump.v
 DumpADDI.v
 Validate.v
+InterpCov.v
+Coverage.v
