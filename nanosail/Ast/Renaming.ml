@@ -426,6 +426,19 @@ let rec rename_in_statement (statement : Statement.t) : Statement.t Monad.t =
       return @@ Statement.Located (location, new_statement)
     end
 
+  | Throw { value; typ; exception_type } -> begin
+      let* value = rename_in_expression value
+      in
+      return @@ Statement.Throw { value; typ; exception_type }
+    end
+
+  | Try { body; result_type; exception_binder; exception_type; handler; caught } -> begin
+      let* body    = rename_in_statement body
+      and* handler = with_binders [exception_binder] @@ rename_in_statement handler
+      in
+      return @@ Statement.Try { body; result_type; exception_binder; exception_type; handler; caught }
+    end
+
 
 let rename_in_statement
     (renamer   : Identifier.t -> Identifier.t)

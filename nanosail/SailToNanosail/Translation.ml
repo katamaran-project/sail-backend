@@ -554,5 +554,5 @@ let translate
   let result = TC.run translate
   in
   match result with
-  | TC.Success (definitions, polymorphic_argtypes) -> { definitions; polymorphic_argtypes }
+  | TC.Success (definitions, polymorphic_argtypes) -> { definitions = Exceptions.transform definitions; polymorphic_argtypes }
   | TC.Failure _                                   -> failwith "Bug: failures should have been recovered from earlier"

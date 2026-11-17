@@ -9,5 +9,6 @@ module Translation            = Translation
 module TranslationContext     = TranslationContext
 module Prelude                = Prelude
 module Translate              = Translate
+module Exceptions             = Exceptions
 
 let translate                 = Translation.translate

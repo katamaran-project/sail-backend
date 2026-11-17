@@ -65,6 +65,29 @@ type t =
     Used in error message production.
   *)
   | Located           of Libsail.Parse_ast.l * t
+  (*
+    throw <value>, where typ is the type of the throw statement and
+    exception_type the type of the thrown value.
+    Only produced by the translation of a function body; SailToNanosail.Exceptions
+    replaces it by a raised value or a failure (see there).
+  *)
+  | Throw             of { value          : Expression.t ;
+                           typ            : Type.t       ;
+                           exception_type : Type.t       }
+  (*
+    try { body } catch { handlers }, with result type result_type.
+    The handler is a match on exception_binder (of type exception_type):
+    the translation of Sail's handlers, plus a rethrow of what they do not catch.
+    caught lists the constructors of exception_type that the handlers may catch.
+    Only produced by the translation of a function body; SailToNanosail.Exceptions
+    replaces it (see there).
+  *)
+  | Try               of { body             : t                 ;
+                           result_type      : Type.t            ;
+                           exception_binder : Identifier.t      ;
+                           exception_type   : Type.t            ;
+                           handler          : t                 ;
+                           caught           : Identifier.t list }
 
 and match_pattern =
   | MatchList    of { matched      : Identifier.t                    ;
@@ -500,6 +523,36 @@ let rec equal
       | _ -> false
     end
 
+  | Throw data_1 -> begin
+      match statement_2 with
+      | Throw data_2 -> begin
+          Expression.equal data_1.value data_2.value
+          &&
+          Type.equal data_1.typ data_2.typ
+          &&
+          Type.equal data_1.exception_type data_2.exception_type
+        end
+      | _ -> false
+    end
+
+  | Try data_1 -> begin
+      match statement_2 with
+      | Try data_2 -> begin
+          equal data_1.body data_2.body
+          &&
+          Type.equal data_1.result_type data_2.result_type
+          &&
+          Identifier.equal data_1.exception_binder data_2.exception_binder
+          &&
+          Type.equal data_1.exception_type data_2.exception_type
+          &&
+          equal data_1.handler data_2.handler
+          &&
+          List.equal Identifier.equal data_1.caught data_2.caught
+        end
+      | _ -> false
+    end
+
   (* Unreachable: Located is stripped above. Handled correctly for safety. *)
   | Located (_, inner_statement_1) -> equal inner_statement_1 statement_2
 
@@ -808,6 +861,29 @@ let rec to_fexpr (statement : t) : FExpr.t =
       in
       FExpr.mk_application ~keyword "Stm:Specialize"
     end
+  | Throw { value; typ; exception_type } -> begin
+      let keyword =
+        [
+          ("value"         , Expression.to_fexpr value    );
+          ("type"          , Type.to_fexpr typ            );
+          ("exception_type", Type.to_fexpr exception_type );
+        ]
+      in
+      FExpr.mk_application ~keyword "Stm:Throw"
+    end
+  | Try { body; result_type; exception_binder; exception_type; handler; caught } -> begin
+      let keyword =
+        [
+          ("body"            , to_fexpr body                                          );
+          ("result_type"     , Type.to_fexpr result_type                              );
+          ("exception_binder", Identifier.to_fexpr exception_binder                   );
+          ("exception_type"  , Type.to_fexpr exception_type                           );
+          ("handler"         , to_fexpr handler                                       );
+          ("caught"          , FExpr.mk_list @@ List.map ~f:Identifier.to_fexpr caught);
+        ]
+      in
+      FExpr.mk_application ~keyword "Stm:Try"
+    end
 
 
 (*
@@ -946,6 +1022,8 @@ let rec free_variables (statement : t) : Identifier.Set.t =
   | Unconstrained _                                      -> Identifier.Set.empty
   | Located (_, statement)                               -> free_variables statement
   | Specialize { rebinds; body; _ }                      -> Identifier.Set.union (free_variables body) (Identifier.Set.of_list @@ List.map ~f:fst rebinds)
+  | Throw { value; _ }                                   -> Expression.free_variables value
+  | Try { body; exception_binder; handler; _ }           -> Identifier.Set.union (free_variables body) (Identifier.Set.remove (free_variables handler) exception_binder)
 
 
 (*
@@ -973,6 +1051,8 @@ let rec assigned_variables (statement : t) : Identifier.Set.t =
   | Unconstrained _                                                    -> Identifier.Set.empty
   | Located (_, statement)                                             -> assigned_variables statement
   | Specialize { body; _ }                                             -> assigned_variables body
+  | Throw _                                                            -> Identifier.Set.empty
+  | Try { body; handler; _ }                                           -> Identifier.Set.union (assigned_variables body) (assigned_variables handler)
 
 
 (*
@@ -1000,6 +1080,8 @@ let rec specialisations (statement : t) : ((Identifier.t * Z.t) list * Numeric.C
   | Unconstrained _                                                    -> []
   | Specialize { equalities; facts; body; _ }                          -> (equalities, facts) :: specialisations body
   | Located (_, statement)                                             -> specialisations statement
+  | Throw _                                                            -> []
+  | Try { body; handler; _ }                                           -> specialisations body @ specialisations handler
 
 
 let contains_specialize (statement : t) : bool =
@@ -1031,6 +1113,8 @@ class virtual ['a] visitor =
     method virtual visit_write_register     : register_identifier : Identifier.t -> written_value : Identifier.t -> 'a
     method virtual visit_assign_variable    : variable_identifier : Identifier.t -> assigned_value : t -> 'a
     method virtual visit_specialize         : equalities : (Identifier.t * Z.t) list -> facts : Numeric.Constraint.t list -> rebinds : (Identifier.t * Type.t) list -> result_type : Type.t -> body : t -> 'a
+    method virtual visit_throw              : value : Expression.t -> typ : Type.t -> exception_type : Type.t -> 'a
+    method virtual visit_try                : body : t -> result_type : Type.t -> exception_binder : Identifier.t -> exception_type : Type.t -> handler : t -> caught : Identifier.t list -> 'a
   end
 
 
@@ -1060,6 +1144,8 @@ class identity_rewriter =
       | Unconstrained typ                                                                                   -> self#visit_unconstrained ~typ
       | Located (location, statement)                                                                       -> Located (location, self#visit statement)
       | Specialize { equalities; facts; rebinds; result_type; body }                                        -> self#visit_specialize ~equalities ~facts ~rebinds ~result_type ~body
+      | Throw { value; typ; exception_type }                                                                -> self#visit_throw ~value ~typ ~exception_type
+      | Try { body; result_type; exception_binder; exception_type; handler; caught }                        -> self#visit_try ~body ~result_type ~exception_binder ~exception_type ~handler ~caught
 
     method visit_match ~(pattern : match_pattern) : t =
       match pattern with
@@ -1273,6 +1359,34 @@ class identity_rewriter =
         body        = self#visit body;
       }
 
+    method visit_throw
+        ~(value          : Expression.t)
+        ~(typ            : Type.t      )
+        ~(exception_type : Type.t      ) : t
+      =
+      Throw {
+        value          = self#foreign_visit_expression value;
+        typ            = self#foreign_visit_type typ;
+        exception_type = self#foreign_visit_type exception_type;
+      }
+
+    method visit_try
+        ~(body             : t                )
+        ~(result_type      : Type.t           )
+        ~(exception_binder : Identifier.t     )
+        ~(exception_type   : Type.t           )
+        ~(handler          : t                )
+        ~(caught           : Identifier.t list) : t
+      =
+      Try {
+        body             = self#visit body;
+        result_type      = self#foreign_visit_type result_type;
+        exception_binder;
+        exception_type   = self#foreign_visit_type exception_type;
+        handler          = self#visit handler;
+        caught;
+      }
+
     (*
        The method visit_expression operates on Statement values.
        This method operates on Expression values.
@@ -1325,7 +1439,7 @@ let simplify_unused_let_binder (statement : t) : t =
     | Located (_, statement)                        -> is_call statement
     | Cast (statement, _)                           -> is_call statement
     | Match _ | Expression _ | Let _ | DestructureRecord _ | Seq (_, _) | ReadRegister _
-    | WriteRegister _ | AssignVariable _ | Fail (_, _) | Unconstrained _ | Specialize _ -> false
+    | WriteRegister _ | AssignVariable _ | Fail (_, _) | Unconstrained _ | Specialize _ | Throw _ | Try _ -> false
   in
   let rewriter =
     object(self)
@@ -1550,6 +1664,16 @@ let simplify_aliases (statement : t) : t =
             body = (rewriter @@ forget_substitutions substitution @@ List.map ~f:fst binders)#visit body;
           }
         end
+
+      method! visit_try ~body ~result_type ~exception_binder ~exception_type ~handler ~caught =
+        Try {
+          body             = self#visit body;
+          result_type;
+          exception_binder;
+          exception_type;
+          handler          = (rewriter @@ forget_substitution substitution exception_binder)#visit handler;
+          caught;
+        }
 
       method! foreign_visit_expression expression =
         Expression.substitute_variable substitution expression

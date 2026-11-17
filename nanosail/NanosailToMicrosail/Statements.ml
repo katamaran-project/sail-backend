@@ -133,7 +133,7 @@ let rec inlined_scrutinee_match
       else None
     end
   | Expression _ | Call (_, _) | Let _ | Seq (_, _) | ReadRegister _ | WriteRegister _ | AssignVariable _
-  | DestructureRecord _ | Cast (_, _) | Fail (_, _) | Unconstrained _ | Specialize _ -> None
+  | DestructureRecord _ | Cast (_, _) | Fail (_, _) | Unconstrained _ | Specialize _ | Throw _ | Try _ -> None
 
 
 (*
@@ -707,7 +707,7 @@ and calls_function_with_ambiguous_result_type (statement : Ast.Statement.t) : bo
         end
     end
   | Expression _ | Match _ | Seq _ | ReadRegister _ | WriteRegister _ | AssignVariable _
-  | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ | Specialize _ -> GC.return false
+  | DestructureRecord _ | Cast _ | Fail _ | Unconstrained _ | Specialize _ | Throw _ | Try _ -> GC.return false
 
 
 and pp_read_register (register_identifier : Ast.Identifier.t) : PP.t GC.t =
@@ -1036,4 +1036,7 @@ and pp_statement (statement : Ast.Statement.t) : PP.t GC.t =
                    result_type;
                    body }                       -> pp_specialize ~equalities ~facts ~rebinds ~result_type ~body
     | Located (location, inner_statement)       -> GC.with_sail_location location @@ pp_statement inner_statement
+    (* SailToNanosail.Exceptions replaces them by the time the program is printed *)
+    | Throw _                                   -> GC.fail [%here] "throw left in a translated function"
+    | Try _                                     -> GC.fail [%here] "try left in a translated function"
   end

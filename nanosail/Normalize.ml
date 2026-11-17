@@ -349,6 +349,20 @@ let rec normalize_statement (statement : Ast.Statement.t) : Ast.Statement.t Mona
       return @@ Ast.Statement.Located (location, new_statement)
     end
 
+  | Throw { value; typ; exception_type } -> begin
+      let* value = normalize_expression value
+      in
+      return @@ Ast.Statement.Throw { value; typ; exception_type }
+    end
+
+  | Try { body; result_type; exception_binder; exception_type; handler; caught } -> begin
+      let* body             = normalize_statement body
+      and* exception_binder = substitute_identifier exception_binder
+      and* handler          = normalize_statement handler
+      in
+      return @@ Ast.Statement.Try { body; result_type; exception_binder; exception_type; handler; caught }
+    end
+
   | Fail _ -> return statement
   | Unconstrained _ -> return statement
 

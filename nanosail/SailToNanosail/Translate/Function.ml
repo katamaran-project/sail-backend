@@ -1217,7 +1217,7 @@ let rec statement_of_aexp
     | _ -> None
   in
 
-  let statement_of_match
+  let rec statement_of_match
       (matched     : S.typ S.aval                                     )
       (cases       : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp) list)
       (output_type : S.typ                                            ) : Ast.Statement.t TC.t
@@ -1911,35 +1911,150 @@ let rec statement_of_aexp
     in
     TC.return @@ Ast.Statement.Cast (translated_expression, translated_type)
 
+  (*
+     throw v becomes a Throw node, which SailToNanosail.Exceptions replaces
+     by a raised value (exp_inr v) or a failure.
+  *)
   and statement_of_throw
-        (_aval : Libsail.Ast.typ Libsail.Anf.aval)
-        (typ   : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
+        (aval : Libsail.Ast.typ Libsail.Anf.aval)
+        (typ  : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
     =
-    let* translated_type = Type.translate_type typ
+    let* translated_type                         = Type.translate_type typ
+    and* value, exception_type, named_statements = expression_of_aval location aval
     in
-    TC.return @@ Ast.Statement.Fail (translated_type, "failure")
+    TC.return begin
+      wrap_in_named_statements_context named_statements begin
+        Ast.Statement.Throw { value; typ = translated_type; exception_type }
+      end
+    end
 
   (*
-     try { body } catch { handlers } is translated as body: the handlers are dropped,
-     so a throw inside body fails (throw is translated as fail) instead of being caught.
+     try { body } catch { handlers } becomes a Try node, which SailToNanosail.Exceptions replaces.
+     The handler is the translation of
+
+       match exception { handlers, e => throw e }
+
+     where the last case, the rethrow, is added unless a handler already matches every exception.
+     The node records which constructors the handlers may catch: those their patterns name,
+     or all of them if a handler matches every exception and does not just rethrow it.
   *)
   and statement_of_try
-        (body     : S.typ S.aexp)
-        (handlers : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp * S.uannot) list) : Ast.Statement.t TC.t
+        (body       : S.typ S.aexp)
+        (handlers   : (S.typ S.apat * S.typ S.aexp * S.typ S.aexp * S.uannot) list)
+        (sail_type  : S.typ       ) : Ast.Statement.t TC.t
     =
-    let* () =
-      let message = lazy begin
-        PP.string begin
-          Printf.sprintf
-            "Dropped the %d handler(s) of a try at %s; the try is translated as its body"
-            (List.length handlers)
-            (Sail.string_of_location location)
-        end
-      end
-      in
-      TC.log [%here] Logging.warning message
+    let result_sail_type : S.typ =
+      Option.value expression_type ~default:sail_type
+    and exception_sail_type : S.typ =
+      Libsail.Ast_util.exc_typ
     in
-    statement_of_aexp expression_type body
+    let* exception_binder =
+      let* generated = TC.generate_unique_identifier ~prefix:"exception" ()
+      in
+      Identifier.translate_identifier [%here] @@ Libsail.Ast_util.mk_id @@ Ast.Identifier.to_string generated
+    in
+    let exception_name : Libsail.Jib.name =
+      Libsail.Jib.Name (Libsail.Ast_util.mk_id @@ Ast.Identifier.to_string exception_binder, 0)
+    in
+    let rec matches_everything (pattern : S.typ S.apat) : bool =
+      let S.AP_aux (unwrapped_pattern, _) = pattern
+      in
+      match unwrapped_pattern with
+      | AP_id (_, _)                  -> true
+      | AP_wild _                     -> true
+      | AP_as (pattern, _, _)         -> matches_everything pattern
+      | AP_tuple _                    -> false
+      | AP_global (_, _)              -> false
+      | AP_app (_, _, _)              -> false
+      | AP_cons (_, _)                -> false
+      | AP_struct (_, _)              -> false
+      | AP_vector_concat (_, _)       -> false
+      | AP_nil _                      -> false
+    in
+    (* e => throw e *)
+    let is_rethrow ((pattern, _guard, handler_body, _) : S.typ S.apat * S.typ S.aexp * S.typ S.aexp * S.uannot) : bool =
+      let S.AP_aux (unwrapped_pattern, _) = pattern
+      and S.AE_aux (unwrapped_body, _)    = handler_body
+      in
+      match unwrapped_pattern, unwrapped_body with
+      | AP_id (bound, _), AE_throw (AV_id (thrown, _), _) -> Libsail.Jib_util.Name.compare bound thrown = 0
+      | _, _                                              -> false
+    in
+    let has_catch_all =
+      List.exists handlers ~f:(fun (pattern, guard, _, _) ->
+          let S.AE_aux (unwrapped_guard, _) = guard
+          in
+          let unguarded =
+            match unwrapped_guard with
+            | AE_val (AV_lit (S.L_aux (S.L_true, _), _)) -> true
+            | _                                         -> false
+          in
+          unguarded && matches_everything pattern)
+    in
+    let* caught : Ast.Identifier.t list =
+      let* all_constructors : Ast.Identifier.t list =
+        let* exception_type = Type.translate_type exception_sail_type
+        in
+        match exception_type with
+        | Variant identifier -> begin
+            let* variant = TC.lookup_definition_opt Ast.Definition.Select.(type_definition @@ of_variant_named identifier)
+            in
+            match variant with
+            | Some variant -> TC.return @@ List.map ~f:fst variant.constructors
+            | None         -> TC.not_yet_implemented ~message:"exception type without a definition" [%here] location
+          end
+        | _ -> TC.not_yet_implemented ~message:"exception type is not a union" [%here] location
+      in
+      let rec named_constructors (pattern : S.typ S.apat) : Ast.Identifier.t list TC.t =
+        let S.AP_aux (unwrapped_pattern, _) = pattern
+        in
+        match unwrapped_pattern with
+        | AP_app (Constructor identifier, _, _)     -> TC.lift ~f:List.return @@ Identifier.translate_identifier [%here] identifier
+        | AP_app (Newtype_wrapper identifier, _, _) -> TC.lift ~f:List.return @@ Identifier.translate_identifier [%here] identifier
+        | AP_as (pattern, _, _)                     -> named_constructors pattern
+        | AP_id (_, _) | AP_wild _                  -> TC.return []
+        | AP_tuple _ | AP_global (_, _) | AP_cons (_, _) | AP_struct (_, _)
+        | AP_vector_concat (_, _) | AP_nil _        -> TC.return all_constructors
+      in
+      let* per_handler =
+        TC.map handlers ~f:(fun ((pattern, _, _, _) as handler) ->
+            if matches_everything pattern
+            then TC.return (if is_rethrow handler then [] else all_constructors)
+            else named_constructors pattern)
+      in
+      TC.return @@ List.dedup_and_sort ~compare:Ast.Identifier.compare @@ List.concat per_handler
+    in
+    let* translated_body = statement_of_aexp (Some result_sail_type) body
+    and* result_type     = Type.translate_type result_sail_type
+    and* exception_type  = Type.translate_type exception_sail_type
+    and* handler =
+      let annotation : S.anf_annot = annotation
+      in
+      let rethrow =
+        let pattern = S.AP_aux (AP_id (exception_name, exception_sail_type), annotation)
+        and guard   = S.AE_aux (AE_val (AV_lit (S.L_aux (S.L_true, location), Libsail.Ast_util.bool_typ)), annotation)
+        and thrown  = S.AE_aux (AE_throw (AV_id (exception_name, Local (Immutable, exception_sail_type)), result_sail_type), annotation)
+        in
+        (pattern, guard, thrown)
+      in
+      let cases =
+        List.map handlers ~f:(fun (pattern, guard, handler_body, _) -> (pattern, guard, handler_body))
+      in
+      let cases =
+        if has_catch_all
+        then cases
+        else List.append cases [ rethrow ]
+      in
+      statement_of_match (AV_id (exception_name, Local (Immutable, exception_sail_type))) cases result_sail_type
+    in
+    TC.return @@ Ast.Statement.Try {
+      body = translated_body;
+      result_type;
+      exception_binder;
+      exception_type;
+      handler;
+      caught;
+    }
 
   (*
      A loop becomes a call to a helper function, which runs the loop recursively:
@@ -2221,7 +2336,7 @@ let rec statement_of_aexp
     | AE_throw (aval, typ)                                          -> statement_of_throw aval typ
     | AE_exit (aval, typ)                                           -> statement_of_exit aval typ
     | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
-    | AE_try (body, handlers, _typ)                                 -> statement_of_try body handlers
+    | AE_try (body, handlers, typ)                                  -> statement_of_try body handlers typ
     | AE_for (name, start, stop, step, order, body)                 -> statement_of_loop (Foreach { loop_variable = Sail.id_of_name name; start; stop; step; increasing = Libsail.Ast_util.is_order_inc order }) body
     | AE_loop (While, condition, body)                              -> statement_of_loop (While condition) body
     | AE_loop (Until, condition, body)                              -> statement_of_loop (Until condition) body
@@ -3332,6 +3447,8 @@ let rewrite_bitvector_comparisons (statement : Ast.Statement.t) : Ast.Statement.
     | Unconstrained _       -> statement
     | Specialize { equalities; facts; rebinds; result_type; body } -> Specialize { equalities; facts; rebinds; result_type; body = rewrite body }
     | Located (location, inner_statement) -> Located (location, rewrite inner_statement)
+    | Throw _               -> statement
+    | Try { body; result_type; exception_binder; exception_type; handler; caught } -> Try { body = rewrite body; result_type; exception_binder; exception_type; handler = rewrite handler; caught }
   in
   rewrite statement
 
