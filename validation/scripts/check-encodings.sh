@@ -72,12 +72,24 @@ ecall
 ebreak
 mret
 nop
+wfi
+sret
+fence
+fence rw, rw
+fence r, w
+fence iorw, o
+fence.i
+fence.tso
+sfence.vma
+sfence.vma a0, a1
+csrrs a0, cycle, zero
+csrrs a0, instret, zero
 end:
 add zero, zero, zero
 EOF
 
 "$here/mk-test-elf.py" "$tmp/t.s" "$tmp/ours.elf" | cut -d' ' -f2 > "$tmp/ours.txt"
-"$llvm/llvm-mc" --triple=riscv32 -mattr=+m,-relax -filetype=obj "$tmp/t.s" -o "$tmp/llvm.o"
+"$llvm/llvm-mc" --triple=riscv32 -mattr=+m,+zifencei,-relax -filetype=obj "$tmp/t.s" -o "$tmp/llvm.o"
 "$llvm/llvm-objcopy" -O binary --only-section=.text "$tmp/llvm.o" "$tmp/llvm.bin"
 od -An -v -tx4 "$tmp/llvm.bin" | tr -s ' ' '\n' | sed '/^$/d' > "$tmp/llvm.txt"
 diff -u "$tmp/llvm.txt" "$tmp/ours.txt"

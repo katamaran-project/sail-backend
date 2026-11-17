@@ -51,7 +51,20 @@ x1.address 0x00000005
 ## Delta
 
 - `statefile.py delta BEFORE AFTER` (`Dump.delta` in Rocq): the lines of `AFTER` that are new or changed.
-- Registers never disappear and memory lines only accumulate, so the delta is everything that changed.
+- Registers never disappear and memory lines only accumulate, so the delta is everything that changed, except a key that is gone: a union's payload after its constructor changed (no register is a union yet).
+
+## Delta run
+
+What Rocq prints in `gmake validate` (`Dump.delta_run`): a run file with each state after the first as its changes.
+
+```
+delta-run ::= "0" LF ("0" SP line)* (step LF (step SP change)*)*     steps 1, 2, ... in order
+change    ::= line | "-" key
+```
+
+- A line with the step alone opens that state; state 0 in full, every later state as its changes from the one before: a new or changed line, or `-key` for a key that is gone.
+- `statefile.py undelta RUN` rebuilds the run file, every state in full; `validate.py` compares those, so every state is compared in full.
+- `gmake -C validation/rocq dumps` checks the rebuilt `addi-add-sw` run against the run Rocq prints in full; `validate.py --full-states` does it for every case.
 
 ## Coverage
 
