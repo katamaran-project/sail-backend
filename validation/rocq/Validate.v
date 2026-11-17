@@ -1,8 +1,10 @@
 (* Runner for gmake validate (validation/docs/validate.md): a program from
    reset, up to a step limit; the state after reset and after every step, in
-   the run-file format (state-format.md), then one line "end <why>".
-   A generated Run.v per case calls [case_lines] and prints the result. *)
+   the delta run-file format (state-format.md), then one line "end <why>".
+   A generated Run.v per case prints [case_output] with [print_plines]. *)
 
+From Stdlib Require
+     Strings.PrimString.
 From Stdlib Require Import
      Strings.String
      Lists.List
@@ -65,7 +67,13 @@ Definition run_case (fuel n : nat) (prog : list Z) : list Dumped * string :=
       end
   end.
 
-(* The run file's lines, then "end <why>". *)
+(* The run file's lines, every state in full, then "end <why>". *)
 Definition case_lines (fuel n : nat) (prog : list Z) : list string :=
   let '(ds, why) := run_case fuel n prog in
   dump_run ds ++ ["end " ++ why].
+
+(* As primitive strings for [print_plines]: the delta run file (or, if
+   [full], [case_lines]). *)
+Definition case_output (full : bool) (fuel n : nat) (prog : list Z) : list PrimString.string :=
+  let '(ds, why) := run_case fuel n prog in
+  map pstring_of_string ((if full then dump_run ds else delta_run ds) ++ ["end " ++ why]).

@@ -17,20 +17,26 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `-j N` | parallel Rocq runs |
 | `--no-cache` | run Rocq even if cached |
 | `--cache-dir DIR` | default `$SAIL_BACKEND_VALIDATE_CACHE`, else `~/.cache/sail-backend/validate-cache` |
+| `--full-states` | Rocq prints every state in full instead of deltas (slower; a check of the delta encoding) |
 | `--list-divergences` | print `divergences.toml` as a Markdown table |
 
-- `gmake validate` first builds what is missing: the emulator (about 10 minutes), the model (`base.v`, `machine.v`, about 2 minutes), the Rocq runner.
+- `gmake validate` first builds what is missing: the emulator (about 10 minutes), the model (`base.v`, `machine.v`, about 1 minute), the Rocq runner (the model's `.vos` about 1 minute).
   After a translator change, regenerate the model: `gmake -C validation/rocq model CHERIOT_SAIL_DIR=...`.
+  It copies `base.v`/`machine.v` only if they changed, so an unchanged model is not recompiled and the cached results stay valid.
 - `VALIDATE_CHERIOT=DIR`: the cheriot-sail checkout to build the emulator from (default `$CHERIOT_SAIL_DIR`, else `../cheriot-sail`).
-- Cached: about 2 s. Cold: about 40 s at `-j 4`, mostly Rocq printing the states.
+- Cached: under 1 s. Cold: about 5 s at `-j 4`.
 - Exit status 1 if a case neither passes nor diverges as recorded.
 
 ## Stages, per case
 
 1. **assemble**: `validation/cases/lib/prologue.s` + the case + `epilogue.s` into an ELF (`validation/scripts/mk-test-elf.py`; no cross toolchain).
 2. **emulator**: `cheriot_sim_dump --disable-compressed -F -W --insns-per-tick 1000000000 --inst-limit L --dump-state emu.run prog.elf`.
-3. **Rocq**: a generated `Run.v` (the program's words, the limit) runs `Validate.v`: reset, then up to `L` steps, printing every state.
-4. **compare**: the first step whose states differ, as a `diff -u`.
+3. **Rocq**: a generated `Run.v` (the program's words, the limit) runs `Validate.v`: reset, then up to `L` steps.
+   It prints the state after reset in full and then each step's changes ([delta run file](state-format.md#delta-run)); `statefile.py` rebuilds every state in full.
+4. **compare**: the full states, step by step; the first step whose states differ, as a `diff -u`.
+
+- Uncached cases run in at most `-j` `coqc` processes, several cases each, so that each loads the model once.
+  If such a batch fails, its cases run one by one, so that an error is reported for its case.
 
 - Both sides stop at the same step: the run ends via `tohost`, or after `L` steps (200, or `# limit: N` in the case). The emulator patch counts every step, retired or not.
 - A trap jumps to the epilogue's handler, which ends the run; without it, the reset `MTCC` (address 0) fetch-faults forever.
@@ -43,6 +49,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `stop` | why the Rocq run ended: `Halted` (`tohost`), `Failed` (`stm_fail`), `StepLimit`, `OutOfFuel`, `NoAnswer` |
 | `exit` | the emulator's exit code (0 pass, 1 trap, `-` none) |
 | `result` | below |
+| `Rocq` | seconds of the case's run in Rocq (without loading the model), or `cached` |
 
 - `pass`: every state equal, and the expected exit code (`trap-*` cases 1, others 0).
 - `expected divergence at step n`: diverges exactly as recorded ([below](#known-divergences)).
@@ -96,6 +103,8 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 
 - `validation/rocq/`: `Interp.v` (interpreter), `Harness.v` (foreign calls, start state, runs), `Dump.v`/`Names.v` (state format), `Validate.v` (runner); `InterpTests.v`, `StepADDI.v`, `DumpADDI.v` check them.
 - `gmake -C validation/rocq [all|cheriot|dumps|validate|model]`; the model in `validation/build/model`.
+- `validate` compiles the model and the runner with `coqc -vos`: definitions are checked, `Qed` proofs are not (`gmake cheriot` checks them).
+  The interpreter never unfolds a `Qed` proof, so the runs are the same; `machine.v` compiles in about half the time.
 - Fuel bounds nesting depth, not steps: `init_model` needs 65, one step about 50; the runner uses 1000.
 
 ```coq
@@ -131,7 +140,7 @@ gmake -C validation/emulator check                               # compare with 
 
 ## Output
 
-- `validation/build/validate/<case>/`: `prog.s`, `prog.elf`, `emu.run`, `Run.v`, `rocq.run`, `diff.txt`, `divergence.txt`; the table in `validation/build/validate/results.md`.
+- `validation/build/validate/<case>/`: `prog.s`, `prog.elf`, `emu.run`, `Run.v`, `rocq.out` (Rocq's delta run file), `rocq.run` (every state in full), `diff.txt`, `divergence.txt`; the table in `validation/build/validate/results.md`.
 - Rocq results cached by the hash of `Run.v`, the model and the Rocq files; the emulator always runs (milliseconds).
 
 ## Limitations

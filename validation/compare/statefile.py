@@ -4,6 +4,7 @@
   statefile.py check [--run] FILE...     grammar and order; exit 1 on the first error
   statefile.py delta BEFORE AFTER        lines of AFTER whose key is new or whose value changed
   statefile.py split RUN DIR             DIR/reset.state (step 0), DIR/step<i>.state
+  statefile.py undelta RUN               a delta run file (Rocq's) as a run file, every state in full
   statefile.py keys A B                  register keys of A and B are equal; else list the
                                          missing (-) and extra (+) keys of B, exit 1
   statefile.py compare RUN_A RUN_B       first step whose states differ, with diff -u of the
@@ -84,6 +85,69 @@ def parse_run(lines, where):
     return {s: parse_state(ls, f"{where} step {s}") for s, ls in steps.items()}
 
 
+SECTION_OF = {"mem": 1, "tag": 2}
+
+
+def state_key(key):
+    """Sort key of a whole state: registers, then mem, then tag lines (as parse_state wants)."""
+    return (SECTION_OF.get(key.split(" ", 1)[0], 0) if " " in key else 0, addr_key(key))
+
+
+def parse_delta_run(lines, where):
+    """{step: [(key, value)]} of a delta run file (state-format.md, "Delta run"):
+    a line "i" opens state i; state 0 in full, every later state as its changes
+    from the one before ("i key value", or "i -key" for a key that is gone).
+    Every state is rebuilt in full and checked as parse_state checks it."""
+    steps = {}
+    step, body = -1, []
+
+    def close():
+        if step < 0:
+            return
+        if step == 0:
+            steps[0] = parse_state([l for _, l in body], f"{where} step 0")
+            return
+        state = dict(steps[step - 1])
+        for n, l in body:
+            if l.startswith("-"):
+                if state.pop(l[1:], None) is None:
+                    raise FormatError(f"{where}:{n}: removes a key that is not there: {l!r}")
+            else:
+                m = next((m for m in (r.fullmatch(l) for r in SECTIONS) if m), None)
+                if m is None:
+                    raise FormatError(f"{where}:{n}: bad line: {l!r}")
+                state[m.group(1)] = m.group(2)
+        keys = sorted(state, key=state_key)
+        steps[step] = parse_state([f"{k} {state[k]}" for k in keys], f"{where} step {step}")
+
+    for n, line in enumerate(lines, 1):
+        m = re.fullmatch(r"(0|[1-9][0-9]*)(?: (.*))?", line)
+        if not m:
+            raise FormatError(f"{where}:{n}: no step prefix: {line!r}")
+        s = int(m.group(1))
+        if m.group(2) is None:
+            if s != step + 1:
+                raise FormatError(f"{where}:{n}: step {s} opened where {step + 1} expected")
+            close()
+            step, body = s, []
+        elif s != step:
+            raise FormatError(f"{where}:{n}: line of step {s} in step {step}: {line!r}")
+        else:
+            body.append((n, m.group(2)))
+    close()
+    return steps
+
+
+def parse_any_run(lines, where):
+    """A run file or a delta run file (first line "0")."""
+    return parse_delta_run(lines, where) if lines[:1] == ["0"] else parse_run(lines, where)
+
+
+def render_run(steps):
+    """A run file: every state in full, each line prefixed with its step."""
+    return "".join(f"{s} {k} {v}\n" for s in sorted(steps) for k, v in steps[s])
+
+
 def delta(before, after):
     old = dict(before)
     return [(k, v) for k, v in after if old.get(k) != v]
@@ -148,6 +212,13 @@ def main(argv):
     if len(argv) == 3 and argv[0] == "split":
         try:
             split(argv[1], argv[2])
+        except FormatError as e:
+            print(e, file=sys.stderr)
+            return 1
+        return 0
+    if len(argv) == 2 and argv[0] == "undelta":
+        try:
+            sys.stdout.write(render_run(parse_delta_run(read_lines(argv[1]), argv[1])))
         except FormatError as e:
             print(e, file=sys.stderr)
             return 1
