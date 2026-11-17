@@ -19,15 +19,16 @@
 
    The semantics of a foreign function (ForeignCall, see pp_foreign_call) never fails and never
    changes the registers: Sail externs cannot write Sail registers. A pure extern leaves the
-   memory unchanged; a monadic one may change it in any way. Its result is
+   memory unchanged; a monadic one, or a memory write declared pure (see writes_memory), may
+   change it in any way. Its result is
 
    * given by a Rocq term (Semantics.Given): the configuration's (foreign-function-semantics),
      or else the default for the extern's binding (see default_semantics);
    * or else unconstrained: any value of the result type. A proof about a caller must then hold
      for every value the call may return, which is how undefined values are treated as well.
 
-   No foreign function reads the memory, so leaving the memory unchanged for pure externs that
-   in reality write it (such as tag writes declared pure) cannot be observed.
+   No result term reads the memory; an oracle that answers the calls (such as a test harness)
+   may keep state in it, e.g., the tags that tag writes change.
 *)
 open ExtBase
 open Monads.Notations.Star(GenerationContext)
@@ -231,7 +232,26 @@ let default_semantics (foreign_function : t) : Semantics.t =
       | Bitvector _ :: _ -> given "bv.of_Z (Z.shiftr (bv.unsigned arg1) arg2)"
       | _                -> Semantics.Unconstrained
     end
+  (* vector_update(v, i, b): v with bit i set to the bit b, a bitvector(1) *)
+  | "vector_update"        -> begin
+      match foreign_function.parameter_types with
+      | Bitvector _ :: _ -> given "bv.of_Z (if bv.unsigned arg3 =? 0 then Z.clearbit (bv.unsigned arg1) arg2 else Z.setbit (bv.unsigned arg1) arg2)%Z"
+      | _                -> Semantics.Unconstrained
+    end
   | _ -> Semantics.Unconstrained
+
+
+(*
+   Whether a call may change the memory: a monadic extern, or one of Sail's memory writes
+   declared pure, by binding key (CHERI's tag write, val MEMw_tag = "write_tag_bool").
+*)
+let writes_memory (foreign_function : t) : bool =
+  let declared_pure_write =
+    match binding_key foreign_function with
+    | "write_tag_bool" -> true
+    | _                -> false
+  in
+  not foreign_function.pure || declared_pure_write
 
 
 (* The semantics of the foreign function: the configuration's, or else the default *)
@@ -335,7 +355,7 @@ let pp_foreign_call_case (foreign_function : t) : PP.t =
     String.concat ~sep:" " @@ ("@" ^ Ast.Identifier.to_string foreign_function.identifier) :: List.map ~f:(Fn.const "_") (implicit_parameters foreign_function)
   in
   let memory =
-    if foreign_function.pure then [ "μ' = μ" ] else []
+    if writes_memory foreign_function then [] else [ "μ' = μ" ]
   in
   let result =
     match semantics foreign_function with

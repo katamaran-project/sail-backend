@@ -20,7 +20,7 @@ Measured on `51a49aa1`+ (`try` is its body); cheriot-sail `518813e`, Katamaran `
 | `NYI` holes | 0 |
 | hard failures | 0 |
 | calls to missing functions | 0; `execute`'s 80 calls for out-of-scope instructions (compressed, Zb\*) are failures, unreachable as both are absent ([design](design.md#scope)) |
-| foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 25 unconstrained (platform settings, memory, tags, ...) |
+| foreign functions | 38 externs in `FunX` (312 `stm_foreign` calls): 14 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, `bitvector_update`, ...), 24 unconstrained (platform settings, memory, tags, ...) |
 | policy exclusions | 47, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 9 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
 | Rocq, plain | all of `base.v` and `machine.v` compile (slowest: `fundef_bindfree` 22.3 s, `execute_LoadCapImm` 5.4 s) |
 | Rocq, probe (`NYI` as an axiom) | same as plain: nothing to axiomatise |

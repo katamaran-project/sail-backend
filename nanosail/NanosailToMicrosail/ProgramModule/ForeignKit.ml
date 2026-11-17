@@ -12,7 +12,8 @@ end
 
    * (unconstrained σ) returns any value of σ, never fails, and changes nothing;
    * each extern that is a foreign function never fails and leaves the registers unchanged;
-     a pure one leaves the memory unchanged, a monadic one may change it in any way;
+     a pure one leaves the memory unchanged, a monadic one (or a memory write declared pure,
+     see ForeignFunctions.writes_memory) may change it in any way;
      its result is given by a Rocq definition (semantics_<name>) or else unconstrained.
 
    For example

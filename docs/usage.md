@@ -386,6 +386,7 @@ A call to an extern becomes one of two things:
 
 The semantics of a foreign function (`ForeignCall`, in `machine.v`) never fails and never changes the registers.
 A `pure` extern leaves the memory unchanged; a `monadic` one may change it in any way.
+So may the memory writes that models declare pure, by binding key: `write_tag_bool` (CHERI's `MEMw_tag`).
 Its result is either given by a Rocq term, or else *unconstrained*: any value of the result type, so that a proof about a caller must hold for every value the call could return (the value is universally quantified, as undefined values are).
 Two calls to an unconstrained foreign function can return different values, even without arguments: a platform setting such as `plat_ram_base` is not a fixed constant unless the configuration gives it a term.
 
@@ -401,12 +402,12 @@ Two calls to an unconstrained foreign function can return different values, even
 - `foreign-functions-unconstrained` makes the result unconstrained, also when the translator has a default term.
 
 Externs of Sail's library with a well-known meaning have a default term (by binding key; see `default_semantics` in `nanosail/NanosailToMicrosail/ForeignFunctions.ml`):
-`emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`,
+`emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`, `vector_update` on bits (`bitvector_update`),
 and, for the calls that do not become operations, `zeros` (`sail_zeros`), `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`.
 All other externs (platform settings, memory and tag accesses, `cancel_reservation`, …) are unconstrained.
-No foreign function reads the memory, so its contents cannot be observed; a term that reads it would need the writes to have a semantics too.
+No result term reads the memory; an oracle that answers the calls (a test harness) may keep state in it, such as the tags.
 The names are Sail's names; giving a function two different semantics is an error.
-See the tests `tests/coq-tests/externs-foreign-functions` and `externs-operations`.
+See the tests `tests/coq-tests/externs-foreign-functions`, `externs-operations`, `externs-tag-write` and `externs-bitvector-update`.
 
 ### Functions polymorphic in a width or a type
 
