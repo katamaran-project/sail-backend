@@ -124,6 +124,8 @@ let pp_foreign_function_inductive_type () : PP.t GC.t =
    Rocq finds the inhabitant of (unconstrained σ) by type class search: the hint below builds
    a value of a concrete type σ with the first constructor of each inductive type it meets
    (bv.zero for bitvectors). The value plays no part in the semantics.
+   bv.zero comes first and only the head of the type is reduced (hnf, not cbn): reducing a whole
+   bitvector type computes its width, a unary nat (minutes for CHERIoT's 65536-bit vregtype).
    This is outside the FunDeclKit section, so that the hint holds in the rest of the module.
 *)
 let pp_unconstrained_inhabitant () : PP.t =
@@ -131,7 +133,7 @@ let pp_unconstrained_inhabitant () : PP.t =
     "Class Unconstrained (σ : Ty) : Set := unconstrained_inhabitant : Val σ.";
     "";
     "Ltac construct_inhabitant :=";
-    "  cbn; first [ exact bv.zero | constructor; construct_inhabitant ].";
+    "  first [ exact bv.zero | hnf; constructor; construct_inhabitant ].";
     "";
     "#[export] Hint Extern 1 (Unconstrained _) => unfold Unconstrained; construct_inhabitant : typeclass_instances.";
   ]

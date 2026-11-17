@@ -6,6 +6,33 @@ Titles tagged `[validator]`: found by translation validation (`validation/`, `gm
 
 ## Fixed
 
+### [validator] `Unconstrained` hint ran for minutes on wide bitvectors
+- Found: the harness stalled building the vector registers' defaults through the hint.
+- Cause: `construct_inhabitant` (`FunDeclKit.ml`) ran `cbn` before `exact bv.zero`; `cbn` computed the width of `ty.vregtype` (65536 bits, `Nat.of_num_uint` into a unary `nat`). `machine.v` itself did not hit it.
+- Fix: `d6dc1d2f`: `exact bv.zero` first, then only the head of the type is reduced (`hnf`). Test `unconstrained-wide-bitvector`: 365 s before, 9 s after.
+```coq
+(* before *) Ltac construct_inhabitant := cbn; first [ exact bv.zero | constructor; construct_inhabitant ].
+(* after  *) Ltac construct_inhabitant := first [ exact bv.zero | hnf; constructor; construct_inhabitant ].
+```
+
+### Union fold proof reduced the width of a wide field
+- Found: writing `unconstrained-wide-bitvector`: a union with a `bits(65536)` field made `base.v` take minutes. `gmake cheriot` did not hit it.
+- Cause: the `typedefkit` proof (`BaseModule.ml`) ran `cbn in x` on the field's value, which computed its width (`Nat.of_num_uint` into a unary `nat`).
+- Fix: `fc878a9e`: no `cbn`; the loop reduces only the head of each value's type (`progress hnf`) until its pairs and units are exposed. Test `unions-wide-bitvector-field`: `base.v` 142 s before, 1 s after.
+```coq
+(* before *) - abstract (intros [] [[] x]; cbn in x;
+                         repeat match goal with
+                         | x: unit     |- _ => destruct x
+                         | x: prod _ _ |- _ => destruct x
+                         end; auto).
+(* after  *) - abstract (intros [] [[] x];
+                         repeat match goal with
+                         | x: unit     |- _ => destruct x
+                         | x: prod _ _ |- _ => destruct x
+                         | x: _        |- _ => progress hnf in x
+                         end; auto).
+```
+
 ### A model type named `S` broke `machine.v`'s `sail_constraint`
 - Found: e2e `bitvectors-variables` (`struct S('m)`), once the struct translated: "Unknown constructor: S" in `machine.v`.
 - Cause: the generated tactic refolds `Nat.add`/`Nat.mul` with `match n with | O => m | S p => ...`; the model's `Record S` shadows Peano's `S`.
@@ -366,13 +393,6 @@ print_reg(BitStr(v[VLEN - 1 .. 0]))            // ...that this slice needs
 - Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for it, so its result is any bitvector, not `x` with bit `i` set to `b`.
 ```coq
 | @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
-```
-
-### [validator] `Unconstrained` hint runs for minutes on wide bitvectors
-- Found: the harness stalled building the vector registers' defaults through the hint.
-- Cause: `construct_inhabitant` (`FunDeclKit.ml`) runs `cbn` before `exact bv.zero`, unfolding `ty.vregtype` (65536 bits, a unary `nat`). `machine.v` itself does not hit it.
-```coq
-Ltac construct_inhabitant := cbn; first [ exact bv.zero | constructor; construct_inhabitant ].
 ```
 
 ### Scrutinee inlining checks only the bound type for width families
