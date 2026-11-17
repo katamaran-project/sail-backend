@@ -2,6 +2,7 @@
 
 Bugs (wrong or rejected output, wrong measurements), not missing features; see [roadmap.md](roadmap.md) for those.
 Commit hashes are those on the branch at the time of writing.
+Titles tagged `[validator]`: found by translation validation (`validation/`, `gmake validate`).
 
 ## Fixed
 
@@ -352,6 +353,27 @@ print_reg(BitStr(v[VLEN - 1 .. 0]))            // ...that this slice needs
 - `add_bits_int` failed with a run-time int and with a width behind an alias (`xlenbits`).
 
 ## Open
+
+### [validator] Tag writes leave `Memory` unchanged in `ForeignCall`
+- Found: the harness keeps tags in `Memory`, so its tag writes break `ForeignCall`.
+- Cause: a pure extern gets `μ' = μ`; CHERIoT declares the tag write pure (`val MEMw_tag = "write_tag_bool" : (bits(64), bool) -> unit`).
+```coq
+| @MEMw_tag => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+```
+
+### [validator] `bitvector_update` has no semantics
+- Found: the harness computes it itself.
+- Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for it, so its result is any bitvector, not `x` with bit `i` set to `b`.
+```coq
+| @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+```
+
+### [validator] `Unconstrained` hint runs for minutes on wide bitvectors
+- Found: the harness stalled building the vector registers' defaults through the hint.
+- Cause: `construct_inhabitant` (`FunDeclKit.ml`) runs `cbn` before `exact bv.zero`, unfolding `ty.vregtype` (65536 bits, a unary `nat`). `machine.v` itself does not hit it.
+```coq
+Ltac construct_inhabitant := cbn; first [ exact bv.zero | constructor; construct_inhabitant ].
+```
 
 ### Scrutinee inlining checks only the bound type for width families
 - `cce22be3` keeps the `let` only when its own type is a width family. A tuple, sum or list containing one, or a union with other type parameters, is still inlined; built from constructors, its tag prints `(tag _)` and the width may be undetermined. No test hits it yet.

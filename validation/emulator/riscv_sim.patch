@@ -1,0 +1,84 @@
+--- riscv_sim.c
++++ riscv_sim.c
+@@ -22,6 +22,7 @@
+ #include "riscv_platform.h"
+ #include "riscv_platform_impl.h"
+ #include "riscv_sail.h"
++#include "dump_sim.h"
+ 
+ #ifdef ENABLE_SPIKE
+ #include "tv_spike_intf.h"
+@@ -53,6 +54,8 @@
+ #define OPT_ENABLE_WRITABLE_FIOM 1001
+ #define OPT_PMP_COUNT 1002
+ #define OPT_PMP_GRAIN 1003
++#define OPT_DUMP_STATE 1004
++#define OPT_INSNS_PER_TICK 1005
+ 
+ static bool do_dump_dts = false;
+ static bool do_show_times = false;
+@@ -155,6 +158,8 @@
+     {"no-trace",                    optional_argument, 0, 'V'                     },
+     {"trace-output",                required_argument, 0, OPT_TRACE_OUTPUT        },
+     {"inst-limit",                  required_argument, 0, 'l'                     },
++    {"dump-state",                  required_argument, 0, OPT_DUMP_STATE          },
++    {"insns-per-tick",              required_argument, 0, OPT_INSNS_PER_TICK      },
+     {"enable-zfinx",                no_argument,       0, 'x'                     },
+     {"enable-writable-fiom",        no_argument,       0, OPT_ENABLE_WRITABLE_FIOM},
+     {"boot-rom",                    no_argument, &config_use_boot_rom, true},
+@@ -419,6 +424,12 @@
+       trace_log_path = optarg;
+       fprintf(stderr, "using %s for trace output.\n", trace_log_path);
+       break;
++    case OPT_DUMP_STATE:
++      dump_state_open(optarg);
++      break;
++    case OPT_INSNS_PER_TICK:
++      rv_insns_per_tick = strtoull(optarg, NULL, 0);
++      break;
+     case '?':
+       print_usage(argv[0], 1);
+       break;
+@@ -695,6 +706,7 @@
+ 
+ void close_logs(void)
+ {
++  dump_state_close();
+ #ifdef SAILCOV
+   if (sail_coverage_exit() != 0) {
+     fprintf(stderr, "Could not write coverage information!\n");
+@@ -875,6 +887,7 @@
+ 
+   /* initialize the step number */
+   mach_int step_no = 0;
++  uint64_t dump_step_no = 0; /* every zstep call, retired or not */
+   int insn_cnt = 0;
+ #ifdef RVFI_DII
+   bool need_instr = true;
+@@ -886,7 +899,9 @@
+     exit(1);
+   }
+ 
+-  while (!zhtif_done && (insn_limit == 0 || total_insns < insn_limit)) {
++  /* --inst-limit counts every zstep call (dump_step_no), retired or not: a
++     fetch-fault loop after a trap stops too (validation/docs/validate.md). */
++  while (!zhtif_done && (insn_limit == 0 || dump_step_no < insn_limit)) {
+ #ifdef RVFI_DII
+     if (rvfi_dii) {
+       mach_bits instr_bits;
+@@ -993,6 +1008,7 @@
+       stepped = zstep(sail_step);
+       if (have_exception)
+         goto step_exception;
++      dump_state_step(++dump_step_no, stepped ? "true" : "false");
+       flush_logs();
+       KILL(sail_int)(&sail_step);
+     }
+@@ -1188,6 +1204,7 @@
+    */
+   init_spike(initial_elf_file, entry, rv_ram_size);
+   init_sail(entry);
++  dump_state_step(0, "()");
+ 
+   if (!init_check(s))
+     finish(1);
