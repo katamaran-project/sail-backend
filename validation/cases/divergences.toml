@@ -2,7 +2,8 @@
 # validation/cases. validate.py reports `expected divergence at step N` only if
 #   - the states are equal up to step - 1 and differ at `step`;
 #   - Rocq stops there (`rocq.stop`) and its delta at `step` (vs step - 1) is `rocq.delta`;
-#   - the emulator's delta at `step` is `emulator.delta` and its htif exit code `emulator.exit`.
+#   - the emulator's delta at `step` is `emulator.delta` and its htif exit code `emulator.exit`
+#     ("-": none, e.g. the emulator stopped at a failed assertion and printed no state for `step`).
 # Anything else (passes, diverges earlier/later or differently) fails, with the
 # recorded and actual deltas in validation/build/validate/<case>/divergence.txt.
 # Deltas: state-format.md lines, sorted as there.
@@ -52,3 +53,31 @@ emulator.delta = [
   'nextPC 0x80000030',
   'nextPCC.address 0x80000030',
 ]
+
+[csrw-mtvec]
+what = "`csrrw a1, mtvec, a0`: CHERIoT's `set_mtvec` is `internal_error`"
+reason = "both sides stop at the failed assertion: µSail `stm_fail` (`internal_error` asserts false), the emulator aborts without a state or htif exit code"
+doc = "validation/docs/validate.md#known-divergences"
+step = 6
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x305515f3',
+  'nextPC 0x80000018',
+  'step_result "assertion failed (message computed at run time, dropped by the translation)"',
+]
+emulator.exit = "-"
+emulator.delta = []
+
+[csrw-mepc]
+what = "`csrrw a1, mepc, a0`: CHERIoT's `set_xret_target` is `internal_error`"
+reason = "as `csrw-mtvec`"
+doc = "validation/docs/validate.md#known-divergences"
+step = 6
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x341515f3',
+  'nextPC 0x80000018',
+  'step_result "assertion failed (message computed at run time, dropped by the translation)"',
+]
+emulator.exit = "-"
+emulator.delta = []

@@ -155,14 +155,14 @@ def load_divergences():
             sys.exit(f"{DIVERGENCES}: [{name}]: no case {name}.s")
         try:
             ok = (isinstance(d["step"], int) and d["step"] >= 1 and isinstance(d["rocq"]["stop"], str)
-                  and isinstance(d["emulator"]["exit"], int)
+                  and (isinstance(d["emulator"]["exit"], int) or d["emulator"]["exit"] == "-")
                   and all(isinstance(d[k], str) for k in ("what", "reason", "doc"))
                   and all(isinstance(l, str) for side in ("rocq", "emulator") for l in d[side]["delta"]))
         except (KeyError, TypeError):
             ok = False
         if not ok:
             sys.exit(f"{DIVERGENCES}: [{name}]: needs what, reason, doc, step >= 1, "
-                     "rocq.stop, rocq.delta, emulator.exit, emulator.delta")
+                     "rocq.stop, rocq.delta, emulator.exit (int or \"-\"), emulator.delta")
     return table
 
 
@@ -183,7 +183,7 @@ def check_divergence(d, rocq, emu, why, exit_code, step):
     for side, run in (("rocq", rocq), ("emulator", emu)):
         if step_delta(run, step) != d[side]["delta"]:
             problems.append(f"{side} delta at step {step}")
-    if exit_code != d["emulator"]["exit"]:
+    if ("-" if exit_code is None else exit_code) != d["emulator"]["exit"]:
         problems.append(f"emulator exit {'-' if exit_code is None else exit_code}, expected {d['emulator']['exit']}")
     return "; ".join(problems) or None
 

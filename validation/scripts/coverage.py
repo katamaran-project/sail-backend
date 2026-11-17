@@ -62,7 +62,7 @@ DEAD = [
     (r"execute_RISCV_JALR?|get_arch_pc",
      "JAL, JALR, AUIPC decode as CJAL, CJALR, AUIPCC: ext_decode tries encdec_capmode first"),
     (r"execute_(C_ILLEGAL|NOT_C_CAPMODE)", "only from the compressed decoder; step executes it only if haveRVC()"),
-    (r"execute_NOT_CAPMODE|internal_error|report_invalid_width", "unreachable by design: internal_error (inlined in report_invalid_width)"),
+    (r"execute_NOT_CAPMODE|report_invalid_width", "unreachable by design (internal_error inlined in report_invalid_width)"),
     (r"(_get|_update)_[SU](interrupts|status)_\w+|Mk_[SU](interrupts|status|edeleg)|(lift|lower|legalize)_[su](ie|ip|status)"
      r"|(get|set)_[su]tvec|legalize_s(edeleg|counteren|atp|atp32)|set_sstatus_UXL|lower_m(ie|ip|status)",
      "S-mode and N-extension CSRs and their helpers: is_CSR_defined needs haveSupMode() or haveNExt(), "
