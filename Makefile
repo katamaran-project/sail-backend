@@ -90,7 +90,7 @@ mc: minimal-caps
 
 # Translation validation (validation/docs/validate.md): the programs in validation/cases run in
 # µSail (Rocq) and Sail's C emulator, states compared after every step. Builds what is missing
-# (emulator ~10 min, model ~2 min); Rocq results cached by input hash. Under the sail-backend switch:
+# (emulator ~1 min, model ~2 min); Rocq results cached by input hash. Under the sail-backend switch:
 #   opam exec --switch=sail-backend -- gmake validate [VALIDATE_CHERIOT=DIR] [VALIDATE_ARGS="addi -j 8"]
 # VALIDATE_CHERIOT: the cheriot-sail clone (default: $CHERIOT_SAIL_DIR, else ../cheriot-sail).
 VALIDATE_CHERIOT ?= $(or $(CHERIOT_SAIL_DIR),$(abspath $(CURDIR)/../cheriot-sail))
@@ -101,6 +101,13 @@ validate: build
 	test -f validation/build/model/base.v || $(MAKE) -C validation/rocq model CHERIOT_SAIL_DIR=$(VALIDATE_CHERIOT)
 	$(MAKE) -C validation/rocq validate
 	validation/scripts/validate.py $(VALIDATE_ARGS)
+
+# Coverage of the validation cases (validation/docs/validate.md, "Coverage"): gmake validate,
+# then the same runs counting the functions of machine.v they call.
+.PHONY: validate-coverage
+validate-coverage: validate
+	$(MAKE) -C validation/rocq coverage
+	validation/scripts/coverage.py $(VALIDATE_ARGS)
 
 
 .PHONY: clean

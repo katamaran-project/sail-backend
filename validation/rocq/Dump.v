@@ -155,14 +155,6 @@ Definition excluded : list (string * string) :=
 
 Definition excluded_names : list string := map fst excluded.
 
-Definition reg_items (γ : RegStore) : list Item :=
-  let ex := excluded_names in
-  concat (map (fun '(existT σ x) =>
-                 let n := reg_name (existT σ x) in
-                 if existsb (String.eqb n) ex then []
-                 else render render_depth σ n (read_register γ x))
-              all_regs).
-
 (*** Memory items ***)
 
 Fixpoint insert_Z (x : Z) (l : list Z) : list Z :=
@@ -186,6 +178,36 @@ Definition mem_items (m : Memory) : list Item * list Item :=
 
 (*** States ***)
 
+(* Bytewise comparison of keys, as String.compare, but on the bits of each
+   character (String.compare converts each to N first: slower in vm_compute). *)
+Definition bit_compare (x y : bool) (k : comparison) : comparison :=
+  match x, y with
+  | false, true => Lt
+  | true, false => Gt
+  | _, _ => k
+  end.
+
+Definition char_compare (a b : ascii) : comparison :=
+  let '(Ascii a0 a1 a2 a3 a4 a5 a6 a7) := a in
+  let '(Ascii b0 b1 b2 b3 b4 b5 b6 b7) := b in
+  bit_compare a7 b7 (bit_compare a6 b6 (bit_compare a5 b5 (bit_compare a4 b4
+    (bit_compare a3 b3 (bit_compare a2 b2 (bit_compare a1 b1 (bit_compare a0 b0 Eq))))))).
+
+Fixpoint key_compare (s t : string) : comparison :=
+  match s, t with
+  | EmptyString, EmptyString => Eq
+  | EmptyString, _ => Lt
+  | _, EmptyString => Gt
+  | String a s', String b t' =>
+      match char_compare a b with
+      | Eq => key_compare s' t'
+      | c => c
+      end
+  end.
+
+Definition key_leb (s t : string) : bool :=
+  match key_compare s t with Gt => false | _ => true end.
+
 (* Merge sort of items by key (bytewise). *)
 Fixpoint merge_items (l1 : list Item) : list Item -> list Item :=
   fix merge_r (l2 : list Item) : list Item :=
@@ -193,7 +215,7 @@ Fixpoint merge_items (l1 : list Item) : list Item -> list Item :=
     | [], _ => l2
     | _, [] => l1
     | x :: l1', y :: l2' =>
-        if String.leb (fst x) (fst y) then x :: merge_items l1' l2 else y :: merge_r l2'
+        if key_leb (fst x) (fst y) then x :: merge_items l1' l2 else y :: merge_r l2'
     end.
 
 Fixpoint sort_pass (l : list (list Item)) : list (list Item) :=
@@ -216,9 +238,26 @@ Definition sort_items (l : list Item) : list Item :=
    sorted in with the registers (step_result). *)
 Record Dumped : Type := mkDumped { d_regs : list Item; d_mem : list Item; d_tags : list Item }.
 
+(* The dumped registers, sorted by name; computed once, when this file is
+   compiled.  A register's keys are its name or start with its name and ".",
+   and names are made of [A-Za-z0-9_], all after "." in ASCII: so each
+   register's items sorted, in this order, are all items sorted. *)
+Definition dumped_regs : list (sigT 𝑹𝑬𝑮) :=
+  Eval vm_compute in
+  let ex := excluded_names in
+  let incl := filter (fun r => negb (existsb (String.eqb (reg_name r)) ex)) all_regs in
+  flat_map (fun '(n, _) => filter (fun r => String.eqb (reg_name r) n) incl)
+           (sort_items (map (fun r => (reg_name r, "")) incl)).
+
+(* Register items, sorted by key. *)
+Definition reg_items (γ : RegStore) : list Item :=
+  flat_map (fun '(existT σ x) =>
+              sort_items (render render_depth σ (reg_name (existT σ x)) (read_register γ x)))
+           dumped_regs.
+
 Definition dumped_with (extra : list Item) (st : State) : Dumped :=
   let '(ms, ts) := mem_items (st_mem st) in
-  mkDumped (sort_items (app extra (reg_items (st_regs st)))) ms ts.
+  mkDumped (merge_items (sort_items extra) (reg_items (st_regs st))) ms ts.
 
 Definition dumped (st : State) : Dumped := dumped_with [] st.
 
@@ -248,24 +287,38 @@ Definition dumped_step {τ} (r : Result τ) (st : State) : Dumped := dumped_with
 Definition dump_step {τ} (r : Result τ) (st : State) : list string :=
   map line (items (dumped_step r st)).
 
-(* Items of [after] whose key is new or whose value changed; both sorted by key. *)
-Fixpoint delta_sorted (before : list Item) : list Item -> list Item :=
-  fix delta_r (after : list Item) : list Item :=
+(* Changes from [before] to [after], both sorted by [cmp]: [(k, Some v)] for
+   an item whose key is new or whose value changed, [(k, None)] for a key that
+   is gone (e.g. a union's payload after its constructor changed). *)
+Fixpoint changes (cmp : string -> string -> comparison) (before : list Item) :
+  list Item -> list (string * option string) :=
+  fix changes_r (after : list Item) : list (string * option string) :=
     match before, after with
-    | _, [] => []
-    | [], _ => after
+    | [], _ => map (fun '(k, v) => (k, Some v)) after
+    | (kb, _) :: before', [] => (kb, None) :: changes cmp before' []
     | (kb, vb) :: before', (ka, va) :: after' =>
-        match String.compare kb ka with
-        | Lt => delta_sorted before' after
-        | Gt => (ka, va) :: delta_r after'
-        | Eq => if String.eqb vb va then delta_sorted before' after'
-                else (ka, va) :: delta_sorted before' after'
+        match cmp kb ka with
+        | Lt => (kb, None) :: changes cmp before' after
+        | Gt => (ka, Some va) :: changes_r after'
+        | Eq => if String.eqb vb va then changes cmp before' after'
+                else (ka, Some va) :: changes cmp before' after'
         end
     end.
 
+(* Memory and tag keys are sorted by address: shorter hex first. *)
+Definition addr_compare (a b : string) : comparison :=
+  match Nat.compare (String.length a) (String.length b) with
+  | Eq => key_compare a b
+  | c => c
+  end.
+
+Definition changes_dumped (b a : Dumped) : list (string * option string) :=
+  app (changes key_compare (d_regs b) (d_regs a))
+      (app (changes addr_compare (d_mem b) (d_mem a)) (changes addr_compare (d_tags b) (d_tags a))).
+
+(* Items of [a] whose key is new or whose value changed. *)
 Definition delta_dumped (b a : Dumped) : list Item :=
-  app (delta_sorted (d_regs b) (d_regs a))
-      (app (delta_sorted (d_mem b) (d_mem a)) (delta_sorted (d_tags b) (d_tags a))).
+  flat_map (fun '(k, o) => match o with Some v => [(k, v)] | None => [] end) (changes_dumped b a).
 
 Definition delta (before after : State) : list string :=
   map line (delta_dumped (dumped before) (dumped after)).
@@ -281,6 +334,29 @@ Definition run_dumped (r0 : Result ty.unit) (st0 : State) (rs : list (Result ty.
 Definition dump_run (ds : list Dumped) : list string :=
   concat (map (fun '(i, d) => map (fun l => dec_nat i ++ " " ++ line l) (items d))
               (combine (seq 0 (length ds)) ds)).
+
+(* A delta run file (state-format.md): a line "i" opens state i; state 0
+   in full, every later state as its changes from the one before
+   ("i key value", or "i -key" for a key that is gone). *)
+Definition change_line (p : string) (c : string * option string) : string :=
+  match c with
+  | (k, Some v) => p ++ k ++ " " ++ v
+  | (k, None) => p ++ "-" ++ k
+  end.
+
+Fixpoint delta_run_aux (i : nat) (prev : Dumped) (ds : list Dumped) : list string :=
+  match ds with
+  | [] => []
+  | d :: ds' =>
+      let n := dec_nat i in
+      n :: map (change_line (n ++ " ")) (changes_dumped prev d) ++ delta_run_aux (S i) d ds'
+  end.
+
+Definition delta_run (ds : list Dumped) : list string :=
+  match ds with
+  | [] => []
+  | d0 :: ds' => "0" :: map (fun l => "0 " ++ line l) (items d0) ++ delta_run_aux 1 d0 ds'
+  end.
 
 (* The excluded registers, one per line: name and reason. *)
 Definition excluded_lines : list string := map (fun '(n, why) => n ++ " " ++ why) excluded.
