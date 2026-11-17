@@ -72,6 +72,14 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-rvc` | `C.ADDI`: compressed absent, traps illegal |
 | `trap-zb` | `ANDN`: Zb\* absent, traps illegal |
 | `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
+| `cap-misc` | CMove, CClearTag, CGetAddr, CGetType, CGetHigh, CSetHigh (incl. garbage high bits), CSEQX, CSub, CTestSubset |
+| `cap-perm-bounds` | CAndPerm (re-encoded by CGetHigh), CRRL, CRAM, CSetBoundsRoundDown: exact, rounded, zero, beyond parent, null |
+| `seal` | CSeal/CUnseal by the sealing root; refused: wrong otype, already sealed, no SE/US, untagged, sealed or out-of-bounds authority; sealed operands to other ops |
+| `sentry` | CSeal into otypes 1-3; CJALR through them (call, tail call, `MIE` set and cleared), return through the backward sentry |
+| `auicgp` | AUICGP: null `cgp`, positive and negative offset, unrepresentable, sealed |
+| `trap-sentry-tail` | CJALR into `cnull` through an interrupt-disabling sentry: seal violation |
+| `trap-sentry-offset` | CJALR through a sentry with a nonzero offset: seal violation |
+| `trap-sealed-load` | LW through a sealed capability: seal violation |
 
 ### Adding a case
 

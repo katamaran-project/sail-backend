@@ -19,8 +19,8 @@ registers as x0..x31, c0..c31 or ABI names (a0, ca0, ...).
     M         mul mulh mulhsu mulhu div divu rem remu   rd, rs1, rs2
     Zicsr     csrrw csrrs csrrc rd, csr, rs1    csrrwi csrrsi csrrci rd, csr, uimm5
               (csr: a name in CSR below, or a number)
-    CHERIoT   csetaddr cincaddr csetbounds csetboundsexact candperm cseal cunseal csub
-              ctestsubset cseqx csethigh   cd, cs1, rs2
+    CHERIoT   csetaddr cincaddr csetbounds csetboundsexact csetboundsrounddown candperm
+              cseal cunseal csub ctestsubset cseqx csethigh   cd, cs1, rs2
               cincaddrimm csetboundsimm  cd, cs1, imm
               cgetperm cgettype cgetbase cgetlen cgettag cgetaddr cgethigh cgettop
               cmove ccleartag crrl cram   rd, cs1
@@ -70,6 +70,7 @@ R_OPS = {
     "mulhu": (0x01, 3, 0x33), "div": (0x01, 4, 0x33), "divu": (0x01, 5, 0x33),
     "rem": (0x01, 6, 0x33), "remu": (0x01, 7, 0x33),
     "csetbounds": (0x08, 0, CHERI_OP), "csetboundsexact": (0x09, 0, CHERI_OP),
+    "csetboundsrounddown": (0x0A, 0, CHERI_OP),
     "cseal": (0x0B, 0, CHERI_OP), "cunseal": (0x0C, 0, CHERI_OP),
     "candperm": (0x0D, 0, CHERI_OP), "csetaddr": (0x10, 0, CHERI_OP),
     "cincaddr": (0x11, 0, CHERI_OP), "csub": (0x14, 0, CHERI_OP),
