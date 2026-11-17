@@ -47,7 +47,7 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 
 ```toml
 instruction-files = ["sail-riscv/model/riscv_insts_base.sail", "src/cheri_insts.sail", ...]  # constructors of `ast` declared there
-instructions = ["FENCE_RESERVED", "FENCEI_RESERVED"]                                       # single constructors, from files not in scope as a whole
+instructions = ["FENCE_RESERVED"]                                                          # optional: single constructors, from files not in scope as a whole
 roots = ["step", "fetch", "ext_decode", "encdec_backwards", "init_model"]
 
 [dispatchers]
@@ -60,7 +60,8 @@ unconstrained = ["bits_str", ..., "undefined_*"]   # a pattern: what in-scope co
 registers = ["tlb32", ...]
 
 [policy-excluded.value]
-sys_pmp_count = "0"
+sys_pmp_count = "0"           # a Sail expression: the call becomes this value
+sys_enable_rvc = "true"
 ```
 
 - In scope: everything reachable from the roots, the registers and `execute_<C>` of each in-scope instruction.

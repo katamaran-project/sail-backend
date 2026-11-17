@@ -76,6 +76,29 @@ module Context = struct
          and these copies; computed before translation starts (see UnionInstances).
       *)
       union_instances : UnionInstances.t;
+
+      (*
+         The loops of the function being translated become helper functions (see Function.statement_of_loop):
+         its name, how many loops it has, how many helper names were generated so far, and the helpers
+         translated so far (in reverse order).
+      *)
+      loop_functions : loop_functions;
+    }
+
+  and loop_functions =
+    {
+      enclosing_function : Ast.Identifier.t option;
+      loop_count         : int;
+      named_count        : int;
+      helpers            : Ast.Definition.Function.t list;
+    }
+
+  let no_loop_functions : loop_functions =
+    {
+      enclosing_function = None;
+      loop_count         = 0;
+      named_count        = 0;
+      helpers            = [];
     }
 
   let empty : t =
@@ -87,6 +110,7 @@ module Context = struct
       top_level_values           = Ast.Identifier.Set.empty;
       locally_bound_identifiers  = Ast.Identifier.Set.empty;
       union_instances            = UnionInstances.empty;
+      loop_functions             = no_loop_functions;
     }
 
   (*
@@ -155,6 +179,17 @@ module Context = struct
         (locally_bound_identifiers : Ast.Identifier.Set.t) : t
       =
       { context with locally_bound_identifiers }
+    in
+    (get, set)
+
+  let loop_functions =
+    let get (context : t) : loop_functions =
+      context.loop_functions
+    and set
+        (context        : t             )
+        (loop_functions : loop_functions) : t
+      =
+      { context with loop_functions }
     in
     (get, set)
 
@@ -359,6 +394,61 @@ let with_locally_bound_identifiers
   let* () = Monad.put Context.locally_bound_identifiers previous
   in
   return result
+
+
+(*
+   Starts the translation of a function with the given number of loops (foreach, while, repeat), which become
+   helper functions named after it (see Function.statement_of_loop).
+*)
+let start_loop_functions
+    (function_identifier : Ast.Identifier.t)
+    (loop_count          : int             ) : unit t
+  =
+  Monad.put Context.loop_functions { Context.no_loop_functions with enclosing_function = Some function_identifier; loop_count }
+
+
+(*
+   The name of the next loop helper function: <function>_loop, or <function>_loop<k> if the
+   function has several loops. None outside of a function.
+*)
+let generate_loop_function_identifier : Ast.Identifier.t option t =
+  let* loop_functions = Monad.get Context.loop_functions
+  in
+  match loop_functions.enclosing_function with
+  | None                     -> return None
+  | Some function_identifier -> begin
+      let index = loop_functions.named_count + 1
+      in
+      let* () = Monad.put Context.loop_functions { loop_functions with named_count = index }
+      in
+      let suffix =
+        if loop_functions.loop_count <= 1
+        then "_loop"
+        else Printf.sprintf "_loop%d" index
+      in
+      return @@ Some (Ast.Identifier.update (fun name -> name ^ suffix) function_identifier)
+    end
+
+
+(*
+   Adds a loop helper function of the function being translated.
+*)
+let add_loop_function (helper : Ast.Definition.Function.t) : unit t =
+  let* loop_functions = Monad.get Context.loop_functions
+  in
+  Monad.put Context.loop_functions { loop_functions with helpers = helper :: loop_functions.helpers }
+
+
+(*
+   The loop helper functions of the function that was translated last, in the order they were added;
+   forgets them.
+*)
+let take_loop_functions : Ast.Definition.Function.t list t =
+  let* loop_functions = Monad.get Context.loop_functions
+  in
+  let* () = Monad.put Context.loop_functions Context.no_loop_functions
+  in
+  return @@ List.rev loop_functions.helpers
 
 
 (*

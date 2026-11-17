@@ -212,6 +212,7 @@ let default_semantics (foreign_function : t) : Semantics.t =
   | "min_int"              -> given "Z.min arg1 arg2"
   | "max_int"              -> given "Z.max arg1 arg2"
   | "abs_int"              -> given "Z.abs arg1"
+  | "length"               -> given "Z.of_nat (bv_width arg1)"
   | "count_leading_zeros"  -> given "(Z.of_nat (bv_width arg1) - Z.log2_up (bv.unsigned arg1 + 1))%Z"
   | "count_trailing_zeros" -> given "(if bv.unsigned arg1 =? 0 then Z.of_nat (bv_width arg1) else Z.log2 (Z.land (bv.unsigned arg1) (- bv.unsigned arg1)))%Z"
   (* shifts by an integer amount *)
@@ -225,6 +226,11 @@ let default_semantics (foreign_function : t) : Semantics.t =
   | "sail_truncateLSB"     -> given "bv.of_Z (Z.shiftr (bv.unsigned arg1) (Z.of_nat (bv_width arg1) - arg2))"
   | "zero_extend"          -> given "bv.of_Z (bv.unsigned arg1)"
   | "sign_extend"          -> given "bv.of_Z (bv.signed arg1)"
+  (* vector_subrange(v, hi, lo): bits hi down to lo; vector_update_subrange(v, hi, lo, x): v with them replaced by x;
+     vector_update(v, i, b): v with bit i replaced by b. Calls with run-time indices only (FunctionCalls) *)
+  | "vector_subrange"        -> given "bv.of_Z (Z.shiftr (bv.unsigned arg1) arg3)"
+  | "vector_update_subrange" -> given "bv.of_Z (Z.lor (Z.land (bv.unsigned arg1) (Z.lnot (Z.shiftl (Z.ones (Z.of_nat (bv_width arg4))) arg3))) (Z.shiftl (bv.unsigned arg4) arg3))"
+  | "vector_update"          -> given "bv.of_Z (Z.lor (Z.land (bv.unsigned arg1) (Z.lnot (Z.shiftl 1 arg2))) (Z.shiftl (bv.unsigned arg3) arg2))"
   | "vector_access"        -> begin
       (* the result is a bit, i.e., a bitvector(1) *)
       match foreign_function.parameter_types with

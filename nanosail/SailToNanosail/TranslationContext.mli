@@ -38,6 +38,10 @@ val set_union_instances              : UnionInstances.t -> unit t
 val union_instances                  : UnionInstances.t t
 val with_locally_bound_identifiers   : Ast.Identifier.Set.t -> 'a t -> 'a t
 val refers_to_top_level_value        : Ast.Identifier.t -> bool option t
+val start_loop_functions             : Ast.Identifier.t -> int -> unit t
+val generate_loop_function_identifier : Ast.Identifier.t option t
+val add_loop_function                : Ast.Definition.Function.t -> unit t
+val take_loop_functions              : Ast.Definition.Function.t list t
 val lookup_variant_by_constructor  : Ast.Identifier.t -> Ast.Definition.Type.Variant.t option t
 val lookup_sum_by_constructor      : Ast.Identifier.t -> (Ast.Definition.Type.Sum.t * Ast.SumSide.t) option t
 val lookup_register_type           : Ast.Identifier.t -> Ast.Type.t option t

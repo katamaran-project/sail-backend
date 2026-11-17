@@ -56,14 +56,22 @@ def load_validate():
 validate = load_validate()
 
 # Reachable in the call graph, but not on this configuration (RV32, M-mode only,
-# capability mode, no compressed): (re.fullmatch on the name, why). Counted
-# apart: coverage is also given without them.
+# capability mode, C on): (re.fullmatch on the name, why). Counted apart:
+# coverage is also given without them.
 DEAD = [
-    (r"execute_(ADDIW|SHIFTIWOP|RTYPEW|MULW|DIVW|REMW)", "RV64 only: encdec decodes them only if xlen == 64"),
-    (r"execute_RISCV_JALR?|get_arch_pc",
-     "JAL, JALR, AUIPC decode as CJAL, CJALR, AUIPCC: ext_decode tries encdec_capmode first"),
-    (r"execute_(C_ILLEGAL|NOT_C_CAPMODE)", "only from the compressed decoder; step executes it only if haveRVC()"),
-    (r"execute_NOT_CAPMODE|report_invalid_width", "unreachable by design: internal_error (inlined in report_invalid_width)"),
+    (r"execute_(ADDIW|SHIFTIWOP|RTYPEW|MULW|DIVW|REMW)|execute_C_(LD|SD|LDSP|SDSP|ADDIW|ADDW|SUBW)",
+     "RV64 only: encdec and encdec_compressed decode them only if xlen == 64"),
+    (r"execute_(RISCV_SLLIUW|ZBA_RTYPEUW|RISCV_RORIW|ZBB_RTYPEW|ZBKB_PACKW|RISCV_(CLZ|CTZ|CPOP)W(_loop)?)",
+     "Zb* RV64 only: encdec decodes them only if xlen == 64"),
+    (r"execute_RISCV_JALR|get_arch_pc",
+     "JAL, JALR, AUIPC decode as CJAL, CJALR, AUIPCC: ext_decode tries encdec_capmode first; "
+     "C.JR, C.JALR (which execute JALR) never decode (below); JAL is reached only from C.J"),
+    (r"execute_C_(JAL|JR|JALR|ADDI16SP|ADDI4SPN)",
+     "decode as C.CJAL, C.CJR, C.CJALR, C.CIncAddr16CSP, C.CIncAddr4CSPN: ext_decode_compressed tries "
+     "encdec_compressed_capmode first (with immediate 0, C.ADDI16SP and C.ADDI4SPN are reserved in both)"),
+    (r"execute_NOT_(C_)?CAPMODE|report_invalid_width",
+     "unreachable by design: internal_error (inlined in report_invalid_width); ext_decode and "
+     "ext_decode_compressed replace NOT_CAPMODE, NOT_C_CAPMODE by the standard decoder's result"),
     (r"ext_control_check_addr|ext_handle_control_check_error",
      "CHERIoT control checks: ext_control_check_addr only from execute_RISCV_JALR; ext_control_check_* always OK"),
     (r"(_get|_update)_[SU](interrupts|status)_\w+|Mk_[SU](interrupts|status|edeleg)|(lift|lower|legalize)_[su](ie|ip|status)"

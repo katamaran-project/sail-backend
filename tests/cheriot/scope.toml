@@ -10,18 +10,22 @@ instruction-files = [
   "sail-riscv/model/riscv_insts_mext.sail",   # M: multiplication and division
   "sail-riscv/model/riscv_insts_zicsr.sail",  # Zicsr: control and status registers
   "src/cheri_insts.sail",                     # CHERIoT capability instructions
+  "sail-riscv/model/riscv_insts_cext.sail",   # C: compressed instructions
+  "src/cheri_insts_cext.sail",                # CHERIoT compressed capability instructions
+  "sail-riscv/model/riscv_insts_hints.sail",  # compressed hints, FENCE_RESERVED, FENCEI_RESERVED
+  # Bit manipulation, as cheriot-sail's Makefile (SAIL_DEFAULT_INST) builds it.
+  "sail-riscv/model/riscv_insts_zba.sail",    # Zba: address generation
+  "sail-riscv/model/riscv_insts_zbb.sail",    # Zbb: basic bit manipulation
+  "sail-riscv/model/riscv_insts_zbc.sail",    # Zbc: carry-less multiplication
+  "sail-riscv/model/riscv_insts_zbs.sail",    # Zbs: single-bit instructions
+  "sail-riscv/model/riscv_insts_zbkb.sail",   # Zbkb: bit manipulation for cryptography
+  "sail-riscv/model/riscv_insts_zbkx.sail",   # Zbkx: crossbar permutations
   # The decoders' fallbacks: what an illegal or unsupported encoding decodes to (an
   # illegal-instruction trap), so always reachable.
   "sail-riscv/model/riscv_insts_begin.sail",  # ILLEGAL, C_ILLEGAL
   "src/cheri_insts_end.sail",                 # NOT_CAPMODE, NOT_C_CAPMODE
-  # Out of scope for now: compressed instructions (riscv_insts_cext.sail and
-  # src/cheri_insts_cext.sail), bit manipulation (Zb*), vector, virtual memory; PMP is absent (below).
+  # Out of scope: vector, virtual memory; PMP is absent (below).
 ]
-
-# Single instructions, from files that also declare out-of-scope ones
-# (riscv_insts_hints.sail: the rest are compressed hints). Reserved FENCE encodings
-# decode to these.
-instructions = ["FENCE_RESERVED", "FENCEI_RESERVED"]
 
 # Entry points that are always in scope: the fetch-decode-execute step, the
 # decoders and the initialisation. Every register is in scope as well.
@@ -118,18 +122,13 @@ registers = [
 # PMP absent: a CHERIoT without PMP entries, a configuration the model allows
 # (init_pmp asserts 0, 16 or 64). Remove the PMP lines above to turn PMP back on.
 sys_pmp_count = "0"
-# Bit manipulation (Zb*) absent: every encdec clause of a Zb* instruction is guarded
-# by these (e.g. `if haveZbb() | haveZbkb()`), so with all false none decodes and
-# execute's Zb* arms (failures) are unreachable. Remove these lines to turn Zb* back on.
-haveZba = "false"
-haveZbb = "false"
-haveZbc = "false"
-haveZbs = "false"
-haveZbkb = "false"
-haveZbkc = "false"
-haveZbkx = "false"
-# Compressed instructions absent: misa.C is set from sys_enable_rvc() at reset and
-# legalize_misa never sets it when sys_enable_rvc() is false; step executes a 16-bit
-# parcel only if haveRVC() (misa.C), and raises an illegal-instruction trap otherwise,
-# so execute's compressed arms (failures) are unreachable. Remove to turn RVC back on.
-sys_enable_rvc = "false"
+# Platform settings that CHERIoT fixes (paths relative to the cheriot-sail checkout).
+# Compressed (C) always on: "required ... and always enabled in misa" (archdoc/chap-cheri-riscv.tex:19).
+sys_enable_rvc = "true"
+# Misaligned accesses supported: CHERIoT's sail-riscv sets the default (sail-riscv/c_emulator/riscv_platform_impl.c:17).
+plat_enable_misaligned_access = "true"
+# F/D (and Zfinx, in the same files) absent: the build leaves out their instructions and registers (Makefile:41, 54-56).
+sys_enable_fdext = "false"
+sys_enable_zfinx = "false"
+# V absent: the build includes no vector instructions (Makefile:26-40, SAIL_DEFAULT_INST).
+sys_enable_vext = "false"

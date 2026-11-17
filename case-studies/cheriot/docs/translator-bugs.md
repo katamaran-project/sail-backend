@@ -6,6 +6,15 @@ Titles tagged `[validator]`: found by translation validation (`validation/`, `gm
 
 ## Fixed
 
+### `length(v)` was an unconstrained value
+- Found: adding Zb\* to the scope; `rotate_bits_left`, `rotate_bits_right` (`ROL`, `ROR`, `RORI`) call `length(v)` on a `bits('n)`, a foreign call (`bitvector_length`) without a semantics.
+- Cause: Sail's `length` extern (binding `length`) had no default term, so every call returned any integer: a proof about a rotation could assume nothing about it.
+- Fix: the default semantics of `length` is the width. Test `externs-length`.
+```coq
+(* before *) | @bitvector_length _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+(* after  *) Definition semantics_bitvector_length {kid__n : nat} (arg1 : Val (ty.bvec (kid__n))) : Val (ty.int) := Z.of_nat (bv_width arg1).
+```
+
 ### [validator] `Unconstrained` hint ran for minutes on wide bitvectors
 - Found: the harness stalled building the vector registers' defaults through the hint.
 - Cause: `construct_inhabitant` (`FunDeclKit.ml`) ran `cbn` before `exact bv.zero`; `cbn` computed the width of `ty.vregtype` (65536 bits, `Nat.of_num_uint` into a unary `nat`). `machine.v` itself did not hit it.

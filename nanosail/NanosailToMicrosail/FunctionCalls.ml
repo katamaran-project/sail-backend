@@ -968,10 +968,11 @@ let translate_bitvector_slicing (arguments : Ast.Expression.t list) : PP.t GC.t 
             pp_bitvector
         end
       | _ -> begin
-          let* low_index = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
-          and* length    = GC.not_yet_implemented ~message:"%s's indices should be known at compile time" [%here]
-          in
-          pp_slice low_index length pp_bitvector
+          (* indices known only at run time (v[i + 7 .. i] in a loop): a foreign call, see ForeignFunctions *)
+          translate_call_or_hole
+            ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name)
+            (Ast.Identifier.mk sail_name)
+            arguments
         end
     end
   | _ -> GC.fail [%here] @@ Printf.sprintf "%s should receive three arguments" sail_name
@@ -1100,10 +1101,11 @@ let translate_bitvector_update_subrange (arguments : Ast.Expression.t list) : PP
               pp_slice (PP.integer (Z.to_int low_index)) pp_width pp_bitvector pp_new_bitvector
             end
           | _ -> begin
-              let* low_index = GC.not_yet_implemented ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name) [%here]
-              and* length    = GC.not_yet_implemented ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name) [%here]
-              in
-              pp_slice low_index length pp_bitvector pp_new_bitvector
+              (* the low index is known only at run time ([v with i + 7 .. i = x] in a loop): a foreign call *)
+              translate_call_or_hole
+                ~message:(Printf.sprintf "%s's indices should be known at compile time" sail_name)
+                (Ast.Identifier.mk sail_name)
+                arguments
             end
         end
     end

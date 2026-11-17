@@ -350,6 +350,56 @@ let translate_union_instance (instance : UnionInstances.Instance.t) : (Sail.sail
 
 
 (*
+   Translates a definition; a function is preceded by the helper functions of its foreach loops
+   (see Translate.Function.statement_of_loop), which are dropped if the function is not translated.
+   A helper gets the constraints of its enclosing function that are over the size variables its own
+   types show: the others would make it take size variables that Rocq cannot infer at the call.
+*)
+let translate_definition_and_loop_functions (sail_definition : Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) list TC.t =
+  let* translated = translate_definition sail_definition
+  in
+  let* helpers = TC.take_loop_functions
+  in
+  match snd translated with
+  | FunctionDefinition enclosing_function -> begin
+      let complete (helper : Ast.Definition.Function.t) : Ast.Definition.t =
+        let shown : Ast.Identifier.t list =
+          let types = List.append (List.map ~f:snd helper.function_type.parameters) [ helper.function_type.return_type ]
+          in
+          List.append
+            (List.map ~f:fst @@ NanosailToMicrosail.TypeLevelParameters.of_types types)
+            (List.concat_map types ~f:(fun typ ->
+                 match Ast.Type.strip_aliases typ with
+                 | Int (Some size) -> NanosailToMicrosail.TypeLevelParameters.numeric_variables size
+                 | Int None | Bool | String | Bit | List _ | Unit | Enum _ | Bitvector _ | Tuple _ | Sum (_, _) | Variant _ | Record _
+                 | Application (_, _) | Alias (_, _) | Range (_, _) | Function _ | TypeVariable _ | Nat | Vector (_, _) | Implicit _ -> []))
+        in
+        let type_constraints =
+          List.filter enclosing_function.type_constraints ~f:(fun numeric_constraint ->
+              match NanosailToMicrosail.TypeLevelParameters.constraint_variables numeric_constraint with
+              | Some variables -> List.for_all variables ~f:(fun variable -> List.mem shown variable ~equal:Ast.Identifier.equal)
+              | None           -> false
+            )
+        and function_body =
+          Ast.Statement.simplify @@ Translate.Function.rewrite_bitvector_comparisons helper.function_body
+        in
+        FunctionDefinition { helper with type_constraints; function_body }
+      in
+      let helper_definitions = List.map ~f:complete helpers
+      in
+      let* () = TC.iter ~f:TC.store_definition helper_definitions
+      in
+      TC.return @@ List.append (List.map helper_definitions ~f:(fun definition -> (sail_definition, definition))) [ translated ]
+    end
+  | TopLevelTypeConstraintDefinition _
+  | TypeDefinition _
+  | RegisterDefinition _
+  | ValueDefinition _
+  | UntranslatedDefinition _
+  | IgnoredDefinition -> TC.return [ translated ]
+
+
+(*
    Translates a definition, followed by the monomorphic copies of unions that are emitted after it.
 *)
 let translate_indexed_definition ((index, sail_definition) : int * Sail.sail_definition) : (Sail.sail_definition * Ast.Definition.t) list TC.t =
@@ -358,8 +408,8 @@ let translate_indexed_definition ((index, sail_definition) : int * Sail.sail_def
   (* a function polymorphic in a type over a specialised union is translated as its copies per type (see UnionInstances) *)
   let* translated =
     match UnionInstances.copies_of_definition union_instances sail_definition with
-    | None        -> TC.lift ~f:(fun translated -> [ translated ]) @@ translate_definition sail_definition
-    | Some copies -> TC.map ~f:translate_definition copies
+    | None        -> translate_definition_and_loop_functions sail_definition
+    | Some copies -> TC.lift ~f:List.concat @@ TC.map ~f:translate_definition_and_loop_functions copies
   in
   let* copies = TC.map ~f:translate_union_instance (UnionInstances.instances_after union_instances index)
   in

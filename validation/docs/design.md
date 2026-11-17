@@ -22,7 +22,7 @@ Running it: [validate.md](validate.md).
 
 - **Answered by a harness** (`validation/rocq/Harness.v`), not left open:
   - memory and tags: a concrete byte and tag map;
-  - platform settings: the emulator's configuration;
+  - platform settings that the translation leaves open: the emulator's configuration;
   - externs with a generated `semantics_*` term: that term, so it is tested too.
 - Sound for testing: `ForeignCall` allows every value of an unconstrained call, so a passing run is a µSail execution.
 
@@ -32,10 +32,14 @@ Running it: [validate.md](validate.md).
 
   | feature | µSail | emulator |
   |---|---|---|
-  | compressed | `sys_enable_rvc = false` | `--disable-compressed` |
-  | Zb\*, Zbk\* | `haveZb* = false` | built without the Zb\* files |
+  | compressed (C) | on: `sys_enable_rvc = true` | on (default) |
+  | misaligned accesses | on: `plat_enable_misaligned_access = true` | on (default) |
+  | F/D, V | off: `sys_enable_fdext`, `sys_enable_zfinx`, `sys_enable_vext` = `false` | `-F -W` |
+  | Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx | on (`haveZb*()` are `true` in the model) | on (cheriot-sail's instruction list) |
   | PMP | `sys_pmp_count = 0` | `--pmp-count 0` (default) |
-  | F/D, V | harness answers `false` | `-F -W` |
+
+  The µSail column is value exclusions in `tests/cheriot/scope.toml` ([platform settings](../../case-studies/cheriot/docs/design.md#platform-settings)): fixed in the model, not answered by the harness.
+  Only CHERIoT's configuration is validated: C on, no configuration with C off.
 
 - **The same start state**: registers before `init_model` as Sail's C backend initialises them (zeros, `false`, first constructor), then `init_model`, then `PC` at the ELF entry.
 - **No clock ticks**: the emulator's loop ticks `mcycle`/`mtime` outside `step`; validation runs set the interval beyond any run.
@@ -43,10 +47,11 @@ Running it: [validate.md](validate.md).
 ## Inputs
 
 - Hand-picked programs, one per instruction class ([cases](validate.md#cases)).
+- Every 16-bit parcel, one step from one fixed state ([all 16-bit parcels](validate.md#all-16-bit-parcels)): the compressed decoders exhaustively, cheap because both sides start each parcel from the same state in one process (a `fork` per parcel in the emulator, a list in Rocq).
 - Next: `riscv-tests` traces; random encodings once the interpreter is extracted.
 
 ## Known divergences
 
 - **Asserted, not skipped**: each is a case whose divergence (step, both sides' changes there) is recorded in `validation/cases/divergences.toml`; any other behaviour fails, so a change shows up.
 - RV32E registers >= 16: µSail fails where Sail traps illegal ([exceptions fail](../../case-studies/cheriot/docs/design.md#exceptions-fail)).
-- Excluded features (PMP, Sv32) have no cases. Compressed and Zb\* must trap illegal on both sides: ordinary cases.
+- Excluded features (PMP, Sv32) have no cases. RV64-only Zb\* encodings must trap illegal on both sides: an ordinary case.

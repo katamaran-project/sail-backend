@@ -70,7 +70,6 @@
     (string-starts-with? "undefined_" identifier)
     (string-starts-with? "regval_of_" identifier)
     (string-ends-with? "_of_regval" identifier)
-    (= "reverse_bits_in_byte" identifier)
     (= "log2" identifier)
     ;; zeros_implicit, ones, sail_zeros and sail_ones are translated: their width is an
     ;; implicit argument of their Fun constructor, and sail_zeros with a width not known at

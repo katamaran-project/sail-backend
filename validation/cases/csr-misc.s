@@ -1,5 +1,5 @@
-# Zicsr side effects: misa writes (legalize_misa: C, F, D not writable on
-# this configuration; clearing C asks ext_veto_disable_C), mie and mip
+# Zicsr side effects: misa writes (legalize_misa: F, D not writable on this
+# configuration; C is, and clearing it asks ext_veto_disable_C), mie and mip
 # legalization (mip: S bits only), mstatus all ones (legalize_mstatus),
 # mcountinhibit.IR stops minstret, seed CSR 0x015 (read into x0: the
 # emulator's entropy is random; write ignored), mepc read (MEPCC's address,
@@ -24,7 +24,7 @@ cspecialr ca2, mtdc
 li a3, 0x80000102
 csetaddr ca2, ca2, a3
 cspecialw mepcc, ca2
-csrrs a1, mepc, zero         # bit 1 masked: misa.C = 0
+csrrs a1, mepc, zero         # bit 1 masked: misa.C cleared above
 csrrw a1, mcycle, a0
 csrrw a1, mcycleh, a0
 csrrs a1, mcycle, zero

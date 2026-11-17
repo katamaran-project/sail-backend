@@ -28,6 +28,7 @@ Where things are:
 
 * `sail_plugin/`: registers the `--katamaran` options with libsail; `Rewrites.ml` selects the Sail rewrites that run before translation.
 * `nanosail/SailToNanosail/Translate/`: one translator per Sail construct. The largest is `Function.ml`, which turns Sail expressions into muSail statements and carries the expected type along.
+  A loop becomes a recursive helper function (`statement_of_loop`); the `TranslationContext` collects the helpers of the function being translated, and `Translation.translate_definition_and_loop_functions` emits them before it.
 * `nanosail/Ast/`: the nanosail IR. Expressions and statements are separate, as in muSail; numeric expressions and constraints are kept.
 * `nanosail/NanosailToMicrosail/`: pretty-prints the IR as Rocq.
 * `nanosail/Configuration.ml`: the configuration options. `nanosail/Slang/`: the configuration language ([Slang](slang.md)).

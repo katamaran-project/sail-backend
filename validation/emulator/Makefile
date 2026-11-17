@@ -21,19 +21,14 @@ SAIL_SMT_CACHE ?= $(VAL)/build/sail_smt_cache
 MODEL_C_FLAGS ?= -O0
 C_OPT_FLAGS   ?= -O1 -g
 
-# Without Zb*/Zbk* (validate.md, "Emulator").
-NOZB_INST = sail-riscv/model/riscv_insts_base.sail sail-riscv/model/riscv_insts_cext.sail \
-  sail-riscv/model/riscv_insts_mext.sail sail-riscv/model/riscv_insts_zicsr.sail \
-  sail-riscv/model/riscv_insts_hints.sail src/cheri_insts_begin.sail src/cheri_insts.sail \
-  src/cheri_insts_cext.sail src/cheri_insts_end.sail
-
 # The model's calls to these go through dump_state.c, which logs the written addresses.
 RENAME = -Dplatform_write_mem=dump_platform_write_mem -Dwrite_tag_bool=dump_write_tag_bool
 
 MODEL    = $(BUILD)/riscv_model_RV32
 OBJ      = $(BUILD)/obj
 SIM      = $(BUILD)/cheriot_sim_dump
-SIM_ARGS = --disable-compressed -F -W --insns-per-tick 1000000000
+# As validate.py (EMU_ARGS): the platform settings of tests/cheriot/scope.toml.
+SIM_ARGS = -F -W --insns-per-tick 1000000000
 
 all: $(SIM)
 .PHONY: all dump-sail check-regs check clean
@@ -44,7 +39,7 @@ all: $(SIM)
 $(BUILD)/vars.mk: $(EMU)/query.mk $(CHERIOT)/Makefile
 	mkdir -p $(BUILD)
 	$(MAKE) -s --no-print-directory -C $(CHERIOT) -f Makefile -f $(EMU)/query.mk print-vars \
-	  C_OPT_FLAGS= SAIL_DEFAULT_INST="$(NOZB_INST)" > $@.tmp
+	  C_OPT_FLAGS= > $@.tmp
 	mv $@.tmp $@
 
 include $(BUILD)/vars.mk

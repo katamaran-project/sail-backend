@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Standard RV32I/M/Zicsr encodings of mk-test-elf.py = llvm-mc's (Homebrew LLVM).
-# CHERIoT encodings are not checked here (llvm-mc does not know them): see validate.md.
+# Standard RV32I/M/Zicsr, C and Zb* encodings of mk-test-elf.py = llvm-mc's (Homebrew LLVM).
+# CHERIoT encodings: only the compressed loads and stores (below); the rest is in validate.md.
 #   validation/scripts/check-encodings.sh [LLVM_BIN]
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
@@ -88,9 +88,151 @@ end:
 add zero, zero, zero
 EOF
 
-"$here/mk-test-elf.py" "$tmp/t.s" "$tmp/ours.elf" | cut -d' ' -f2 > "$tmp/ours.txt"
-"$llvm/llvm-mc" --triple=riscv32 -mattr=+m,+zifencei,-relax -filetype=obj "$tmp/t.s" -o "$tmp/llvm.o"
-"$llvm/llvm-objcopy" -O binary --only-section=.text "$tmp/llvm.o" "$tmp/llvm.bin"
-od -An -v -tx4 "$tmp/llvm.bin" | tr -s ' ' '\n' | sed '/^$/d' > "$tmp/llvm.txt"
-diff -u "$tmp/llvm.txt" "$tmp/ours.txt"
-echo "encodings: $(wc -l < "$tmp/ours.txt" | tr -d ' ') words equal to llvm-mc"
+# C: a file of its own, as llvm-mc with +c compresses the instructions above.
+# An even number of 16-bit parcels, so that the words line up.
+cat > "$tmp/c.s" <<'EOF'
+cstart:
+c.addi a0, 1
+c.addi a1, -1
+c.addi s0, 31
+c.addi a5, -32
+c.nop
+c.addi t0, 7
+c.li a0, 0
+c.li t1, 31
+c.li s1, -32
+c.lui a0, 1
+c.lui ra, 31
+c.lui t2, 0xfffe0
+c.lui a3, 0xfffff
+c.addi16sp sp, 16
+c.addi16sp sp, 496
+c.addi16sp sp, -512
+c.addi4spn a0, sp, 4
+c.addi4spn s1, sp, 1020
+c.srli a0, 1
+c.srli s0, 31
+c.srai a1, 7
+c.andi a2, -1
+c.andi a3, 0
+c.andi s1, -32
+c.sub a0, a1
+c.xor s0, s1
+c.or a2, a3
+c.and a5, s0
+c.mv a0, a1
+c.mv t6, ra
+c.add a0, a1
+c.add s11, t0
+c.lw a0, 0(a1)
+c.lw s1, 124(a5)
+c.sw a2, 4(s0)
+c.sw a3, 64(s1)
+c.lwsp a0, 0(sp)
+c.lwsp t0, 252(sp)
+c.swsp a1, 4(sp)
+c.swsp t6, 252(sp)
+c.slli a0, 1
+c.slli t3, 31
+c.jr a0
+c.jalr t0
+c.ebreak
+c.j cstart
+c.j cend
+c.jal cstart
+c.jal cend
+c.beqz a0, cstart
+c.bnez s1, cend
+c.beqz a5, 254
+c.bnez a0, -256
+c.j 2046
+c.j -2048
+cend:
+c.nop
+EOF
+
+# CHERIoT C: llvm-mc does not know them; c.clc, c.csc, c.clcsp, c.cscsp have the
+# layout of c.fld, c.fsd, c.fldsp, c.fsdsp with funct3 bit 1 set (bit 14).
+cat > "$tmp/cc.s" <<'EOF'
+c.clc ca0, 0(cs0)
+c.clc cs1, 248(ca5)
+c.csc ca1, 8(ca2)
+c.csc ca5, 248(cs1)
+c.clcsp cra, 0(csp)
+c.clcsp ct6, 504(csp)
+c.cscsp ca0, 8(csp)
+c.cscsp cs11, 504(csp)
+EOF
+cat > "$tmp/cc-llvm.s" <<'EOF'
+c.fld fa0, 0(s0)
+c.fld fs1, 248(a5)
+c.fsd fa1, 8(a2)
+c.fsd fa5, 248(s1)
+c.fldsp ft1, 0(sp)
+c.fldsp ft11, 504(sp)
+c.fsdsp fa0, 8(sp)
+c.fsdsp fs11, 504(sp)
+EOF
+# c.cincaddr16csp, c.cincaddr4cspn, c.cjal, c.cjr, c.cjalr: the encodings of
+# c.addi16sp, c.addi4spn, c.jal, c.jr, c.jalr (mk-test-elf.py shares the code).
+
+# Zb*: as CHERIoT builds it (Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx).
+cat > "$tmp/zb.s" <<'EOF'
+sh1add a0, a1, a2
+sh2add a0, a1, a2
+sh3add a0, a1, a2
+andn a0, a1, a2
+orn a0, a1, a2
+xnor a0, a1, a2
+min a0, a1, a2
+minu a0, a1, a2
+max a0, a1, a2
+maxu a0, a1, a2
+rol a0, a1, a2
+ror a0, a1, a2
+rori a0, a1, 31
+clz a0, a1
+ctz a0, a1
+cpop a0, a1
+sext.b a0, a1
+sext.h a0, a1
+zext.h a0, a1
+orc.b a0, a1
+rev8 a0, a1
+clmul a0, a1, a2
+clmulr a0, a1, a2
+clmulh a0, a1, a2
+bclr a0, a1, a2
+bext a0, a1, a2
+binv a0, a1, a2
+bset a0, a1, a2
+bclri a0, a1, 31
+bexti a0, a1, 1
+binvi a0, a1, 7
+bseti a0, a1, 0
+pack a0, a1, a2
+packh a0, a1, a2
+brev8 a0, a1
+zip a0, a1
+unzip a0, a1
+xperm4 a0, a1, a2
+xperm8 a0, a1, a2
+EOF
+
+compare() {  # compare FILE MATTR [LLVM_FILE [XOR]]: mk-test-elf.py's 16-bit parcels = llvm-mc's
+             # (each XOR'd with XOR); prints the number of parcels
+  "$here/mk-test-elf.py" "$tmp/$1" "$tmp/ours.elf" | cut -d' ' -f2 \
+    | sed -E 's/(....)(....)/\2\n\1/' > "$tmp/ours.txt"
+  "$llvm/llvm-mc" --triple=riscv32 -mattr="$2" -filetype=obj "$tmp/${3:-$1}" -o "$tmp/llvm.o"
+  "$llvm/llvm-objcopy" -O binary --only-section=.text "$tmp/llvm.o" "$tmp/llvm.bin"
+  od -An -v -tx2 "$tmp/llvm.bin" | tr -s ' ' '\n' | sed '/^$/d' \
+    | while read -r h; do printf '%04x\n' $((0x$h ^ ${4:-0})); done > "$tmp/llvm.txt"
+  diff -u "$tmp/llvm.txt" "$tmp/ours.txt" >&2 || exit 1
+  wc -l < "$tmp/ours.txt" | tr -d ' '
+}
+parcels=$(compare t.s +m,+zifencei,-relax)
+cparcels=$(compare c.s +c,-relax)
+ccparcels=$(compare cc.s +c,+d,-relax cc-llvm.s 0x4000)
+zbparcels=$(compare zb.s +zba,+zbb,+zbc,+zbs,+zbkb,+zbkx,-relax)
+echo "encodings equal to llvm-mc: $((parcels / 2)) words (RV32I/M/Zicsr)," \
+  "$cparcels parcels (C), $ccparcels parcels (CHERIoT C), $((zbparcels / 2)) words (Zb*)"
