@@ -17,3 +17,4 @@ module ProgramModule        = ProgramModule
 module Kind                 = Kind
 module TypeQuantifier       = TypeQuantifier
 module MuSail               = MuSail
+module TypeLevelParameters  = TypeLevelParameters

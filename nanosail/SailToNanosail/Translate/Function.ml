@@ -948,6 +948,119 @@ let specialise_branch
     end
 
 
+(* A loop, see statement_of_loop *)
+type loop_kind =
+  | Foreach of { loop_variable : S.id;
+                 start         : S.typ S.aexp;
+                 stop          : S.typ S.aexp;
+                 step          : S.typ S.aexp;
+                 increasing    : bool }
+  | While   of S.typ S.aexp      (* while condition do body *)
+  | Until   of S.typ S.aexp      (* repeat body until condition *)
+
+
+(*
+   The local variables that a loop (its condition and body) uses without binding them (see statement_of_loop):
+   each with its Sail type and whether the body assigns it, in order of first use.
+
+     foreach (i from 0 to 7) if v[i] == bitone then count = count + 1
+
+   uses v (read) and count (read and assigned); i is bound by the loop.
+   References to top-level lets are Local in Sail's ANF too, and assignments to registers are AL_id:
+   the caller filters them out.
+*)
+let free_loop_variables
+    (bound_by_loop : S.id list        )
+    (expressions   : S.typ S.aexp list) : (S.id * S.typ * bool) list
+  =
+  let module IdSet = Libsail.Ast_compare.IdSet
+  in
+  let rec pattern_identifiers (pattern : S.typ S.apat) : S.id list =
+    let S.AP_aux (unwrapped_pattern, _) = pattern
+    in
+    match unwrapped_pattern with
+    | AP_tuple patterns            -> List.concat_map ~f:pattern_identifiers patterns
+    | AP_id (name, _)              -> [ Sail.id_of_name name ]
+    | AP_global (_, _)             -> []
+    | AP_app (_, pattern, _)       -> pattern_identifiers pattern
+    | AP_cons (head, tail)         -> List.append (pattern_identifiers head) (pattern_identifiers tail)
+    | AP_as (pattern, name, _)     -> Sail.id_of_name name :: pattern_identifiers pattern
+    | AP_struct (fields, _)        -> List.concat_map ~f:(fun (_, pattern) -> pattern_identifiers pattern) fields
+    | AP_vector_concat (parts, _)  -> List.concat_map ~f:(fun (_, pattern) -> pattern_identifiers pattern) parts
+    | AP_nil _                     -> []
+    | AP_wild _                    -> []
+  in
+  let rec of_aval (bound : IdSet.t) (value : S.typ S.aval) : (S.id * S.typ * bool) list =
+    match value with
+    | AV_lit (_, _)          -> []
+    | AV_id (name, lvar)     -> begin
+        let identifier = Sail.id_of_name name
+        in
+        match lvar with
+        | Local (_, typ) when not (IdSet.mem identifier bound) -> [ (identifier, typ, false) ]
+        | Local (_, _)                                         -> []
+        | Register _                                           -> []
+        | Enum _                                               -> []
+        | Unbound _                                            -> []
+      end
+    | AV_abstract (_, _)     -> []
+    | AV_ref (_, _)          -> []
+    | AV_tuple values        -> List.concat_map ~f:(of_aval bound) values
+    | AV_list (values, _)    -> List.concat_map ~f:(of_aval bound) values
+    | AV_vector (values, _)  -> List.concat_map ~f:(of_aval bound) values
+    | AV_record (fields, _)  -> List.concat_map ~f:(fun (_, value) -> of_aval bound value) (Bindings.bindings fields)
+    | AV_cval (_, _)         -> []
+    | AV_undef _             -> []
+  and of_alexp (bound : IdSet.t) (target : S.typ S.alexp) : (S.id * S.typ * bool) list =
+    match target with
+    | AL_id (name, typ)
+    | AL_addr (name, typ) -> begin
+        let identifier = Sail.id_of_name name
+        in
+        if IdSet.mem identifier bound
+        then []
+        else [ (identifier, typ, true) ]
+      end
+    | AL_field (target, _) -> of_alexp bound target
+  and of_case (bound : IdSet.t) ((pattern, guard, body, _) : S.typ S.apat * S.typ S.aexp * S.typ S.aexp * S.uannot) : (S.id * S.typ * bool) list =
+    let bound = IdSet.union bound (IdSet.of_list (pattern_identifiers pattern))
+    in
+    List.append (of_aexp bound guard) (of_aexp bound body)
+  and of_aexp (bound : IdSet.t) (expression : S.typ S.aexp) : (S.id * S.typ * bool) list =
+    let S.AE_aux (unwrapped_expression, _) = expression
+    in
+    match unwrapped_expression with
+    | AE_val value                                -> of_aval bound value
+    | AE_app (_, values, _)                       -> List.concat_map ~f:(of_aval bound) values
+    | AE_typ (expression, _)                      -> of_aexp bound expression
+    | AE_assign (target, value)                   -> List.append (of_aexp bound value) (of_alexp bound target)
+    | AE_let (_, name, _, value, body, _)         -> List.append (of_aexp bound value) (of_aexp (IdSet.add (Sail.id_of_name name) bound) body)
+    | AE_block (statements, last, _)              -> List.concat_map ~f:(of_aexp bound) (List.append statements [ last ])
+    | AE_return (value, _)                        -> of_aval bound value
+    | AE_exit (value, _)                          -> of_aval bound value
+    | AE_throw (value, _)                         -> of_aval bound value
+    | AE_if (condition, when_true, when_false, _) -> List.concat [ of_aval bound condition; of_aexp bound when_true; of_aexp bound when_false ]
+    | AE_field (value, _, _)                      -> of_aval bound value
+    | AE_match (value, cases, _)                  -> List.append (of_aval bound value) (List.concat_map ~f:(of_case bound) cases)
+    | AE_try (body, cases, _)                     -> List.append (of_aexp bound body) (List.concat_map ~f:(of_case bound) cases)
+    | AE_struct_update (value, fields, _)         -> List.append (of_aval bound value) (List.concat_map ~f:(fun (_, value) -> of_aval bound value) (Bindings.bindings fields))
+    | AE_for (name, start, stop, step, _, body)   -> List.concat [ of_aexp bound start; of_aexp bound stop; of_aexp bound step; of_aexp (IdSet.add (Sail.id_of_name name) bound) body ]
+    | AE_loop (_, condition, body)                -> List.append (of_aexp bound condition) (of_aexp bound body)
+    | AE_short_circuit (_, left, right)           -> List.append (of_aval bound left) (of_aexp bound right)
+  in
+  (* one entry per variable, in order of first use; assigned if any use assigns it *)
+  let uses = List.concat_map ~f:(of_aexp (IdSet.of_list bound_by_loop)) expressions
+  in
+  List.fold uses ~init:[] ~f:(fun variables (identifier, typ, assigned) ->
+      match List.find variables ~f:(fun (identifier', _, _) -> Libsail.Ast_compare.Id.compare identifier identifier' = 0) with
+      | Some _ -> List.map variables ~f:(fun ((identifier', typ', assigned') as variable) ->
+          if Libsail.Ast_compare.Id.compare identifier identifier' = 0
+          then (identifier', typ', assigned' || assigned)
+          else variable)
+      | None   -> List.append variables [ (identifier, typ, assigned) ]
+    )
+
+
 let rec statement_of_aexp
     (expression_type : S.typ option)
     (expression      : S.typ S.aexp) : Ast.Statement.t TC.t
@@ -1828,6 +1941,227 @@ let rec statement_of_aexp
     in
     statement_of_aexp expression_type body
 
+  (*
+     A loop becomes a call to a helper function, which runs the loop recursively:
+
+       count : int = 0;
+       foreach (i from 0 to 7) if v[i] == bitone then count = count + 1;
+
+     in popcount becomes (in muSail)
+
+       stm_assign "count" (call popcount_loop 0 7 v count)
+
+       popcount_loop (i : int) (bound : int) (v : bits(8)) (count : int) : int :=
+         if i <= bound then (if v[i] == bitone then count = count + 1); popcount_loop (i + 1) bound v count
+                       else count
+
+     The helper's parameters are the local variables that the loop uses without binding them:
+     first those it only reads, then those it assigns; a foreach's helper takes the loop variable,
+     the bound and the step (unless it is a literal) first. Its result is the assigned variables
+     (unit, one value, or a tuple); the call assigns them back. The body assigns the helper's own
+     parameters (muSail's stm_assign works on any variable of the call frame).
+
+     * foreach counts up while i <= bound, or down (downto) while i >= bound. As in Sail, the bounds
+       and the step are evaluated once, before the loop.
+     * while c do body: if c then (body; recursive call) else result.
+     * repeat body until c: body; if c then result else recursive call.
+
+     The helper gets its enclosing function's constraints (see Translation.translate_definition_and_loop_functions).
+  *)
+  and statement_of_loop
+        (loop : loop_kind   )
+        (body : S.typ S.aexp) : Ast.Statement.t TC.t
+    =
+    let* helper_identifier =
+      let* identifier = TC.generate_loop_function_identifier
+      in
+      match identifier with
+      | Some identifier -> TC.return identifier
+      | None            -> TC.not_yet_implemented ~message:"loop outside of a function" [%here] location
+    in
+    let bound_by_loop, scanned_expressions =
+      match loop with
+      | Foreach { loop_variable; start = _; stop = _; step = _; increasing = _ } -> ([ loop_variable ], [ body ])
+      | While condition                                                         -> ([], [ condition; body ])
+      | Until condition                                                         -> ([], [ condition; body ])
+    in
+    let* variables : (Ast.Identifier.t * Ast.Type.t * bool) list =
+      TC.filter_map (free_loop_variables bound_by_loop scanned_expressions) ~f:(fun (identifier, typ, assigned) ->
+          let* identifier = Identifier.translate_identifier [%here] identifier
+          in
+          let* refers_to_top_level_value = TC.refers_to_top_level_value identifier
+          and* is_register               = TC.is_register identifier
+          in
+          match refers_to_top_level_value with
+          | Some true  -> TC.return None
+          | Some false when is_register -> TC.return None   (* an assignment to a register (AL_id) *)
+          | Some false -> begin
+              let* typ = Type.translate_type typ
+              in
+              TC.return @@ Some (identifier, typ, assigned)
+            end
+          | None       -> begin
+              let message =
+                Printf.sprintf
+                  "%s is both a top-level value and a local variable of this function (shadowing)"
+                  (Ast.Identifier.to_string identifier)
+              in
+              TC.not_yet_implemented ~message [%here] location
+            end
+        )
+    in
+    let read_variables     = List.filter_map variables ~f:(fun (identifier, typ, assigned) -> if assigned then None else Some (identifier, typ))
+    and assigned_variables = List.filter_map variables ~f:(fun (identifier, typ, assigned) -> if assigned then Some (identifier, typ) else None)
+    in
+    let variable ((identifier, typ) : Ast.Identifier.t * Ast.Type.t) : Ast.Expression.t =
+      Ast.Expression.Variable (identifier, typ)
+    in
+    (* a foreach's counter, bound and step: the parameters, the step as an expression, and the statements binding them at the call *)
+    let* counter_parameters, step_expression, counter_bindings =
+      match loop with
+      | Foreach { loop_variable; start; stop; step; increasing = _ } -> begin
+          let* counter        = Identifier.translate_identifier [%here] loop_variable
+          and* bound          = TC.generate_unique_identifier ~prefix:"bound" ()
+          and* step_parameter = TC.generate_unique_identifier ~prefix:"step" ()
+          and* start_variable = TC.generate_unique_identifier ~prefix:"start" ()
+          and* start          = statement_of_aexp (Some Libsail.Ast_util.int_typ) start
+          and* stop           = statement_of_aexp (Some Libsail.Ast_util.int_typ) stop
+          and* step_statement = statement_of_aexp (Some Libsail.Ast_util.int_typ) step
+          in
+          let S.AE_aux (unwrapped_step, _) = step
+          in
+          let step_literal : Z.t option =
+            match unwrapped_step with
+            | AE_val (AV_lit (S.L_aux (S.L_num value, _), _)) -> Some value
+            | _                                               -> None
+          in
+          match step_literal with
+          | Some value -> TC.return ([ (counter, Ast.Type.Int None); (bound, Int None) ], Ast.Expression.Value (Int value), [ (start_variable, start); (bound, stop) ])
+          | None       -> TC.return ([ (counter, Ast.Type.Int None); (bound, Int None); (step_parameter, Int None) ], variable (step_parameter, Int None), [ (start_variable, start); (bound, stop); (step_parameter, step_statement) ])
+        end
+      | While _ | Until _ -> TC.return ([], Ast.Expression.Value Unit, [])
+    in
+    let parameters : (Ast.Identifier.t * Ast.Type.t) list =
+      List.concat [ counter_parameters; read_variables; assigned_variables ]
+    in
+    (* unit, the value, or the tuple of the values: a pair is ty.prod, built with bop.pair *)
+    let result_type : Ast.Type.t =
+      match assigned_variables with
+      | []                -> Unit
+      | [ (_, typ) ]      -> typ
+      | _ :: _ :: _       -> Tuple (List.map ~f:snd assigned_variables)
+    and result : Ast.Expression.t =
+      match assigned_variables with
+      | []                -> Value Unit
+      | [ only ]          -> variable only
+      | [ first; second ] -> BinaryOperation (Pair, variable first, variable second)
+      | _ :: _ :: _       -> Tuple (List.map ~f:variable assigned_variables)
+    in
+    let* helper =
+      let* translated_body = statement_of_aexp (Some Libsail.Ast_util.unit_typ) body
+      in
+      let* function_body =
+        match loop, counter_parameters with
+        | Foreach { increasing; loop_variable = _; start = _; stop = _; step = _ }, counter :: bound :: _ -> begin
+            let next : Ast.Expression.t =
+              BinaryOperation ((if increasing then Plus else Minus), variable counter, step_expression)
+            in
+            let recursive_call : Ast.Statement.t =
+              Call (helper_identifier, next :: List.map ~f:variable (List.tl_exn parameters))
+            in
+            create_if_statement
+              ~condition:(Expression (BinaryOperation (StandardComparison (if increasing then LessThanOrEqualTo else GreaterThanOrEqualTo), variable counter, variable bound)))
+              ~when_true:(Seq (translated_body, recursive_call))
+              ~when_false:(Expression result)
+          end
+        | Foreach _, _ -> TC.fail [%here] "a foreach helper has a counter and a bound"
+        | While condition, _ -> begin
+            let* condition = statement_of_aexp (Some Libsail.Ast_util.bool_typ) condition
+            in
+            create_if_statement
+              ~condition
+              ~when_true:(Seq (translated_body, Call (helper_identifier, List.map ~f:variable parameters)))
+              ~when_false:(Expression result)
+          end
+        | Until condition, _ -> begin
+            let* condition = statement_of_aexp (Some Libsail.Ast_util.bool_typ) condition
+            in
+            let* check =
+              create_if_statement
+                ~condition
+                ~when_true:(Expression result)
+                ~when_false:(Call (helper_identifier, List.map ~f:variable parameters))
+            in
+            TC.return @@ Ast.Statement.Seq (translated_body, check)
+          end
+      in
+      TC.return @@ {
+        Ast.Definition.Function.function_name = helper_identifier;
+        function_type    = { parameters; return_type = result_type };
+        function_body;
+        polymorphic      = false;
+        monomorphs       = [];
+        type_constraints = [];
+      }
+    in
+    let* () = TC.add_loop_function helper
+    in
+    (* the call (a foreach starts at the start value), then the assigned variables get the results *)
+    let* result_variable = TC.generate_unique_identifier ~prefix:"loop" ()
+    and* elements        = TC.map assigned_variables ~f:(fun (identifier, typ) ->
+        TC.lift ~f:(fun element -> (element, typ, identifier)) @@ TC.generate_unique_identifier ~prefix:"result" ()
+      )
+    in
+    let call : Ast.Statement.t =
+      match counter_bindings with
+      | (start_variable, _) :: _ -> Call (helper_identifier, variable (start_variable, Int None) :: List.map ~f:variable (List.tl_exn parameters))
+      | []                       -> Call (helper_identifier, List.map ~f:variable parameters)
+    and unit_value : Ast.Statement.t =
+      Expression (Value Unit)
+    in
+    let assignments : Ast.Statement.t =
+      Ast.Statement.make_sequence begin
+        List.append
+          (List.map elements ~f:(fun (element, typ, identifier) ->
+               Ast.Statement.AssignVariable { variable_identifier = identifier; assigned_value = Expression (variable (element, typ)) }))
+          [ unit_value ]
+      end
+    in
+    let call_and_assign : Ast.Statement.t =
+      let destructure (pattern : Ast.Statement.match_pattern) : Ast.Statement.t =
+        Let {
+          binder                 = result_variable;
+          binding_statement_type = result_type;
+          binding_statement      = call;
+          body_statement         = Match pattern;
+        }
+      in
+      match assigned_variables, elements with
+      | [], _ -> call
+      | [ (identifier, _) ], _ -> Seq (AssignVariable { variable_identifier = identifier; assigned_value = call }, unit_value)
+      | _, [ (first, first_type, _); (second, second_type, _) ] -> begin
+          destructure @@ MatchProduct {
+            matched  = result_variable;
+            type_fst = first_type;
+            type_snd = second_type;
+            id_fst   = first;
+            id_snd   = second;
+            body     = assignments;
+          }
+        end
+      | _, _ -> begin
+          destructure @@ MatchTuple {
+            matched = result_variable;
+            binders = List.map elements ~f:(fun (element, typ, _) -> (element, typ));
+            body    = assignments;
+          }
+        end
+    in
+    TC.return begin
+      List.fold_right counter_bindings ~init:call_and_assign ~f:(fun (binder, binding_statement) body_statement ->
+          Ast.Statement.Let { binder; binding_statement_type = Int None; binding_statement; body_statement })
+    end
+
   and statement_of_exit
         (_aval : Libsail.Ast.typ Libsail.Anf.aval)
         (typ   : Libsail.Ast.typ                 ) : Ast.Statement.t TC.t
@@ -1888,8 +2222,9 @@ let rec statement_of_aexp
     | AE_exit (aval, typ)                                           -> statement_of_exit aval typ
     | AE_return (_, _)                                              -> TC.not_yet_implemented [%here] location
     | AE_try (body, handlers, _typ)                                 -> statement_of_try body handlers
-    | AE_for (_, _, _, _, _, _)                                     -> TC.not_yet_implemented [%here] location
-    | AE_loop (_, _, _)                                             -> TC.not_yet_implemented [%here] location
+    | AE_for (name, start, stop, step, order, body)                 -> statement_of_loop (Foreach { loop_variable = Sail.id_of_name name; start; stop; step; increasing = Libsail.Ast_util.is_order_inc order }) body
+    | AE_loop (While, condition, body)                              -> statement_of_loop (While condition) body
+    | AE_loop (Until, condition, body)                              -> statement_of_loop (Until condition) body
   in
   TC.return @@ Ast.Statement.Located (location, translated_statement)
 
@@ -3062,6 +3397,40 @@ let split_tuple_parameter
   | _ -> (parameters, body)
 
 
+(* The number of loops in a function body: each becomes a helper function (see statement_of_loop) *)
+let count_foreach_loops (body : S.typ S.aexp) : int =
+  let count = ref 0
+  in
+  let visit (expression : S.typ S.aexp) : S.typ S.aexp =
+    let S.AE_aux (unwrapped_expression, _) = expression
+    in
+    let () =
+      match unwrapped_expression with
+      | AE_for (_, _, _, _, _, _)        -> Int.incr count
+      | AE_val _                         -> ()
+      | AE_app (_, _, _)                 -> ()
+      | AE_typ (_, _)                    -> ()
+      | AE_assign (_, _)                 -> ()
+      | AE_let (_, _, _, _, _, _)        -> ()
+      | AE_block (_, _, _)               -> ()
+      | AE_return (_, _)                 -> ()
+      | AE_exit (_, _)                   -> ()
+      | AE_throw (_, _)                  -> ()
+      | AE_if (_, _, _, _)               -> ()
+      | AE_field (_, _, _)               -> ()
+      | AE_match (_, _, _)               -> ()
+      | AE_try (_, _, _)                 -> ()
+      | AE_struct_update (_, _, _)       -> ()
+      | AE_loop (_, _, _)                -> Int.incr count
+      | AE_short_circuit (_, _, _)       -> ()
+    in
+    expression
+  in
+  let _ : S.typ S.aexp = Libsail.Anf.fold_aexp visit body
+  in
+  !count
+
+
 let translate_function_definition
     (full_sail_definition  : Sail.sail_definition         )
     (definition_annotation : Sail.definition_annotation   )
@@ -3075,7 +3444,10 @@ let translate_function_definition
         let* parts = extract_function_parts function_clause
         in
         let* function_name = Identifier.translate_identifier [%here] parts.identifier
-        and* parameters    = translate_parameter_bindings parts.parameter_bindings
+        in
+        let* () = TC.start_loop_functions function_name (count_foreach_loops parts.body)
+        in
+        let* parameters    = translate_parameter_bindings parts.parameter_bindings
         and* return_type   = translate_return_type parts.return_type
         and* function_body = TC.with_locally_bound_identifiers parts.locally_bound_identifiers (translate_body parts.body parts.return_type)
         and* type_constraints =
