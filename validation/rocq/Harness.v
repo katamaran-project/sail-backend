@@ -3,6 +3,7 @@
 
 From Stdlib Require Import
      Strings.String
+     Lists.List
      ZArith.ZArith.
 From Katamaran Require Import
      Base
@@ -50,10 +51,32 @@ Definition read_tag (m : Memory) (a : Z) : bool := negb (m (tag_key a) =? 0).
 Definition write_tag (m : Memory) (a : Z) (t : bool) : Memory :=
   fun k => if k =? tag_key a then (if t then 1 else 0) else m k.
 
+(* Write log: the memory is a function, so it cannot be listed.  The oracle
+   records each written key in the memory itself, above every physical
+   address: key [log_base] = count, key [log_base + 1 + i] = i-th written key
+   (byte address >= 0, or tag key < 0). *)
+Definition log_base : Z := 2 ^ 40.
+
+Definition log_push (m : Memory) (key : Z) : Memory :=
+  let n := m log_base in
+  fun j => if j =? log_base then n + 1 else if j =? log_base + 1 + n then key else m j.
+
+Definition log_keys (m : Memory) : list Z :=
+  map (fun i => m (log_base + 1 + Z.of_nat i)) (seq 0 (Z.to_nat (m log_base))).
+
+(* Writes with logging. *)
+Definition store_bytes (m : Memory) (a w v : Z) : Memory :=
+  fold_left log_push (map (fun i => a + Z.of_nat i) (seq 0 (Z.to_nat w))) (write_bytes m a w v).
+
+Definition store_tag (m : Memory) (a : Z) (t : bool) : Memory :=
+  log_push (write_tag m a t) (tag_key a).
+
 (*** Platform constants ***)
 
-(* sail-riscv/c_emulator/riscv_platform_impl.c defaults; ELF layout of
-   validation/scripts/mk-test-elf.py (entry = RAM base, tohost). *)
+(* As the validation emulator runs: cheriot_sim_nozb --disable-compressed -F -W
+   (sail-riscv/c_emulator/riscv_platform_impl.c defaults, riscv_sim.c flags);
+   ELF layout of validation/scripts/mk-test-elf.py (entry = RAM base, tohost).
+   Table with source lines: validation/docs/harness.md, "Constants". *)
 Definition c_ram_base  : Z := 0x80000000.
 Definition c_ram_size  : Z := 0x4000000.
 Definition c_rom_base  : Z := 0x1000.
@@ -66,10 +89,10 @@ Definition c_tohost    : Z := 0x80001000.
 Definition c_entry     : Z := c_ram_base.
 
 Definition c_enable_writable_misa  : bool := true.
-Definition c_enable_fdext          : bool := true.
+Definition c_enable_fdext          : bool := false.  (* -F *)
 Definition c_enable_zfinx          : bool := false.
 Definition c_enable_writable_fiom  : bool := true.
-Definition c_enable_vext           : bool := true.
+Definition c_enable_vext           : bool := false.  (* -W *)
 Definition c_enable_misaligned     : bool := true.
 Definition c_mtval_has_illegal_inst_bits : bool := false.
 
@@ -110,13 +133,13 @@ Definition oracle : Oracle :=
   | __write_mem            => fun a =>
       Some (inr true,
             mkState (st_regs st)
-              (write_bytes m (bv.unsigned (env.head (env.tail (env.tail a))))
+              (store_bytes m (bv.unsigned (env.head (env.tail (env.tail a))))
                  (env.head (env.tail a)) (bv.unsigned (env.head a))))
   | sail_barrier           => fun _ => @ok ty.unit tt
   | MEMr_tag               => fun a => @ok ty.bool (read_tag m (bv.unsigned (env.head a)))
   | MEMw_tag               => fun a =>
       Some (inr tt, mkState (st_regs st)
-                      (write_tag m (bv.unsigned (env.head (env.tail a))) (env.head a)))
+                      (store_tag m (bv.unsigned (env.head (env.tail a))) (env.head a)))
   | sys_enable_writable_misa => fun _ => @ok ty.bool c_enable_writable_misa
   | sys_enable_fdext       => fun _ => @ok ty.bool c_enable_fdext
   | sys_enable_zfinx       => fun _ => @ok ty.bool c_enable_zfinx
@@ -140,28 +163,80 @@ Definition oracle : Oracle :=
 
 (*** Initial state ***)
 
-(* Every register starts as the type's [Unconstrained] inhabitant (zeros,
-   first constructors), as the emulator's zero-initialised globals; init_model
-   then resets the architectural state. *)
+(* The emulator's registers before init_model (Sail C, initialize_registers):
+   bitvectors 0, bools false, enums the first constructor, records field by
+   field.  [exact bv.zero] first: [cbn] on the 65536-bit vregtype is slow. *)
+Ltac zero_val :=
+  first [ exact bv.zero | exact false | exact 0%Z | cbn; constructor; zero_val ].
+
 Definition reg_default : RegStore.
-Proof. intros σ r. destruct r; first [exact bv.zero | exact unconstrained_inhabitant]. Defined.
+Proof. intros σ r. destruct r; zero_val. Defined.
 
 Definition state0 (m : Memory) : State := mkState reg_default m.
 
+(* Program loading: not logged (both sides load the same ELF). *)
 Definition load_word (m : Memory) (a w : Z) : Memory := write_bytes m a 4 w.
+
+(* Consecutive words from [a]. *)
+Fixpoint load_words (m : Memory) (a : Z) (ws : list Z) : Memory :=
+  match ws with
+  | nil => m
+  | cons w ws' => load_words (load_word m a w) (a + 4) ws'
+  end.
 
 Definition set_pc (st : State) (pc : Z) : State :=
   mkState (write_register (st_regs st) PC (bv.of_Z pc)) (st_mem st).
 
 (* As the emulator (riscv_sim.c, init_sail with NO_BOOT_ROM): init_model,
    then PC := ELF entry (only if init_model did not fail). *)
-Definition reset (fuel : nat) (m : Memory) : Outcome (Result ty.unit * State) :=
+Definition reset_from (fuel : nat) (st0 : State) : Outcome (Result ty.unit * State) :=
   omap (fun '(r, st) =>
           match r with
           | inr _ => (r, set_pc st c_entry)
           | inl _ => (r, st)
           end)
-    (exec_call oracle fuel init_model (env.snoc env.nil (_∷_) tt) (state0 m)).
+    (exec_call oracle fuel init_model (env.snoc env.nil (_∷_) tt) st0).
+
+Definition reset (fuel : nat) (m : Memory) : Outcome (Result ty.unit * State) :=
+  reset_from fuel (state0 m).
+
+(* step(k); the emulator passes the number of earlier steps that returned
+   true (only printed). *)
+Definition run_step_at (fuel : nat) (k : Z) (st : State) : Outcome (Result ty.bool * State) :=
+  exec_call oracle fuel step (env.snoc env.nil (_∷_) k) st.
 
 Definition run_step (fuel : nat) (st : State) : Outcome (Result ty.bool * State) :=
-  exec_call oracle fuel step (env.snoc env.nil (_∷_) 0) st.
+  run_step_at fuel 0 st.
+
+(*** Runs ***)
+
+(* Why a run stopped. *)
+Inductive Stop : Set :=
+| Halted       (* htif_done after a step: the program wrote tohost (emulator: exit) *)
+| Failed       (* a step returned inl (stm_fail) *)
+| StepLimit.   (* the step limit; e.g. a trap to MTCC = 0 fetch-faults forever *)
+
+Definition htif_halted (st : State) : bool := read_register (st_regs st) htif_done.
+
+(* Up to [n] steps from [st] (emulator loop: while !htif_done; no
+   tick_clock).  Every step is counted, also those returning false (the
+   emulator's --inst-limit counts only true ones, so it never stops a fetch
+   fault loop).  Fuel per step: depth, so a run always ends. *)
+Fixpoint run_steps_aux (fuel n : nat) (k : Z) (st : State) :
+  Outcome (list (Result ty.bool * State) * Stop) :=
+  match n with
+  | O => Done (nil, StepLimit)
+  | S n' =>
+      obind (run_step_at fuel k st) (fun '(r, st') =>
+        match r with
+        | inl _ => Done (cons (r, st') nil, Failed)
+        | inr b =>
+            if htif_halted st' then Done (cons (r, st') nil, Halted)
+            else omap (fun (p : list (Result ty.bool * State) * Stop) =>
+                         let (rs, s) := p in (cons (r, st') rs, s))
+                   (run_steps_aux fuel n' (if b then k + 1 else k) st')
+        end)
+  end.
+
+Definition run_steps (fuel n : nat) (st : State) : Outcome (list (Result ty.bool * State) * Stop) :=
+  run_steps_aux fuel n 0 st.

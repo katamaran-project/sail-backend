@@ -30,11 +30,11 @@ Dump.vo: Harness.vo Names.vo
 dumps: DumpADDI.vo
 
 DumpADDI.vo: DumpADDI.v Dump.vo StepADDI.vo ../compare/statefile.py
-	mkdir -p $(DUMPS)/addi
+	mkdir -p $(DUMPS)/addi $(DUMPS)/addi-add-sw
 	$(COQC) $(FLAGS) -output-directory $(DUMPS) $<
-	for f in $(DUMPS)/*.out $(DUMPS)/addi/*.out; do mv -f "$$f" "$${f%.out}"; done
+	for f in $(DUMPS)/*.out $(DUMPS)/*/*.out; do mv -f "$$f" "$${f%.out}"; done
 	$(STATEFILE) check $(DUMPS)/addi/reset.state $(DUMPS)/addi/step1.state $(DUMPS)/addi/step1.delta
-	$(STATEFILE) check --run $(DUMPS)/addi/run.states
+	$(STATEFILE) check --run $(DUMPS)/addi/run.states $(DUMPS)/addi-add-sw/run.states
 	$(STATEFILE) delta $(DUMPS)/addi/reset.state $(DUMPS)/addi/step1.state \
 	    | diff -u $(DUMPS)/addi/step1.delta -
 

@@ -1,6 +1,6 @@
 (* Dumps of ADDI x1, x0, 5 (StepADDI.v): after reset, after one step, and the
-   delta; checked here, written to ../build/dumps/ by Redirect (gmake dumps).
-   Format: validation/docs/state-format.md. *)
+   delta; and the run of addi-add-sw (StepADDI.v).  Checked here, written to
+   ../build/dumps/ by Redirect (gmake dumps).  Format: validation/docs/state-format.md. *)
 
 From Stdlib Require Import
      Strings.String
@@ -31,11 +31,7 @@ Open Scope string_scope.
 (* Generous fuel: the cost is depth, not steps (harness.md). *)
 Definition fuel : nat := 300.
 
-Definition reset_addi : Outcome (Result ty.unit * State) := reset_log fuel mem_addi.
-
-Definition run_addi : Outcome (list State) :=
-  obind reset_addi (fun '(_, st0) =>
-    omap (fun rs => st0 :: map snd rs) (steps_log fuel 1 st0)).
+Definition run_addi : Outcome (list Dumped * Stop) := run_dumps fuel 1 mem_addi.
 
 (* The dumps of a run, or the outcome when the run did not finish. *)
 Definition or_outcome {A} (o : Outcome A) (f : A -> list string) : list string :=
@@ -45,38 +41,45 @@ Definition or_outcome {A} (o : Outcome A) (f : A -> list string) : list string :
   | NoAnswer _ => ["NoAnswer"]
   end.
 
-Definition nth_state (sts : list State) (i : nat) (f : State -> list string) : list string :=
-  match nth_error sts i with Some st => f st | None => ["no state"] end.
+Definition nth_dump (ds : list Dumped * Stop) (i : nat) : list string :=
+  match nth_error (fst ds) i with Some d => map line (items d) | None => ["no state"] end.
 
-Definition reset_dump : list string := or_outcome run_addi (fun sts => nth_state sts 0 dump).
-Definition step1_dump : list string := or_outcome run_addi (fun sts => nth_state sts 1 dump).
+Definition reset_dump : list string := or_outcome run_addi (fun ds => nth_dump ds 0).
+Definition step1_dump : list string := or_outcome run_addi (fun ds => nth_dump ds 1).
 Definition step1_delta : list string :=
-  or_outcome run_addi (fun sts =>
-    match sts with
-    | [s0; s1] => delta s0 s1
+  or_outcome run_addi (fun ds =>
+    match fst ds with
+    | [d0; d1] => delta_of d0 d1
     | _ => ["not two states"]
     end).
-Definition run_dump : list string := or_outcome run_addi dump_run.
+Definition run_dump : list string := or_outcome run_addi (fun ds => dump_run (fst ds)).
+
+(* addi-add-sw: up to 20 steps; ends via htif after 9. *)
+Definition run_aas : Outcome (list Dumped * Stop) := run_dumps fuel 20 mem_addi_add_sw.
+Definition aas_dump : list string := or_outcome run_aas (fun ds => dump_run (fst ds)).
 
 (*** Checks ***)
 
 (* The step's delta: PC and nextPC + 4, the instruction bits, minstret + 1,
-   x1's address = 5.  Nothing else changes; no memory writes. *)
+   x1's address = 5, step's result (after reset: ()).  Nothing else changes;
+   no memory writes. *)
 Example addi_delta :
   step1_delta =
     [ "PC 0x80000004";
       "instbits 0x00500093";
       "minstret 0x0000000000000001";
       "nextPC 0x80000004";
+      "step_result true";
       "x1.address 0x00000005" ].
 Proof. Time vm_compute. reflexivity. Qed.
 
 (* One line per register item: 86 registers (118 - 32 excluded), 21 of them
-   capabilities (19 fields each): 65 + 21 * 19 = 464.  No memory written. *)
-Example reset_lines : length reset_dump = 464%nat.
+   capabilities (19 fields each): 65 + 21 * 19 = 464; and step_result.
+   No memory written. *)
+Example reset_lines : length reset_dump = 465%nat.
 Proof. Time vm_compute. reflexivity. Qed.
 
-Example step1_lines : length step1_dump = 464%nat.
+Example step1_lines : length step1_dump = 465%nat.
 Proof. Time vm_compute. reflexivity. Qed.
 
 (* Register items whose value after reset depends on the start store
@@ -103,7 +106,7 @@ Definition tag_args : CStore _ :=
 
 Definition log_call {Δ σ} (f : 𝑭𝑿 Δ σ) (args : CStore Δ) (o : option State) : option State :=
   match o with
-  | Some st => option_map snd (oracle_log Δ σ f args st)
+  | Some st => option_map snd (oracle Δ σ f args st)
   | None => None
   end.
 
@@ -112,6 +115,7 @@ Definition after_writes : option State :=
     (log_call MEMw_tag tag_args
        (log_call (@__write_mem 32 16) (write_args 0x80000100) (Some (state0 mem_addi)))).
 
+(* The program image is not logged: only the writes. *)
 Example mem_lines :
   option_map (fun st => let '(ms, ts) := mem_items (st_mem st) in map line (app ms ts)) after_writes =
     Some [ "mem 0x80000100 0xef"; "mem 0x80000101 0xbe"; "tag 0x80000100 true" ].
@@ -141,6 +145,7 @@ Goal True.
   Redirect "addi/step1.state" ltac2:(print_lines constr:(step1_dump)).
   Redirect "addi/step1.delta" ltac2:(print_lines constr:(step1_delta)).
   Redirect "addi/run.states" ltac2:(print_lines constr:(run_dump)).
+  Redirect "addi-add-sw/run.states" ltac2:(print_lines constr:(aas_dump)).
   Redirect "excluded" ltac2:(print_lines constr:(excluded_lines)).
   exact I.
 Qed.

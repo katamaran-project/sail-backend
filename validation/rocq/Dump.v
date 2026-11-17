@@ -1,5 +1,5 @@
-(* Canonical text dump of a CHERIoT harness state, deltas, and a memory write
-   log.  Format: validation/docs/state-format.md. *)
+(* Canonical text dump of a CHERIoT harness state and deltas.
+   Format: validation/docs/state-format.md. *)
 
 From Stdlib Require Import
      Strings.Ascii
@@ -164,70 +164,6 @@ Definition reg_items (γ : RegStore) : list Item :=
                  else render render_depth σ n (read_register γ x))
               all_regs).
 
-(*** Memory write log ***)
-
-(* The harness memory is a function (Harness.v), so it cannot be listed.
-   [oracle_log] wraps Harness.oracle and records each written key in the
-   memory itself, above every physical address (key log_base: count; key
-   log_base + 1 + i: i-th written key).  Keys as in Harness.v: byte address
-   (>= 0) or tag key (< 0). *)
-Definition log_base : Z := 2 ^ 40.
-
-Definition log_push (m : Memory) (key : Z) : Memory :=
-  let n := m log_base in
-  fun j => if j =? log_base then n + 1 else if j =? log_base + 1 + n then key else m j.
-
-Definition log_keys (m : Memory) : list Z :=
-  map (fun i => m (log_base + 1 + Z.of_nat i)) (seq 0 (Z.to_nat (m log_base))).
-
-(* Keys a foreign call writes.  Only __write_mem and MEMw_tag change memory
-   (harness.md, "Foreign functions"). *)
-Definition written {Δ σ} (f : 𝑭𝑿 Δ σ) : CStore Δ -> list Z :=
-  match f in FunX Δ σ return CStore Δ -> list Z with
-  (* __write_mem(kind, xlen, addr, width, data) *)
-  | @__write_mem _ _ => fun a =>
-      let addr := bv.unsigned (env.head (env.tail (env.tail a))) in
-      map (fun i => addr + Z.of_nat i) (seq 0 (Z.to_nat (env.head (env.tail a))))
-  (* MEMw_tag(tag address, tag) *)
-  | MEMw_tag => fun a => [tag_key (bv.unsigned (env.head (env.tail a)))]
-  | _ => fun _ => []
-  end.
-
-Definition oracle_log : Oracle :=
-  fun Δ σ f args st =>
-  match oracle Δ σ f args st with
-  | Some (r, st') => Some (r, mkState (st_regs st') (fold_left log_push (written f args) (st_mem st')))
-  | None => None
-  end.
-
-(* As Harness.reset and Harness.run_step, with [oracle_log] and any start state. *)
-Definition reset_from (fuel : nat) (st0 : State) : Outcome (Result ty.unit * State) :=
-  omap (fun '(r, st) =>
-          match r with
-          | inr _ => (r, set_pc st c_entry)
-          | inl _ => (r, st)
-          end)
-    (exec_call oracle_log fuel init_model (env.snoc env.nil (MkB _ _) tt) st0).
-
-Definition reset_log (fuel : nat) (m : Memory) : Outcome (Result ty.unit * State) :=
-  reset_from fuel (state0 m).
-
-Definition step_log (fuel : nat) (st : State) : Outcome (Result ty.bool * State) :=
-  exec_call oracle_log fuel step (env.snoc env.nil (MkB _ _) 0) st.
-
-(* Up to [n] steps; stops after a step that does not return [inr _].
-   The states after each step, with the step's result. *)
-Fixpoint steps_log (fuel n : nat) (st : State) : Outcome (list (Result ty.bool * State)) :=
-  match n with
-  | O => Done []
-  | S n' =>
-      obind (step_log fuel st) (fun '(r, st') =>
-        match r with
-        | inr _ => omap (cons (r, st')) (steps_log fuel n' st')
-        | inl _ => Done [(r, st')]
-        end)
-  end.
-
 (*** Memory items ***)
 
 Fixpoint insert_Z (x : Z) (l : list Z) : list Z :=
@@ -239,8 +175,9 @@ Fixpoint insert_Z (x : Z) (l : list Z) : list Z :=
 (* Sorted, without duplicates. *)
 Definition sort_Z (l : list Z) : list Z := fold_right insert_Z [] l.
 
-(* mem <address> <byte>, by address; tag <granule address> <bool>, by address.
-   Tag keys are [-1 - tag address]; the granule address is 8 * tag address. *)
+(* mem <address> <byte>, by address; tag <granule address> <bool>, by address,
+   from the oracle's write log (Harness.log_keys).  Tag keys are
+   [-1 - tag address]; the granule address is 8 * tag address. *)
 Definition mem_items (m : Memory) : list Item * list Item :=
   let ks := sort_Z (log_keys m) in
   let bytes := filter (fun k => 0 <=? k) ks in
@@ -276,17 +213,41 @@ Fixpoint sort_loop (fuel : nat) (l : list (list Item)) : list Item :=
 Definition sort_items (l : list Item) : list Item :=
   sort_loop (length l) (map (fun i => [i]) l).
 
-(* A dumped state: three sections, each sorted by key. *)
+(* A dumped state: three sections, each sorted by key.  [extra]: pseudo-items
+   sorted in with the registers (step_result). *)
 Record Dumped : Type := mkDumped { d_regs : list Item; d_mem : list Item; d_tags : list Item }.
 
-Definition dumped (st : State) : Dumped :=
+Definition dumped_with (extra : list Item) (st : State) : Dumped :=
   let '(ms, ts) := mem_items (st_mem st) in
-  mkDumped (sort_items (reg_items (st_regs st))) ms ts.
+  mkDumped (sort_items (app extra (reg_items (st_regs st)))) ms ts.
+
+Definition dumped (st : State) : Dumped := dumped_with [] st.
 
 Definition items (d : Dumped) : list Item := app (d_regs d) (app (d_mem d) (d_tags d)).
 
 (* Registers, then memory, then tags. *)
 Definition dump (st : State) : list string := map line (items (dumped st)).
+
+(*** Step result ***)
+
+(* [step_result]: the value of the call that produced the state: [step]'s
+   bool, or [init_model]'s () at step 0; a failure (stm_fail) as its message,
+   a string (double quotes replaced by single ones). *)
+Definition unquote (s : string) : string :=
+  string_of_list_ascii
+    (map (fun c => if Ascii.eqb c (ascii_of_nat 34) then ascii_of_nat 39 else c)
+         (list_ascii_of_string s)).
+
+Definition result_items {τ} (r : Result τ) : list Item :=
+  match r with
+  | inl msg => [("step_result", String (ascii_of_nat 34) (unquote msg ++ String (ascii_of_nat 34) ""))]
+  | inr v => render render_depth τ "step_result" v
+  end.
+
+Definition dumped_step {τ} (r : Result τ) (st : State) : Dumped := dumped_with (result_items r) st.
+
+Definition dump_step {τ} (r : Result τ) (st : State) : list string :=
+  map line (items (dumped_step r st)).
 
 (* Items of [after] whose key is new or whose value changed; both sorted by key. *)
 Fixpoint delta_sorted (before : list Item) : list Item -> list Item :=
@@ -310,10 +271,17 @@ Definition delta_dumped (b a : Dumped) : list Item :=
 Definition delta (before after : State) : list string :=
   map line (delta_dumped (dumped before) (dumped after)).
 
-(* A run: state i (0 = after reset) prefixed with "i ". *)
-Definition dump_run (sts : list State) : list string :=
-  concat (map (fun '(i, st) => map (fun l => dec_nat i ++ " " ++ l) (dump st))
-              (combine (seq 0 (length sts)) sts)).
+Definition delta_of (before after : Dumped) : list string := map line (delta_dumped before after).
+
+(* The dumps of a run: reset result and state, then each step's. *)
+Definition run_dumped (r0 : Result ty.unit) (st0 : State) (rs : list (Result ty.bool * State)) :
+  list Dumped :=
+  dumped_step r0 st0 :: map (fun '(r, st) => dumped_step r st) rs.
+
+(* A run file: state i (0 = after reset) prefixed with "i ". *)
+Definition dump_run (ds : list Dumped) : list string :=
+  concat (map (fun '(i, d) => map (fun l => dec_nat i ++ " " ++ line l) (items d))
+              (combine (seq 0 (length ds)) ds)).
 
 (* The excluded registers, one per line: name and reason. *)
 Definition excluded_lines : list string := map (fun '(n, why) => n ++ " " ++ why) excluded.
@@ -356,3 +324,17 @@ Definition start_dependent (fuel : nat) (m : Memory) : Outcome (list string) :=
   obind (reset_from fuel (mkState reg_default m)) (fun '(_, st1) =>
   omap (fun '(_, st2) => map fst (delta_dumped (dumped st1) (dumped st2)))
        (reset_from fuel (mkState reg_alt m))).
+
+(*** Runs ***)
+
+(* Reset, then up to [n] steps (Harness.run_steps); the dumps of every state,
+   with step_result, and why the run stopped.  A failed reset: its state only. *)
+Definition run_dumps (fuel n : nat) (m : Memory) : Outcome (list Dumped * Stop) :=
+  obind (reset fuel m) (fun '(r0, st0) =>
+    match r0 with
+    | inl _ => Done (run_dumped r0 st0 [], Failed)
+    | inr _ => omap (fun '(rs, s) => (run_dumped r0 st0 rs, s)) (run_steps fuel n st0)
+    end).
+
+Definition stop_name (s : Stop) : string :=
+  match s with Halted => "Halted" | Failed => "Failed" | StepLimit => "StepLimit" end.
