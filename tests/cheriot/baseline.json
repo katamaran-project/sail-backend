@@ -121,7 +121,7 @@
   "execute_UTYPE",
   "execute_WFI"
  ],
- "commit": "21e4e07e+dirty",
+ "commit": "58497392+dirty",
  "date": "2026-11-17",
  "definitions": {
   "CGP_IDX": "ok",
@@ -876,6 +876,7 @@
   "hex_str": "unconstrained",
   "init_pmp": "no-op",
   "init_vmem": "no-op",
+  "plat_enable_misaligned_access": "value",
   "pmpCheck": "failure",
   "pmpReadAddrReg": "failure",
   "pmpReadCfgReg": "failure",
@@ -895,6 +896,10 @@
   "size_mnemonic_forwards": "unconstrained",
   "string_of_capex": "unconstrained",
   "string_of_capreg_idx": "unconstrained",
+  "sys_enable_fdext": "value",
+  "sys_enable_rvc": "value",
+  "sys_enable_vext": "value",
+  "sys_enable_zfinx": "value",
   "sys_pmp_count": "value",
   "tlb32": "registers",
   "translate32": "failure",
@@ -914,6 +919,6 @@
    "file": null
   }
  },
- "run": "20261117T150410-21e4e07e-dirty",
- "scope": "b56475a18cb2"
+ "run": "20261117T151605-58497392-dirty",
+ "scope": "9fd8624d96f5"
 }

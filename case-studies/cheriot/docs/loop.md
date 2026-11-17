@@ -60,7 +60,8 @@ unconstrained = ["bits_str", ..., "undefined_*"]   # a pattern: what in-scope co
 registers = ["tlb32", ...]
 
 [policy-excluded.value]
-sys_pmp_count = "0"
+sys_pmp_count = "0"           # a Sail expression: the call becomes this value
+sys_enable_rvc = "true"
 ```
 
 - In scope: everything reachable from the roots, the registers and `execute_<C>` of each in-scope instruction.

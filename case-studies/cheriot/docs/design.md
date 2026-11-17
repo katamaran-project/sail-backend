@@ -16,7 +16,7 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   - Everything else is ignored by a generated configuration (`ignore-functions`, `ignore-values`). Types are never ignored: an unused type is harmless.
 - **Compressed instructions** expand to a 32-bit instruction: `execute(C_ADDI(nzi, rsd)) = execute(ITYPE(sign_extend(nzi), rsd, rsd, RISCV_ADDI))`.
   - Sail's rewrites turn `execute` of a known constructor into a call to that clause (`execute_ITYPE`), so there is no recursion through `execute`.
-  - `sys_enable_rvc()` (`misa.C` at reset, `legalize_misa`) is an unconstrained foreign function, like the other platform settings: each call is any value.
+  - C is always on: `sys_enable_rvc()` (`misa.C` at reset, `legalize_misa`) is the value `true` ([platform settings](#platform-settings)).
   - `ext_decode_compressed` tries CHERIoT's compressed decoder first, which takes the encodings of `C_JAL`, `C_JR`, `C_JALR` (as `C_CJAL`, `C_CJR`, `C_CJALR`): these three are translated but never decoded.
     `C_J` has no CHERIoT form and executes `RISCV_JAL`, which is reachable only that way (the 32-bit `JAL` encoding decodes as `CJAL`).
   - The RV64-only `C_LD`, `C_SD`, `C_LDSP`, `C_SDSP`, `C_ADDIW`, `C_ADDW`, `C_SUBW` are translated too; their `encdec_compressed` clauses need `sizeof(xlen) == 64`, so on RV32 none decodes.
@@ -38,6 +38,26 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   - `init_pmp`: no-op. The registers `pmpcfg_n`, `pmpaddr_n`: left out of `Reg`.
   - Exact for a CHERIoT without PMP. Removing the PMP lines from `scope.toml` turns PMP back on.
 - **Printing and tracing are excluded**, together with their uses (below).
+
+## Platform settings
+
+Sail's platform settings are externs (`sys_enable_*`, `plat_*`): each emulator answers them from its configuration.
+- **Fixed where CHERIoT fixes them**: a value exclusion with CHERIoT's value in `scope.toml`, so a proof is about CHERIoT's platform, not every platform the model allows.
+
+  | setting | value | why (cheriot-sail) |
+  |---|---|---|
+  | `sys_enable_rvc` | `true` | the ISA: C is "required ... and always enabled in misa" (`archdoc/chap-cheri-riscv.tex`) |
+  | `plat_enable_misaligned_access` | `true` | CHERIoT's sail-riscv makes it the emulator's default (`c_emulator/riscv_platform_impl.c`) |
+  | `sys_enable_fdext`, `sys_enable_zfinx` | `false` | the build leaves out the F/D instructions and registers (`Makefile`); otherwise `misa.F` would announce them |
+  | `sys_enable_vext` | `false` | the build has no vector instructions (`Makefile`); otherwise `misa.V` would announce them |
+  | `sys_pmp_count` | `0` | PMP absent (above); CHERIoT makes PMP optional |
+
+- **Unconstrained otherwise** (each call any value): settings that CHERIoT leaves to the platform.
+  - `sys_enable_writable_misa`: the ISA keeps `misa.C` on, but CHERIoT's Sail allows a writable `misa` (`ext_veto_disable_C`, `min_instruction_bytes`).
+  - `sys_enable_writable_fiom`: only `menvcfg` uses it, which needs U-mode (absent).
+  - `plat_mtval_has_illegal_inst_bits`: sail-riscv's default, not set by CHERIoT.
+  - The memory map (`plat_ram_base`, `plat_rom_*`, `plat_clint_*`, `plat_uart_*`): sail-riscv's defaults; a CHERIoT board defines its own.
+- Not settings, so unconstrained: memory, tags, `get_16_random_bits`, `elf_tohost`, console output.
 
 ## Exceptions fail
 
@@ -163,7 +183,7 @@ ty.union (Umemoryopresult_bits kid__p8_times_n)               (* the type of mem
   - a **µSail operation** when one matches and the widths are known (`shiftl` → `bop.shiftl`, `sub_vec` → `bop.bvsub`, `get_slice_int` → `uop.get_slice_int`, ...);
   - otherwise a **foreign function**: a `FunX` constructor with the extern's signature (implicit widths) and a `stm_foreign` call.
 - Foreign semantics (`ForeignCall`) never fails and never changes registers; `pure` externs leave memory unchanged.
-- The result is a Rocq term for Sail's arithmetic externs (`emod_int`, `pow2`, `count_leading_zeros`, ...), and unconstrained otherwise (platform settings, memory, tags):
+- The result is a Rocq term for Sail's arithmetic externs (`emod_int`, `pow2`, `count_leading_zeros`, ...), and unconstrained otherwise (memory, tags, platform settings CHERIoT leaves open):
   ```coq
   | plat_ram_base : FunX ["arg1" ∷ ty.unit] (ty.bvec 32)     (* any value: not a fixed constant *)
   | @emod_int => fun args res => γ' = γ /\ μ' = μ /\ res = inr (semantics_emod_int ...)
@@ -180,7 +200,7 @@ The scope does not follow edges into an excluded definition, so what only it rea
 | no-op | `stm_exp (exp_val ty.unit tt)` | printing (`print_reg`, ...), `flush_TLB`, `init_vmem`, `init_pmp` | only for `unit` functions whose effects the model never reads back |
 | failure | `stm_fail τ "f is excluded by the configuration"` | `translate32`, `translationException`, `pmpCheck`, PMP CSR accessors | the call is unreachable; a contract must show it (or `fail_rule_pre` makes it vacuous) |
 | unconstrained | `stm_foreign (unconstrained τ) env.nil` | strings for printing (`bits_str`, `RegStr`, ...), `get_config_print_*` | any value is allowed, so nothing is assumed; the values only feed no-op printing |
-| value | the given Sail expression, type-checked in place | `sys_pmp_count = "0"`, `haveZb* = "false"` | a configuration the model allows; fixes the platform being verified |
+| value | the given Sail expression, type-checked in place | `sys_pmp_count = "0"`, `haveZb* = "false"`, `sys_enable_rvc = "true"` ([platform settings](#platform-settings)) | a configuration the model allows; fixes the platform being verified |
 | registers | left out of `Reg`; a read is unconstrained, a write a no-op | `tlb32`, `pmpcfg_n`, `pmpaddr_n` | only excluded code uses them meaningfully |
 
 Example, a failure:
