@@ -5,14 +5,13 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
 
 ## Scope
 
-- **The core only**: RV32I/E, M, Zicsr, C (compressed, with the compressed hints), the CHERIoT capability instructions and their compressed forms, and the decoders' fallbacks for illegal or reserved encodings (119 `execute` clauses).
+- **The core only**: RV32I/E, M, Zicsr, C (compressed, with the compressed hints), bit manipulation (Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx), the CHERIoT capability instructions and their compressed forms, and the decoders' fallbacks for illegal or reserved encodings (147 `execute` clauses).
   - Selected by source file, or one by one, in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml); everything they reach is in scope too.
   - The fallbacks (`ILLEGAL`, `C_ILLEGAL`, `FENCE_RESERVED`, `FENCEI_RESERVED`, `NOT_CAPMODE`, `NOT_C_CAPMODE`) are always reachable: they raise the illegal-instruction trap.
-  - Out for now: bit manipulation (Zb\*), vector.
+  - Out: vector.
 - **The scope is computed, not listed**: from the model's call graph (Sail's AST after the rewrites).
   - In scope: the roots (`step`, `fetch`, `ext_decode`, `encdec_backwards`, `init_model`), all registers, and `execute_<C>` for each in-scope instruction `C`.
-  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed. Its other 28 calls (Zb\*) are failures (`exclude-functions-as-failure`),
-    unreachable because Zb\* is absent (below).
+  - `execute` is a *dispatcher*: only its calls for in-scope instructions are followed; a call for an out-of-scope instruction would be a failure (`exclude-functions-as-failure`). With Zb\* in, there is none.
   - Everything else is ignored by a generated configuration (`ignore-functions`, `ignore-values`). Types are never ignored: an unused type is harmless.
 - **Compressed instructions** expand to a 32-bit instruction: `execute(C_ADDI(nzi, rsd)) = execute(ITYPE(sign_extend(nzi), rsd, rsd, RISCV_ADDI))`.
   - Sail's rewrites turn `execute` of a known constructor into a call to that clause (`execute_ITYPE`), so there is no recursion through `execute`.
@@ -24,8 +23,10 @@ Configuration options are described in [`docs/usage.md`](../../../docs/usage.md)
   - `translate32`, `translationException`: failures (unreachable while `satp`'s reset mode is 0, which a proof must assume).
   - `flush_TLB`, `init_vmem`: no-ops (the TLB caches page-table entries; there are none).
   - The register `tlb32` and the types `TLB_Entry`, `TLB32_Entry` are left out.
-- **Zb\* absent**, like PMP (value exclusions in `scope.toml`; deleting the lines turns it back on):
-  `haveZba`, `haveZbb`, `haveZbc`, `haveZbs`, `haveZbkb`, `haveZbkc`, `haveZbkx` are `false`: every `encdec` clause of a Zb\* instruction is guarded by them, so none decodes.
+- **Bit manipulation (Zb\*)** as cheriot-sail's `Makefile` builds it (`SAIL_DEFAULT_INST`): Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx.
+  - `haveZb*()` are `true` in CHERIoT's Sail (`riscv_sys_regs.sail`): translated as they are, not value exclusions.
+  - The RV64-only `RISCV_SLLIUW`, `ZBA_RTYPEUW`, `RISCV_RORIW`, `ZBB_RTYPEW`, `RISCV_CLZW`, `RISCV_CTZW`, `RISCV_CPOPW`, `ZBKB_PACKW` are translated too; their `encdec` clauses need `sizeof(xlen) == 64`, so on RV32 none decodes.
+  - Their loops (`CLZ`, `CTZ`, `CPOP`, `ORC.B`, `REV8`, `CLMUL*`, `ZIP`, `UNZIP`, `BREV8`, `XPERM*`, and `reverse_bits_in_byte`) are helper functions (below).
 - **PMP absent**: `sys_pmp_count` is `0`, a configuration the model allows (`init_pmp` asserts 0, 16 or 64).
   ```sail
   function pmp_mem_read(t, p, paddr, width, aq, rl, res, meta) =   // sail-riscv's riscv_mem.sail
@@ -45,7 +46,7 @@ Sail's platform settings are externs (`sys_enable_*`, `plat_*`, `sys_pmp_count`)
 Translated as-is they are unconstrained foreign functions, so every call may return any value.
 
 - **The rule**: a setting that CHERIoT's configuration fixes is a value exclusion with CHERIoT's value; a setting it leaves open stays unconstrained.
-  - Why: a proof is about the platform being verified, CHERIoT, not about every platform the model allows; the same mechanism as `sys_pmp_count` and `haveZb*` (value exclusions, [scope](#scope)).
+  - Why: a proof is about the platform being verified, CHERIoT, not about every platform the model allows; the same mechanism as `sys_pmp_count` (value exclusions, [scope](#scope)).
   - Why not more: a value CHERIoT does not fix (the simulator's memory map, say) would let a proof rely on what the hardware does not promise; unconstrained is the weakest assumption.
   - What counts as fixed: a source in cheriot-sail (its ISA document, its build, its changes to sail-riscv), cited next to the value in `scope.toml`.
 - **Fixed** (value exclusions in `scope.toml`):
@@ -64,6 +65,18 @@ Translated as-is they are unconstrained foreign functions, so every call may ret
   - `plat_mtval_has_illegal_inst_bits`: sail-riscv's default, not set by CHERIoT.
   - The memory map (`plat_ram_base`, `plat_rom_*`, `plat_clint_*`, `plat_uart_*`): sail-riscv's defaults; a CHERIoT board defines its own.
 - Not settings, so unconstrained: memory, tags, `get_16_random_bits`, `elf_tohost`, console output.
+
+## Loops are helper functions
+
+- A loop (`foreach`, `while`, `repeat`) is a recursive helper function, called where the loop was ([usage](../../../docs/usage.md#loops)); it is not unrolled.
+  ```coq
+  | execute_RISCV_CLZ_loop : Fun ["i" ∷ ty.int; "жbound0" ∷ ty.int; "rs1_val" ∷ ty.bvec 32; "done" ∷ ty.bool; "result" ∷ ty.int] (ty.prod ty.bool ty.int)
+  ```
+  - Parameters: the loop variable, the bound, the variables the body reads and those it assigns; result: the assigned ones, assigned back at the call.
+- Why:
+  - a place for the loop invariant: the helper gets one contract, proved once by induction over its recursive call;
+  - no path blow-up: symbolic execution of the caller uses that contract at the call instead of running the iterations (an unrolled `CLZ` has 32 branching iterations).
+- Slices and updates at run-time indices in the bodies (`result[i + 7 .. i] = ...` in `REV8`) are foreign calls with a semantics (`vector_subrange`, `vector_update_subrange`, `vector_update`).
 
 ## Exceptions fail
 
@@ -206,7 +219,7 @@ The scope does not follow edges into an excluded definition, so what only it rea
 | no-op | `stm_exp (exp_val ty.unit tt)` | printing (`print_reg`, ...), `flush_TLB`, `init_vmem`, `init_pmp` | only for `unit` functions whose effects the model never reads back |
 | failure | `stm_fail τ "f is excluded by the configuration"` | `translate32`, `translationException`, `pmpCheck`, PMP CSR accessors | the call is unreachable; a contract must show it (or `fail_rule_pre` makes it vacuous) |
 | unconstrained | `stm_foreign (unconstrained τ) env.nil` | strings for printing (`bits_str`, `RegStr`, ...), `get_config_print_*` | any value is allowed, so nothing is assumed; the values only feed no-op printing |
-| value | the given Sail expression, type-checked in place | `sys_pmp_count = "0"`, `haveZb* = "false"`, `sys_enable_rvc = "true"` ([platform settings](#platform-settings)) | a configuration the model allows; fixes the platform being verified |
+| value | the given Sail expression, type-checked in place | `sys_pmp_count = "0"`, `sys_enable_rvc = "true"` ([platform settings](#platform-settings)) | a configuration the model allows; fixes the platform being verified |
 | registers | left out of `Reg`; a read is unconstrained, a write a no-op | `tlb32`, `pmpcfg_n`, `pmpaddr_n` | only excluded code uses them meaningfully |
 
 Example, a failure:

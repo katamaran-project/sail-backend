@@ -6,6 +6,15 @@ Titles tagged `[validator]`: found by translation validation (`validation/`, `gm
 
 ## Fixed
 
+### `length(v)` was an unconstrained value
+- Found: adding Zb\* to the scope; `rotate_bits_left`, `rotate_bits_right` (`ROL`, `ROR`, `RORI`) call `length(v)` on a `bits('n)`, a foreign call (`bitvector_length`) without a semantics.
+- Cause: Sail's `length` extern (binding `length`) had no default term, so every call returned any integer: a proof about a rotation could assume nothing about it.
+- Fix: the default semantics of `length` is the width. Test `externs-length`.
+```coq
+(* before *) | @bitvector_length _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+(* after  *) Definition semantics_bitvector_length {kid__n : nat} (arg1 : Val (ty.bvec (kid__n))) : Val (ty.int) := Z.of_nat (bv_width arg1).
+```
+
 ### A model type named `S` broke `machine.v`'s `sail_constraint`
 - Found: e2e `bitvectors-variables` (`struct S('m)`), once the struct translated: "Unknown constructor: S" in `machine.v`.
 - Cause: the generated tactic refolds `Nat.add`/`Nat.mul` with `match n with | O => m | S p => ...`; the model's `Record S` shadows Peano's `S`.

@@ -56,7 +56,7 @@ make cheriot-translate CHERIOT_SAIL_DIR=$PWD/../cheriot-sail
 ```
 
 - About a minute. Output in `case-studies/cheriot/output/`: `base.v` (types, registers) and `machine.v` (functions).
-- Translates the core: 119 instructions and what they reach ([scope](../case-studies/cheriot/docs/design.md#scope)).
+- Translates the core: 147 instructions and what they reach ([scope](../case-studies/cheriot/docs/design.md#scope)).
   `CHERIOT_ARGS=--no-scope` translates the whole model, which has holes (`NYI`) outside the core.
 - The output directory also holds the inputs: the configuration and templates from [`case-studies/cheriot`](../case-studies/cheriot/README.md), `sources.txt` (the model's Sail files, in order), and `scope-ignores.lisp` (what is outside the core).
 - `log.txt` is large (about 80 MB): the configuration's `(dump-nanosail-ast)` prints every definition's AST.
@@ -401,7 +401,7 @@ Two calls to an unconstrained foreign function can return different values, even
 - `foreign-functions-unconstrained` makes the result unconstrained, also when the translator has a default term.
 
 Externs of Sail's library with a well-known meaning have a default term (by binding key; see `default_semantics` in `nanosail/NanosailToMicrosail/ForeignFunctions.ml`):
-`emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`,
+`emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `length` (the width), `count_leading_zeros`, `count_trailing_zeros`,
 and, for the calls that do not become operations, `zeros` (`sail_zeros`), `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`,
 and the slices and updates whose indices are known only at run time (`v[i + 7 .. i]`, `[v with i + 7 .. i = x]`, `[v with i = b]` in a loop): `vector_subrange`, `vector_update_subrange`, `vector_update`.
 All other externs (platform settings, memory and tag accesses, `cancel_reservation`, …) are unconstrained.
