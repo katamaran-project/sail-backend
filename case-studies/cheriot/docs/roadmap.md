@@ -20,5 +20,5 @@ All 147 instructions are clean.
 
 ## Later
 
-- **Exceptions as values**: `try` is its body, `throw` a failure ([design](design.md#exceptions-fail)); an RV32E register >= 16 fails instead of trapping.
+- **Uncaught exceptions as values**: only caught exceptions are values; `Error_not_implemented` and `Error_internal_error` are `stm_fail`, as the run ends there in Sail too ([design](design.md#caught-exceptions-are-values)). As values only if a proof must tell them apart from assertion failures.
 - **Contracts**: Katamaran contracts for the generated functions; one per size-polymorphic function, proved for all widths.

@@ -474,19 +474,35 @@ See the tests `tests/coq-tests/size-parameters-implicit` and `tests/coq-tests/si
 
 ### Exceptions
 
-- `throw e` is `stm_fail τ "failure"`: µSail has no exceptions.
-- `try { e } catch { ... }` is the translation of `e`; the handlers are dropped (one warning per `try`).
-  A `throw` inside `e` fails instead of being caught.
+µSail has no exceptions. An exception that a `try` catches is a value; any other `throw` fails.
+
+- The *caught constructors*: those that the handlers of some `try` may catch.
+  A handler pattern names its constructor (`Error_bad() => ...`); a catch-all that only rethrows (`e => throw e`) catches nothing, any other catch-all catches every constructor.
+- A function *raises* if a call from the body of a `try` reaches it and a caught exception can leave it:
+  it throws a caught constructor, or calls a raising function, outside a `try`.
+- A raising function returns `ty.sum τ E` (`E` the exception type) instead of `τ`: `inl v` for a result, `inr e` for an exception.
+  After each call to a raising function, `inr e` returns `inr e`: the rest of the function is skipped.
+- `try { e } catch { ... }` matches the result of `e`: `inl v` is `v`, `inr e` runs the handlers.
+  A constructor that no handler matches is rethrown.
+- Fails (`stm_fail τ "failure"`), as before: a `throw` of a constructor no `try` catches, any `throw` in a function that does not raise, and `inr e` from a raising call in a function that does not raise.
+- A function that does not raise keeps its type. With no `try`, every `throw` fails and nothing changes type.
 
 ```sail
+function check(x) = { if x > 15 then throw(Error_bad()); x + 1 }
 function foo(x) = try check(x) catch { Error_bad() => 0 }
 ```
 ```coq
-Definition fun_foo : Stm [ "x" ∷ ty.int ] (ty.int) :=
-  stm_call check (env.snoc (env.nil) (_::_) ((exp_var "x"))%exp).
+Definition fun_check : Stm [ "x" ∷ ty.int ] (ty.sum ty.int (ty.union Uexception)) :=
+  stm_match_sum (stm_if (x > 15) (inr Error_bad) (inl tt))     (* simplified *)
+    "u" (stm_exp (inl (x + 1)))
+    "e" (stm_exp (inr e)).
+Definition fun_foo : Stm [ "x" ∷ ty.int ] ty.int :=
+  stm_match_sum (stm_call check [x])
+    "v" (stm_exp v)
+    "e" (match e with Error_bad => 0 end).
 ```
 
-See the test `tests/coq-tests/try-catch-dropped`.
+See the tests `tests/coq-tests/exception-*`.
 
 ### Loops
 

@@ -78,12 +78,30 @@ Translated as-is they are unconstrained foreign functions, so every call may ret
   - no path blow-up: symbolic execution of the caller uses that contract at the call instead of running the iterations (an unrolled `CLZ` has 32 branching iterations).
 - Slices and updates at run-time indices in the bodies (`result[i + 7 .. i] = ...` in `REV8`) are foreign calls with a semantics (`vector_subrange`, `vector_update_subrange`, `vector_update`).
 
-## Exceptions fail
+## Caught exceptions are values
 
-- `throw` is `stm_fail`; `try { e } catch ...` is `e`, handler dropped ([usage](../../../docs/usage.md#exceptions)).
-- The core's only `try` is in `try_execute` (`riscv_step.sail`, called by `step`); it catches only `Error_not_rv32e_register()`.
-  - Sail: an RV32E register >= 16 (thrown in `cheri_regs.sail`) traps as illegal (`handle_illegal(); RETIRE_FAIL`).
-  - µSail: such an encoding fails. **Assumption**: a proof must show that no register >= 16 is accessed, or `fail_rule_pre` makes it vacuous.
+- µSail has no exceptions. An exception that a `try` catches is a value; every other `throw` is `stm_fail` ([usage](../../../docs/usage.md#exceptions)).
+- The core's only `try` is in `try_execute` (`riscv_step.sail`, called by `step`); it catches `Error_not_rv32e_register()` and rethrows the rest.
+  ```sail
+  function try_execute (x : ast) -> Retired = {
+    try { execute(x) } catch {
+      Error_not_rv32e_register() => { handle_illegal(); RETIRE_FAIL },
+      e => throw e
+    }
+  }
+  ```
+  - `rX`, `wX`, `rC`, `wC` throw it for a register >= 16 (RV32E); Sail traps illegal.
+- **Raising functions** return `ty.sum τ (ty.union Uexception)`: the four register accessors, their `_bits` wrappers, `ext_data_get_addr`, 121 of the 147 `execute_*` clauses (those that access a register), and `execute`: 131 functions.
+  ```coq
+  | wX : Fun ["r" ∷ ty.int; "in_v" ∷ ty.bvec 32] (ty.sum ty.unit (ty.union Uexception))
+  ```
+  - After each call to one, `inr e` returns `inr e`, so the rest of the instruction is skipped, as in Sail.
+    What came before stays: a load into x16 has read memory when `wX` raises.
+  - `try_execute` keeps its type: on `inr Error_not_rv32e_register` it runs `handle_illegal`.
+- **Failures, as in Sail**: `Error_not_implemented` and `Error_internal_error` are never caught; their `throw`s, and `try_execute`'s rethrow, are `stm_fail`. In Sail the run ends there too.
+- Why only caught exceptions: functions no `try` reaches keep their types and bodies, so their contracts and symbolic execution are unchanged; the others pay one `stm_match_sum` per raising call.
+- No assumption about register numbers is left: an encoding with a register >= 16 traps illegal, as in Sail, so a proof need not exclude it.
+- Validation: the `trap-rv32e-*` cases and every 16-bit parcel (the compressed ones naming x16-x31 included) agree with Sail ([validation](../../../validation/docs/validate.md)).
 
 ## Undefined values are unconstrained
 
