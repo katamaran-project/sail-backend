@@ -6,7 +6,7 @@ No cross toolchain needed. See validation/docs/validate.md.
 Usage:
     validation/scripts/mk-test-elf.py PROG.s OUT.elf [--base ADDR] [--tohost ADDR]
 
-Prints one line per word: `<address>: <word>` (hex).
+Prints one line per 32-bit word of the code: `<address>: <word>` (hex).
 
 PROG.s: one instruction per line, `#` comments, `label:` before an instruction or alone,
 registers as x0..x31, c0..c31 or ABI names (a0, ca0, ...).
@@ -28,11 +28,12 @@ registers as x0..x31, c0..c31 or ABI names (a0, ca0, ...).
               clc cd, off(rs1)     csc cs2, off(rs1)     auipcc auicgp cd, imm20
               cspecialr cd, SCR    cspecialw SCR, cs1    cspecialrw cd, SCR, cs1
               (SCR: mtcc, mtdc, mscratchc, mepcc)
+    C         c.addi rd, nzimm6    c.nop    (16 bits; the next instruction follows at +2)
     pseudo    li rd, imm32|label (always lui + addi)    mv rd, rs
               cla cd, label (auipcc cd, 0; cincaddrimm cd, cd, label - .)
-    data      .word 0x...
+    data      .word 0x...    .half 0x...
 
-Encodings: RV32I/M/Zicsr checked against llvm-mc (validation/scripts/check-encodings.sh);
+Encodings: RV32I/M/Zicsr/C checked against llvm-mc (validation/scripts/check-encodings.sh);
 CHERIoT ones from the encdec clauses in cheriot-sail src/cheri_insts.sail.
 
 The ELF has one PT_LOAD segment (the code, at --base, default 0x80000000, also the entry)
@@ -102,6 +103,13 @@ FIXED = {"ecall": 0x00000073, "ebreak": 0x00100073, "mret": 0x30200073, "nop": 0
          "wfi": 0x10500073, "sret": 0x10200073, "fence.i": 0x0000100F, "fence.tso": 0x8330000F}
 # Pseudo-instructions of two words.
 TWO_WORDS = {"li", "cla"}
+# 16-bit parcels.
+HALF = {".half", "c.addi", "c.nop"}
+
+
+def size(mnem):
+    """Bytes of one line's encoding."""
+    return 8 if mnem in TWO_WORDS else 2 if mnem in HALF else 4
 
 
 def reg(name):
@@ -193,10 +201,22 @@ def csr_num(text):
     return CSR[text] if text in CSR else imm(text, 12)
 
 
+def c_addi(rd, nzimm):
+    """C.ADDI: 000 nzimm[5] rd nzimm[4:0] 01."""
+    i = check_range(nzimm, 6, True, str(nzimm))
+    return (((i >> 5) & 1) << 12) | (rd << 7) | ((i & 0x1F) << 2) | 0x1
+
+
 def encode(mnem, args, pc, labels):
-    """The words of one instruction at pc."""
+    """The parcels of one instruction at pc: 32-bit words, or a 16-bit one (HALF)."""
     if mnem == ".word":
         return [int(args[0], 0) & 0xFFFFFFFF]
+    if mnem == ".half":
+        return [int(args[0], 0) & 0xFFFF]
+    if mnem == "c.nop":
+        return [0x0001]
+    if mnem == "c.addi":
+        return [c_addi(reg(args[0]), int(args[1], 0))]
     if mnem in FIXED:
         return [FIXED[mnem]]
     if mnem == "fence":
@@ -293,16 +313,18 @@ def assemble(path, base):
                 sys.exit(f"{path}:{n}: label {label} defined twice")
             labels[label] = pc
         if mnem:
-            pc += 8 if mnem in TWO_WORDS else 4
-    words = []
+            pc += size(mnem)
+    code = b""
     for n, _, mnem, args in lines:                  # pass 2: encodings
         if not mnem:
             continue
         try:
-            words.extend(encode(mnem, args, base + 4 * len(words), labels))
+            fmt = "<H" if mnem in HALF else "<I"
+            code += b"".join(struct.pack(fmt, p) for p in encode(mnem, args, base + len(code), labels))
         except (ValueError, KeyError, IndexError) as e:
             sys.exit(f"{path}:{n}: {e}")
-    return words
+    code += bytes(-len(code) % 4)                   # a final 16-bit parcel: pad with 0 (c.illegal)
+    return [w for (w,) in struct.iter_unpack("<I", code)]
 
 
 def elf32(code, base, tohost):

@@ -2,7 +2,7 @@
 
 What is still missing for a full translation of the CHERIoT core into Katamaran, and what each gap blocks.
 The loop ranks blockers per instruction (`progress.json`, the report); [progress.md](progress.md) has the current numbers.
-All 67 instructions are clean.
+All 119 instructions are clean.
 
 ## Memory path
 
@@ -24,5 +24,4 @@ All 67 instructions are clean.
 - **Minimal faithful PMP**: 16 entries instead of `sys_pmp_count = 0`.
   - Register arrays (`pmpcfg_n`, `pmpaddr_n`) as one register per entry: a constant index is that register, a run-time index a `match`.
   - Loops with constant bounds (`foreach`) unrolled or as a recursive helper; `pmpCheck`'s `return` inside a `foreach`.
-- **Compressed instructions** (`riscv_insts_cext.sail`, `src/cheri_insts_cext.sail`, 43 constructors): absent (`sys_enable_rvc = "false"`); add to `scope.toml` and remove that line.
 - **Contracts**: Katamaran contracts for the generated functions; one per size-polymorphic function, proved for all widths.

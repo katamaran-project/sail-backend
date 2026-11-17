@@ -56,7 +56,7 @@ make cheriot-translate CHERIOT_SAIL_DIR=$PWD/../cheriot-sail
 ```
 
 - About a minute. Output in `case-studies/cheriot/output/`: `base.v` (types, registers) and `machine.v` (functions).
-- Translates the core: 67 instructions and what they reach ([scope](../case-studies/cheriot/docs/design.md#scope)).
+- Translates the core: 119 instructions and what they reach ([scope](../case-studies/cheriot/docs/design.md#scope)).
   `CHERIOT_ARGS=--no-scope` translates the whole model, which has holes (`NYI`) outside the core.
 - The output directory also holds the inputs: the configuration and templates from [`case-studies/cheriot`](../case-studies/cheriot/README.md), `sources.txt` (the model's Sail files, in order), and `scope-ignores.lisp` (what is outside the core).
 - `log.txt` is large (about 80 MB): the configuration's `(dump-nanosail-ast)` prints every definition's AST.

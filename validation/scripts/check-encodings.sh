@@ -88,9 +88,25 @@ end:
 add zero, zero, zero
 EOF
 
-"$here/mk-test-elf.py" "$tmp/t.s" "$tmp/ours.elf" | cut -d' ' -f2 > "$tmp/ours.txt"
-"$llvm/llvm-mc" --triple=riscv32 -mattr=+m,+zifencei,-relax -filetype=obj "$tmp/t.s" -o "$tmp/llvm.o"
-"$llvm/llvm-objcopy" -O binary --only-section=.text "$tmp/llvm.o" "$tmp/llvm.bin"
-od -An -v -tx4 "$tmp/llvm.bin" | tr -s ' ' '\n' | sed '/^$/d' > "$tmp/llvm.txt"
-diff -u "$tmp/llvm.txt" "$tmp/ours.txt"
-echo "encodings: $(wc -l < "$tmp/ours.txt" | tr -d ' ') words equal to llvm-mc"
+# C: a file of its own, as llvm-mc with +c compresses the instructions above.
+# An even number of 16-bit parcels, so that the words line up.
+cat > "$tmp/c.s" <<'EOF'
+c.addi a0, 1
+c.addi a1, -1
+c.addi s0, 31
+c.addi a5, -32
+c.nop
+c.addi t0, 7
+EOF
+
+compare() {  # compare FILE MATTR: mk-test-elf.py's words = llvm-mc's; prints their number
+  "$here/mk-test-elf.py" "$tmp/$1" "$tmp/ours.elf" | cut -d' ' -f2 > "$tmp/ours.txt"
+  "$llvm/llvm-mc" --triple=riscv32 -mattr="$2" -filetype=obj "$tmp/$1" -o "$tmp/llvm.o"
+  "$llvm/llvm-objcopy" -O binary --only-section=.text "$tmp/llvm.o" "$tmp/llvm.bin"
+  od -An -v -tx4 "$tmp/llvm.bin" | tr -s ' ' '\n' | sed '/^$/d' > "$tmp/llvm.txt"
+  diff -u "$tmp/llvm.txt" "$tmp/ours.txt" >&2 || exit 1
+  wc -l < "$tmp/ours.txt" | tr -d ' '
+}
+words=$(compare t.s +m,+zifencei,-relax)
+cwords=$(compare c.s +c,-relax)
+echo "encodings: $words words (RV32I/M/Zicsr), $cwords words (C) equal to llvm-mc"
