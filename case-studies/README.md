@@ -12,11 +12,11 @@ Whole Sail models translated with the plugin, as opposed to the small end-to-end
 
 ## Comparing a translation with its Sail
 
-`gen_comparison.py` (repository root) turns an output directory of the plugin into one self-contained HTML page: each Rocq definition on the left, the Sail it was translated from on the right.
+`validation/scripts/gen_comparison.py` turns an output directory of the plugin into one self-contained HTML page: each Rocq definition on the left, the Sail it was translated from on the right.
 
 ```sh
-./gen_comparison.py case-studies/cheriot/output          # writes case-studies/cheriot/output/comparison.html
-make cheriot-compare                                     # the same
+validation/scripts/gen_comparison.py case-studies/cheriot/output  # writes case-studies/cheriot/output/comparison.html
+make cheriot-compare                                          # the same
 ```
 
 - Input: the generated `.v` files (all `*.v` except `*.template.v`, or `--rocq FILE`), the Sail files (`sources.txt`, else the `sail` command recorded in `log.txt`) and `log.txt` itself.

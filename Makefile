@@ -54,10 +54,10 @@ cheriot-translate: build
 # Side-by-side HTML of the translation in CHERIOT_OUTPUT and the Sail it came from, written to
 # CHERIOT_OUTPUT/comparison.html, e.g. after make cheriot-translate:
 #   make cheriot-compare
-# COMPARE_ARGS passes extra options to gen_comparison.py, e.g. COMPARE_ARGS=--no-git.
+# COMPARE_ARGS passes extra options to validation/scripts/gen_comparison.py, e.g. COMPARE_ARGS=--no-git.
 .PHONY: cheriot-compare
 cheriot-compare:
-	./gen_comparison.py $(CHERIOT_OUTPUT) $(COMPARE_ARGS)
+	validation/scripts/gen_comparison.py $(CHERIOT_OUTPUT) $(COMPARE_ARGS)
 
 
 .PHONY: template-tests tt
