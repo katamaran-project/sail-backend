@@ -51,6 +51,15 @@ cheriot-translate: build
 	tests/cheriot/run.py --translate-to $(CHERIOT_OUTPUT) $(CHERIOT_ARGS)
 
 
+# Side-by-side HTML of the translation in CHERIOT_OUTPUT and the Sail it came from, written to
+# CHERIOT_OUTPUT/comparison.html, e.g. after make cheriot-translate:
+#   make cheriot-compare
+# COMPARE_ARGS passes extra options to validation/scripts/gen_comparison.py, e.g. COMPARE_ARGS=--no-git.
+.PHONY: cheriot-compare
+cheriot-compare:
+	validation/scripts/gen_comparison.py $(CHERIOT_OUTPUT) $(COMPARE_ARGS)
+
+
 .PHONY: template-tests tt
 template-tests: build
 	SAIL=$(SAIL_LOCAL) make -C tests/template-tests
