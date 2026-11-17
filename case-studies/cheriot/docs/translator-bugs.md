@@ -15,6 +15,24 @@ Titles tagged `[validator]`: found by translation validation (`validation/`, `gm
 (* after  *) Ltac construct_inhabitant := first [ exact bv.zero | hnf; constructor; construct_inhabitant ].
 ```
 
+### Union fold proof reduced the width of a wide field
+- Found: writing `unconstrained-wide-bitvector`: a union with a `bits(65536)` field made `base.v` take minutes. `gmake cheriot` did not hit it.
+- Cause: the `typedefkit` proof (`BaseModule.ml`) ran `cbn in x` on the field's value, which computed its width (`Nat.of_num_uint` into a unary `nat`).
+- Fix: `fc878a9e`: no `cbn`; the loop reduces only the head of each value's type (`progress hnf`) until its pairs and units are exposed. Test `unions-wide-bitvector-field`: `base.v` 142 s before, 1 s after.
+```coq
+(* before *) - abstract (intros [] [[] x]; cbn in x;
+                         repeat match goal with
+                         | x: unit     |- _ => destruct x
+                         | x: prod _ _ |- _ => destruct x
+                         end; auto).
+(* after  *) - abstract (intros [] [[] x];
+                         repeat match goal with
+                         | x: unit     |- _ => destruct x
+                         | x: prod _ _ |- _ => destruct x
+                         | x: _        |- _ => progress hnf in x
+                         end; auto).
+```
+
 ### A model type named `S` broke `machine.v`'s `sail_constraint`
 - Found: e2e `bitvectors-variables` (`struct S('m)`), once the struct translated: "Unknown constructor: S" in `machine.v`.
 - Cause: the generated tactic refolds `Nat.add`/`Nat.mul` with `match n with | O => m | S p => ...`; the model's `Record S` shadows Peano's `S`.
@@ -375,13 +393,6 @@ print_reg(BitStr(v[VLEN - 1 .. 0]))            // ...that this slice needs
 - Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for it, so its result is any bitvector, not `x` with bit `i` set to `b`.
 ```coq
 | @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
-```
-
-### Union fold proof reduces the width of a wide field
-- Found: writing `unconstrained-wide-bitvector`: a union with a `bits(65536)` field made `base.v` take minutes. `gmake cheriot` does not hit it.
-- Cause: the `typedefkit` proof (`BaseModule.ml`) runs `cbn in x` on the field's value, which computes its width (`Nat.of_num_uint` into a unary `nat`).
-```coq
-- abstract (intros [] [[] x]; cbn in x; ...).
 ```
 
 ### Scrutinee inlining checks only the bound type for width families
