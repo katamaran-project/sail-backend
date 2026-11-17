@@ -18,9 +18,12 @@ From the repository root, with a cheriot-sail checkout (and its `sail-riscv` sub
 make cheriot-translate CHERIOT_SAIL_DIR=/path/to/cheriot-sail    # translation only
 make cheriot CHERIOT_SAIL_DIR=/path/to/cheriot-sail              # the loop
 make cheriot CHERIOT_SAIL_DIR=... CHERIOT_ARGS=--no-coq          # the loop without Rocq
+make cheriot-compare                                             # output/comparison.html
 ```
 
 - `cheriot-translate`: writes `base.v` and `machine.v` to `output/`; about a minute. Walkthrough from scratch: [usage](../../docs/usage.md#worked-example-cheriot-from-scratch).
+- `cheriot-compare`: shows each definition in `output/` next to the Sail it came from, as a single HTML page ([comparing a translation with its Sail](../README.md#comparing-a-translation-with-its-sail)).
+  Run it after `cheriot-translate`, with the cheriot-sail checkout still in place.
 - `cheriot`: translates the core with this checkout's plugin, compiles with `coqc`, reports metrics; about 1.5 minutes.
 - Fails if anything got worse than in `tests/cheriot/baseline.json`.
 - Output: `tests/cheriot/output/latest/`.
