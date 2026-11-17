@@ -155,14 +155,14 @@ def load_divergences():
             sys.exit(f"{DIVERGENCES}: [{name}]: no case {name}.s")
         try:
             ok = (isinstance(d["step"], int) and d["step"] >= 1 and isinstance(d["rocq"]["stop"], str)
-                  and (isinstance(d["emulator"]["exit"], int) or d["emulator"]["exit"] == "-")
+                  and (isinstance(d["emulator"]["exit"], int) or d["emulator"]["exit"] == "none")
                   and all(isinstance(d[k], str) for k in ("what", "reason", "doc"))
                   and all(isinstance(l, str) for side in ("rocq", "emulator") for l in d[side]["delta"]))
         except (KeyError, TypeError):
             ok = False
         if not ok:
             sys.exit(f"{DIVERGENCES}: [{name}]: needs what, reason, doc, step >= 1, "
-                     "rocq.stop, rocq.delta, emulator.exit (int or \"-\"), emulator.delta")
+                     "rocq.stop, rocq.delta, emulator.exit (int or \"none\"), emulator.delta")
     return table
 
 
@@ -183,7 +183,8 @@ def check_divergence(d, rocq, emu, why, exit_code, step):
     for side, run in (("rocq", rocq), ("emulator", emu)):
         if step_delta(run, step) != d[side]["delta"]:
             problems.append(f"{side} delta at step {step}")
-    if ("-" if exit_code is None else exit_code) != d["emulator"]["exit"]:
+    expected_exit = None if d["emulator"]["exit"] == "none" else d["emulator"]["exit"]
+    if exit_code != expected_exit:
         problems.append(f"emulator exit {'-' if exit_code is None else exit_code}, expected {d['emulator']['exit']}")
     return "; ".join(problems) or None
 
@@ -240,7 +241,8 @@ def divergences_md(table):
     rows = ["| case | what | step | µSail | emulator | reason | doc |", "|---|---|---|---|---|---|---|"]
     for name, d in table.items():
         rocq = d["rocq"]["stop"] + ": " + ", ".join(f"`{l}`" for l in d["rocq"]["delta"])
-        emu = f"exit {d['emulator']['exit']}: " + ", ".join(f"`{l}`" for l in d["emulator"]["delta"])
+        emu = f"exit {d['emulator']['exit']}: " + (", ".join(f"`{l}`" for l in d["emulator"]["delta"])
+                                                  or "no state")
         doc = f"[{d['doc'].rsplit('/', 1)[-1]}](../../{d['doc']})"
         rows.append(f"| `{name}` | {d['what']} | {d['step']} | {rocq} | {emu} | {d['reason']} | {doc} |")
     return "\n".join(rows) + "\n"
