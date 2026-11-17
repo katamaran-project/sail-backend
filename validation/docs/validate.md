@@ -94,8 +94,8 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 
 ## Rocq side
 
-- `validation/rocq/`: `Interp.v` (interpreter), `Harness.v` (foreign calls, start state, runs), `Dump.v`/`Names.v` (state format), `Validate.v` (runner); `InterpTests.v`, `StepADDI.v`, `DumpADDI.v` check them.
-- `gmake -C validation/rocq [all|cheriot|dumps|validate|model]`; the model in `validation/build/model`.
+- `validation/rocq/`: `Interp.v` (interpreter), `Harness.v` (foreign calls, start state, runs), `Dump.v`/`Names.v` (state format), `Validate.v` (runner), `InterpCov.v`/`Coverage.v` ([coverage](#coverage)); `InterpTests.v`, `StepADDI.v`, `DumpADDI.v` check them.
+- `gmake -C validation/rocq [all|cheriot|dumps|validate|coverage|model]`; the model in `validation/build/model`.
 - Fuel bounds nesting depth, not steps: `init_model` needs 65, one step about 50; the runner uses 1000.
 
 ```coq
@@ -133,6 +133,36 @@ gmake -C validation/emulator check                               # compare with 
 
 - `validation/build/validate/<case>/`: `prog.s`, `prog.elf`, `emu.run`, `Run.v`, `rocq.run`, `diff.txt`, `divergence.txt`; the table in `validation/build/validate/results.md`.
 - Rocq results cached by the hash of `Run.v`, the model and the Rocq files; the emulator always runs (milliseconds).
+
+## Coverage
+
+Which functions of `machine.v` the cases call.
+
+```sh
+gmake validate-coverage                                   # gmake validate, then the coverage runs
+gmake validate-coverage VALIDATE_ARGS='addi mul -j 8'
+validation/scripts/coverage.py [CASE...] [-j N] [--no-cache] [--cache-dir DIR]   # once built
+```
+
+- Each case runs again as in `gmake validate` (reset, then up to its step limit), in `InterpCov.v`: `Interp.v`'s interpreter with call counts threaded through; `Interp.exec` is unchanged.
+  `Coverage.v` gives every `Fun` and `FunX` constructor a key and its name, built from the inductive types as in `Names.v`.
+- Column `check`: the run ends as the validation run of the same program (stop, steps); otherwise an error.
+- `gmake validate` does not build or run any of it.
+
+| counted | how |
+|---|---|
+| reachable | `Fun`s in the static call graph of `machine.v` (`stm_call` in the bodies) from `step` or `init_model` |
+| dead | reachable, but not on this configuration: `DEAD` in `coverage.py`, a pattern and a reason each; an error if a case calls one |
+| live | reachable, not dead: the denominator |
+| foreign | `FunX`s called from reachable bodies |
+| instructions | the live `execute_*` (one per `ast` constructor in scope) |
+
+- Over-counted: functions dead on this configuration but not in `DEAD` (e.g. `haveZmmul`: only in `haveMulDiv() | haveZmmul()`, and `misa.M` stays 1).
+- Under-counted: a function is counted once, whatever its widths (no monomorphisation); excluded definitions (`scope.toml`) are not in `machine.v`.
+- Function coverage only, no branches: a called function may have arms no case takes. The `←` lists in the report point at such arms: the called functions that call an uncalled one.
+
+Output: `validation/build/coverage/<case>/` (`prog.s`, `prog.elf`, `Cov.v`, `cov.out`: `call <name> <count>`, `foreign <name> <count>`, `end <stop> <steps>`), and `validation/build/coverage/report.md`: totals, per case (functions only that case calls), the live functions not called per area, the dead ones per reason.
+Rocq results cached as `gmake validate`'s, by the hash of `Cov.v`, the model and the Rocq files.
 
 ## Limitations
 

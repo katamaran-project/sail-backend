@@ -93,6 +93,13 @@ validate: build
 	$(MAKE) -C validation/rocq validate
 	validation/scripts/validate.py $(VALIDATE_ARGS)
 
+# Coverage of the validation cases (validation/docs/validate.md, "Coverage"): gmake validate,
+# then the same runs counting the functions of machine.v they call.
+.PHONY: validate-coverage
+validate-coverage: validate
+	$(MAKE) -C validation/rocq coverage
+	validation/scripts/coverage.py $(VALIDATE_ARGS)
+
 
 .PHONY: clean
 clean:
