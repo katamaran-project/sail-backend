@@ -30,7 +30,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 ## Stages, per case
 
 1. **assemble**: `validation/cases/lib/prologue.s` + the case + `epilogue.s` into an ELF (`validation/scripts/mk-test-elf.py`; no cross toolchain).
-2. **emulator**: `cheriot_sim_dump --disable-compressed -F -W --insns-per-tick 1000000000 --inst-limit L --dump-state emu.run prog.elf`.
+2. **emulator**: `cheriot_sim_dump -F -W --insns-per-tick 1000000000 --inst-limit L --dump-state emu.run prog.elf`.
 3. **Rocq**: a generated `Run.v` (the program's words, the limit) runs `Validate.v`: reset, then up to `L` steps.
    It prints the state after reset in full and then each step's changes ([delta run file](state-format.md#delta-run)); `statefile.py` rebuilds every state in full.
 4. **compare**: the full states, step by step; the first step whose states differ, as a `diff -u`.
@@ -77,10 +77,10 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `clc-csc` | CSC/CLC: tag kept, cleared by a data store, untagged load |
 | `cjalr` | CJALR: sentry call and return, link register, offset |
 | `trap-null-store` | store through null: tag violation |
-| `trap-illegal` | encoding 0 |
-| `trap-rvc` | `C.ADDI`: compressed absent, traps illegal |
+| `trap-illegal` | encoding 0: `C.ILLEGAL` |
 | `trap-zb` | `ANDN`: Zb\* absent, traps illegal |
 | `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
+| `c-addi` | C.ADDI (positive, negative), C.NOP; a 32-bit instruction at an address 2 mod 4 |
 | `cap-misc` | CMove, CClearTag, CGetAddr, CGetType, CGetHigh, CSetHigh (incl. garbage high bits), CSEQX, CSub, CTestSubset |
 | `cap-perm-bounds` | CAndPerm (re-encoded by CGetHigh), CRRL, CRAM, CSetBoundsRoundDown: exact, rounded, zero, beyond parent, null |
 | `seal` | CSeal/CUnseal by the sealing root; refused: wrong otype, already sealed, no SE/US, untagged, sealed or out-of-bounds authority; sealed operands to other ops |
@@ -90,7 +90,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-sentry-offset` | CJALR through a sentry with a nonzero offset: seal violation |
 | `trap-sealed-load` | LW through a sealed capability: seal violation |
 | `csr-cheriot` | `mccsr`; `mshwm`, `mshwmb` rounding; stores in and outside `[mshwmb, mshwm)`; `mtvec` read |
-| `csr-misc` | writes of `misa`, `mie`, `mip`, `mstatus` (legalized), `mcountinhibit`, `mcycle(h)`, `minstreth`; seed CSR; `mepc` read; machine IDs |
+| `csr-misc` | writes of `misa` (C cleared), `mie`, `mip`, `mstatus` (legalized), `mcountinhibit`, `mcycle(h)`, `minstreth`; seed CSR; `mepc` read; machine IDs |
 | `csrw-mtvec`, `csrw-mepc` | CSR write of `mtvec`, `mepc`: `internal_error` (both sides stop) |
 | `mmio` | CLINT, UART, HTIF loads and stores; HTIF putchar |
 | `trap-csr-asr` | CSR reads allowed and a write trapping with ASR cleared in PCC |
@@ -102,7 +102,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `mret` | MRET to a written MEPCC, no trap: MIE := MPIE, MPIE := 1, MPP := M |
 | `system` | FENCE (every pred/succ arm), FENCE.TSO, FENCE.I, reserved fences, SFENCE.VMA in M, WFI (mtime := mtimecmp) |
 | `no-asr` | PCC without ASR: counter reads; CSR access, counter write, CSpecialR, MRET trap |
-| `misaligned-jump` | BEQ, CJAL, CJALR to a target not 4-byte aligned: trap; CJALR clears bit 0 |
+| `jump-halfword` | BEQ (taken, not), CJAL, CJALR to targets 2 mod 4: no trap with C on; CJALR clears bit 0 |
 | `cap-faults` | CJALR, CLC, CSC: untagged, sealed, sentry kind, permissions, bounds; misaligned CLC/CSC |
 | `mem-faults` | LW, SW, LB, CLC, CSC outside RAM, byte store to the CLINT: access faults |
 | `trap-sret` | SRET in M without S-mode: illegal |
@@ -182,7 +182,7 @@ Inductive Outcome A := Done (a : A) | OutOfFuel | NoAnswer Δ σ (f : 𝑭𝑿 �
 | externs with `semantics_*` | that term |
 | `bitvector_update` | computed by the harness |
 | `unconstrained σ` | the type's generated inhabitant |
-| `plat_*`, `sys_*` | the emulator's defaults (`riscv_platform_impl.c`), with `-F -W` |
+| `plat_*`, `sys_*` | the emulator's defaults (`riscv_platform_impl.c`); the ones the translation fixes (C, F/D, V, misaligned accesses) are no foreign calls, and `-F -W` gives the emulator the same values |
 | `get_16_random_bits` | 0 (the emulator reads `/dev/urandom`: cases read the seed CSR into `x0`) |
 | barriers, `__write_mem_ea`, `plat_term_write` | no effect |
 

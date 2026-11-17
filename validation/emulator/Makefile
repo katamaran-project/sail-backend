@@ -33,7 +33,8 @@ RENAME = -Dplatform_write_mem=dump_platform_write_mem -Dwrite_tag_bool=dump_writ
 MODEL    = $(BUILD)/riscv_model_RV32
 OBJ      = $(BUILD)/obj
 SIM      = $(BUILD)/cheriot_sim_dump
-SIM_ARGS = --disable-compressed -F -W --insns-per-tick 1000000000
+# As validate.py (EMU_ARGS): the platform settings of tests/cheriot/scope.toml.
+SIM_ARGS = -F -W --insns-per-tick 1000000000
 
 all: $(SIM)
 .PHONY: all dump-sail check-regs check clean

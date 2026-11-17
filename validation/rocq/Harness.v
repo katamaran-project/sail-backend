@@ -73,9 +73,11 @@ Definition store_tag (m : Memory) (a : Z) (t : bool) : Memory :=
 
 (*** Platform constants ***)
 
-(* As the validation emulator runs: cheriot_sim_dump --disable-compressed -F -W
+(* As the validation emulator runs: cheriot_sim_dump -F -W
    (sail-riscv/c_emulator/riscv_platform_impl.c defaults, riscv_sim.c flags);
-   ELF layout of validation/scripts/mk-test-elf.py (entry = RAM base, tohost). *)
+   ELF layout of validation/scripts/mk-test-elf.py (entry = RAM base, tohost).
+   The settings that the translation fixes (sys_enable_rvc, sys_enable_fdext, ...:
+   value exclusions in tests/cheriot/scope.toml) are no foreign functions. *)
 Definition c_ram_base  : Z := 0x80000000.
 Definition c_ram_size  : Z := 0x4000000.
 Definition c_rom_base  : Z := 0x1000.
@@ -88,12 +90,7 @@ Definition c_tohost    : Z := 0x80001000.
 Definition c_entry     : Z := c_ram_base.
 
 Definition c_enable_writable_misa  : bool := true.
-Definition c_enable_fdext          : bool := false.  (* -F *)
-Definition c_enable_zfinx          : bool := false.
 Definition c_enable_writable_fiom  : bool := true.
-Definition c_enable_vext           : bool := false.  (* -W *)
-Definition c_enable_rvc            : bool := false.  (* --disable-compressed *)
-Definition c_enable_misaligned     : bool := true.
 Definition c_mtval_has_illegal_inst_bits : bool := false.
 
 (*** Oracle ***)
@@ -141,17 +138,12 @@ Definition oracle : Oracle :=
       Some (inr tt, mkState (st_regs st)
                       (store_tag m (bv.unsigned (env.head (env.tail a))) (env.head a)))
   | sys_enable_writable_misa => fun _ => @ok ty.bool c_enable_writable_misa
-  | sys_enable_fdext       => fun _ => @ok ty.bool c_enable_fdext
-  | sys_enable_zfinx       => fun _ => @ok ty.bool c_enable_zfinx
   | sys_enable_writable_fiom => fun _ => @ok ty.bool c_enable_writable_fiom
-  | sys_enable_vext        => fun _ => @ok ty.bool c_enable_vext
-  | sys_enable_rvc         => fun _ => @ok ty.bool c_enable_rvc
   | get_16_random_bits     => fun _ => @ok (ty.bvec 16) bv.zero
   | cancel_reservation     => fun _ => @ok ty.unit tt
   | elf_tohost             => fun _ => @ok ty.int c_tohost
   | plat_ram_base          => fun _ => @ok (ty.bvec 32) (bv.of_Z c_ram_base)
   | plat_ram_size          => fun _ => @ok (ty.bvec 32) (bv.of_Z c_ram_size)
-  | plat_enable_misaligned_access => fun _ => @ok ty.bool c_enable_misaligned
   | plat_mtval_has_illegal_inst_bits => fun _ => @ok ty.bool c_mtval_has_illegal_inst_bits
   | plat_rom_base          => fun _ => @ok (ty.bvec 32) (bv.of_Z c_rom_base)
   | plat_rom_size          => fun _ => @ok (ty.bvec 32) (bv.of_Z c_rom_size)

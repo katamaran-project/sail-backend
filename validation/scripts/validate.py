@@ -53,7 +53,9 @@ BUILD = VAL / "build" / "validate"
 ROCQ = VAL / "rocq"
 MODEL = VAL / "build" / "model"
 EMULATOR = VAL / "build" / "emulator" / "cheriot_sim_dump"
-EMU_ARGS = ["--disable-compressed", "-F", "-W", "--insns-per-tick", "1000000000"]
+# The platform settings of tests/cheriot/scope.toml: F/D, V off (-F -W); C, misaligned
+# accesses on (the defaults).
+EMU_ARGS = ["-F", "-W", "--insns-per-tick", "1000000000"]
 RUNNER_SOURCES = [ROCQ / f for f in ("Interp.v", "Harness.v", "Names.v", "Dump.v", "Validate.v")] \
     + [MODEL / "base.v", MODEL / "machine.v"]
 DEFAULT_LIMIT = 200
