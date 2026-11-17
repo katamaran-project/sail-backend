@@ -402,7 +402,8 @@ Two calls to an unconstrained foreign function can return different values, even
 
 Externs of Sail's library with a well-known meaning have a default term (by binding key; see `default_semantics` in `nanosail/NanosailToMicrosail/ForeignFunctions.ml`):
 `emod_int`, `ediv_int` (Euclidean), `tdiv_int`, `tmod_int` (rounding towards zero), `pow2`, `min_int`, `max_int`, `abs_int`, `count_leading_zeros`, `count_trailing_zeros`,
-and, for the calls that do not become operations, `zeros` (`sail_zeros`), `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`.
+and, for the calls that do not become operations, `zeros` (`sail_zeros`), `shiftl`, `shiftr`, `get_slice_int`, `sail_truncate`, `sail_truncateLSB`, `zero_extend`, `sign_extend` and `vector_access`,
+and the slices and updates whose indices are known only at run time (`v[i + 7 .. i]`, `[v with i + 7 .. i = x]`, `[v with i = b]` in a loop): `vector_subrange`, `vector_update_subrange`, `vector_update`.
 All other externs (platform settings, memory and tag accesses, `cancel_reservation`, …) are unconstrained.
 No foreign function reads the memory, so its contents cannot be observed; a term that reads it would need the writes to have a semantics too.
 The names are Sail's names; giving a function two different semantics is an error.
@@ -486,6 +487,47 @@ Definition fun_foo : Stm [ "x" ∷ ty.int ] (ty.int) :=
 ```
 
 See the test `tests/coq-tests/try-catch-dropped`.
+
+### Loops
+
+A loop (`foreach`, `while`, `repeat`) becomes a call to a *helper function* that runs it by recursion; the loop is not unrolled.
+
+```sail
+function popcount(v : bits(8)) -> int = {
+  count : int = 0;
+  foreach (i from 0 to 7)
+    if v[i] == bitone then count = count + 1;
+  count
+}
+```
+```coq
+| popcount_loop : Fun [ "i" ∷ ty.int; "жbound0" ∷ ty.int; "v" ∷ ty.bvec 8; "count" ∷ ty.int ] (ty.int)
+
+Definition fun_popcount_loop : Stm [...] (ty.int) :=
+  stm_if (exp_var "i" <= exp_var "жbound0")
+    (stm_seq (* the body: if v[i] == bitone then count = count + 1 *)
+             (stm_call popcount_loop [exp_var "i" + exp_int 1; exp_var "жbound0"; exp_var "v"; exp_var "count"]))
+    (stm_exp (exp_var "count")).
+
+(* in fun_popcount *)
+stm_let "жstart4" ty.int (stm_exp (exp_int 0))
+  (stm_let "жbound0" ty.int (stm_exp (exp_int 7))
+     (stm_assign "count" (stm_call popcount_loop [exp_var "жstart4"; exp_var "жbound0"; exp_var "v"; exp_var "count"]))) ;;
+stm_exp (exp_var "count")
+```
+
+- The helper is named after its function: `f_loop`, or `f_loop1`, `f_loop2`, … if `f` has several loops; it precedes `f`.
+- Its parameters are the local variables the loop uses without binding them: first those it only reads, then those it assigns.
+  A `foreach` helper takes the loop variable, the bound and the step (unless it is a literal) first.
+- Its result is the assigned variables: `unit`, the value, or a tuple (`ty.prod` for two); the call assigns them back.
+  The body assigns the helper's own parameters.
+- `foreach`: counts up while `i <= bound`, or down (`downto`) while `i >= bound`, by the step; the bounds and the step are evaluated once, before the loop, as in Sail.
+- `while c do body`: `if c then (body; recurse) else result`. `repeat body until c`: `body; if c then result else recurse`.
+- A helper takes the widths of its parameters' types implicitly, and the constraints of its function that are over them.
+- Why a function and not unrolling: a proof gives the helper one contract, the loop invariant, and symbolic execution uses it at the call
+  instead of executing every iteration (an unrolled `foreach` over 32 bits whose body branches has up to 2^32 paths).
+
+See the tests `tests/coq-tests/loops-*`.
 
 ### `$include`
 
