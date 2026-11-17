@@ -2,6 +2,7 @@
 
 Bugs (wrong or rejected output, wrong measurements), not missing features; see [roadmap.md](roadmap.md) for those.
 Commit hashes are those on the branch at the time of writing.
+Titles tagged `[validator]`: found by translation validation (`validation/`, `gmake validate`).
 
 ## Fixed
 
@@ -352,6 +353,27 @@ print_reg(BitStr(v[VLEN - 1 .. 0]))            // ...that this slice needs
 - `add_bits_int` failed with a run-time int and with a width behind an alias (`xlenbits`).
 
 ## Open
+
+### [validator] Tag writes leave `Memory` unchanged in `ForeignCall`
+- Found: the validation harness keeps tags in `Memory`; its oracle is not sound w.r.t. `ForeignCall` for `MEMw_tag` (`validation/docs/harness.md`, Limitations).
+- Cause: `ForeignFunctions.ml` emits `μ' = μ` for every extern declared pure; CHERIoT declares `val MEMw_tag = "write_tag_bool" : (bits(64), bool) -> unit` (`cheri_prelude.sail`) without effects. The comment's justification ("no foreign function reads the memory") fails once `MEMr_tag`/`__read_mem` are answered from memory.
+```coq
+| @MEMw_tag => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v   (* μ' must be free, as for __write_mem *)
+```
+
+### [validator] `bitvector_update` has no semantics
+- Found: the validation harness has to compute it itself (`validation/docs/harness.md`, foreign-function table).
+- Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for its binding, so the result is unconstrained: any bitvector, not `x` with bit `i` set to `b`. Proofs about callers (e.g. CSR field updates) cannot use its value.
+```coq
+| @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+```
+
+### [validator] `Unconstrained` hint runs for minutes on wide bitvectors
+- Found: building every register's default through the hint, the harness stalled on the vector registers (`validation/docs/harness.md`, `reg_default`).
+- Cause: `construct_inhabitant` (`FunDeclKit.ml`) starts with `cbn`, which unfolds `ty.vregtype` (65536 bits, a unary `nat`) before `exact bv.zero` is tried. Not hit by `machine.v` itself (no in-scope `unconstrained` at that type).
+```coq
+Ltac construct_inhabitant := cbn; first [ exact bv.zero | constructor; construct_inhabitant ].   (* try exact bv.zero before cbn *)
+```
 
 ### Scrutinee inlining checks only the bound type for width families
 - `cce22be3` keeps the `let` only when its own type is a width family. A tuple, sum or list containing one, or a union with other type parameters, is still inlined; built from constructors, its tag prints `(tag _)` and the width may be undetermined. No test hits it yet.
