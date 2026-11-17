@@ -92,6 +92,7 @@ Definition c_enable_fdext          : bool := false.  (* -F *)
 Definition c_enable_zfinx          : bool := false.
 Definition c_enable_writable_fiom  : bool := true.
 Definition c_enable_vext           : bool := false.  (* -W *)
+Definition c_enable_rvc            : bool := false.  (* --disable-compressed *)
 Definition c_enable_misaligned     : bool := true.
 Definition c_mtval_has_illegal_inst_bits : bool := false.
 
@@ -144,6 +145,7 @@ Definition oracle : Oracle :=
   | sys_enable_zfinx       => fun _ => @ok ty.bool c_enable_zfinx
   | sys_enable_writable_fiom => fun _ => @ok ty.bool c_enable_writable_fiom
   | sys_enable_vext        => fun _ => @ok ty.bool c_enable_vext
+  | sys_enable_rvc         => fun _ => @ok ty.bool c_enable_rvc
   | get_16_random_bits     => fun _ => @ok (ty.bvec 16) bv.zero
   | cancel_reservation     => fun _ => @ok ty.unit tt
   | elf_tohost             => fun _ => @ok ty.int c_tohost

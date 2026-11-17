@@ -10,18 +10,15 @@ instruction-files = [
   "sail-riscv/model/riscv_insts_mext.sail",   # M: multiplication and division
   "sail-riscv/model/riscv_insts_zicsr.sail",  # Zicsr: control and status registers
   "src/cheri_insts.sail",                     # CHERIoT capability instructions
+  "sail-riscv/model/riscv_insts_cext.sail",   # C: compressed instructions
+  "src/cheri_insts_cext.sail",                # CHERIoT compressed capability instructions
+  "sail-riscv/model/riscv_insts_hints.sail",  # compressed hints, FENCE_RESERVED, FENCEI_RESERVED
   # The decoders' fallbacks: what an illegal or unsupported encoding decodes to (an
   # illegal-instruction trap), so always reachable.
   "sail-riscv/model/riscv_insts_begin.sail",  # ILLEGAL, C_ILLEGAL
   "src/cheri_insts_end.sail",                 # NOT_CAPMODE, NOT_C_CAPMODE
-  # Out of scope for now: compressed instructions (riscv_insts_cext.sail and
-  # src/cheri_insts_cext.sail), bit manipulation (Zb*), vector, virtual memory; PMP is absent (below).
+  # Out of scope for now: bit manipulation (Zb*), vector, virtual memory; PMP is absent (below).
 ]
-
-# Single instructions, from files that also declare out-of-scope ones
-# (riscv_insts_hints.sail: the rest are compressed hints). Reserved FENCE encodings
-# decode to these.
-instructions = ["FENCE_RESERVED", "FENCEI_RESERVED"]
 
 # Entry points that are always in scope: the fetch-decode-execute step, the
 # decoders and the initialisation. Every register is in scope as well.
@@ -128,8 +125,3 @@ haveZbs = "false"
 haveZbkb = "false"
 haveZbkc = "false"
 haveZbkx = "false"
-# Compressed instructions absent: misa.C is set from sys_enable_rvc() at reset and
-# legalize_misa never sets it when sys_enable_rvc() is false; step executes a 16-bit
-# parcel only if haveRVC() (misa.C), and raises an illegal-instruction trap otherwise,
-# so execute's compressed arms (failures) are unreachable. Remove to turn RVC back on.
-sys_enable_rvc = "false"

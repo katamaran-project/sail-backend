@@ -32,7 +32,7 @@ Running it: [validate.md](validate.md).
 
   | feature | µSail | emulator |
   |---|---|---|
-  | compressed | `sys_enable_rvc = false` | `--disable-compressed` |
+  | compressed | harness answers `sys_enable_rvc` with `false` | `--disable-compressed` |
   | Zb\*, Zbk\* | `haveZb* = false` | built without the Zb\* files |
   | PMP | `sys_pmp_count = 0` | `--pmp-count 0` (default) |
   | F/D, V | harness answers `false` | `-F -W` |
