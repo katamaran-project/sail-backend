@@ -88,7 +88,8 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `zbkb` | PACK, PACKH, BREV8, ZIP, UNZIP |
 | `zbkx` | XPERM4, XPERM8: in-range and out-of-range indices |
 | `trap-zb-rv64` | ADD.UW (RV64 only) on RV32: traps illegal |
-| `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
+| `trap-rv32e-rd`, `trap-rv32e-rs` | RV32E register >= 16 as destination, as source: traps illegal (`Error_not_rv32e_register`, caught by `try_execute`) |
+| `trap-rv32e-load` | LW into x16: the load reads memory, then traps illegal |
 | `c-addi` | C.ADDI (positive, negative), C.NOP; a 32-bit instruction at an address 2 mod 4 |
 | `c-alu` | C.LI, C.LUI, C.ADDI, C.SLLI, C.SRLI, C.SRAI, C.ANDI: edge immediates; C.SUB, C.XOR, C.OR, C.AND, C.MV, C.ADD (overflow); C.SRLI/C.SRAI with shamt[5] = 1 (Sail decodes them on RV32) |
 | `c-hints` | every compressed hint (C.NOP, C.ADDI, C.LI, C.LUI, C.MV, C.ADD, C.SLLI, C.SRLI, C.SRAI forms): no effect; C.MV/C.ADD hints naming x16, x31 |
@@ -99,7 +100,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-c-ebreak` | C.EBREAK: breakpoint |
 | `trap-c-j-far` | C.J by -2048 from the start of RAM: fetch access fault |
 | `trap-c-split-bounds` | a 32-bit instruction whose second parcel is outside PCC bounds: bounds violation |
-| `rv32e-c-mv`, `rv32e-c-add` | RV32E register >= 16 in C.MV, C.ADD (expected divergences) |
+| `trap-rv32e-c-mv`, `trap-rv32e-c-add` | RV32E register >= 16 in C.MV, C.ADD: traps illegal |
 | `cap-misc` | CMove, CClearTag, CGetAddr, CGetType, CGetHigh, CSetHigh (incl. garbage high bits), CSEQX, CSub, CTestSubset |
 | `cap-perm-bounds` | CAndPerm (re-encoded by CGetHigh), CRRL, CRAM, CSetBoundsRoundDown: exact, rounded, zero, beyond parent, null |
 | `seal` | CSeal/CUnseal by the sealing root; refused: wrong otype, already sealed, no SE/US, untagged, sealed or out-of-bounds authority; sealed operands to other ops |
@@ -146,11 +147,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 - `expected divergence` only if the states are equal before that step and everything at it is exactly as recorded.
 - `validate.py --list-divergences` prints the whole table.
 
-| case | step | µSail | emulator | reason |
-|---|---|---|---|---|
-| `rv32e-rd` | 5 | `stm_fail` | illegal-instruction trap | `Error_not_rv32e_register` is thrown; µSail has no exceptions ([design](../../case-studies/cheriot/docs/design.md#exceptions-fail)) |
-| `rv32e-rs` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
-| `rv32e-c-mv`, `rv32e-c-add` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
+No case has an expected divergence at present: all entries are [both sides stop](#both-sides-stop).
 
 ### Both sides stop
 
@@ -282,7 +279,6 @@ validation/scripts/sweep.py [--range LO:HI] [-j N] [--batches B] [--no-cache] [-
 | class | the parcel |
 |---|---|
 | `equal` | the same changes |
-| `rv32e` | names a register >= 16 (bits 11:7 in quadrant 1's C.ADDI/C.LI/C.LUI, bits 11:7 or 6:2 in quadrant 2): µSail `stm_fail`s, the emulator traps illegal (as `rv32e-rd`) |
 | `both stop` | µSail `stm_fail`s, the emulator stops on the same Sail assertion or exception |
 | `unexplained` | anything else: exit status 1 |
 

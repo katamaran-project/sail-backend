@@ -172,26 +172,10 @@ def run_rocq(i, source, cache):
     return target, times[0] if times else None
 
 
-def reg_fields_ge16(p):
-    """Whether a full 5-bit register field of the parcel names x16-x31 (RV32E):
-    rd/rs1 (bits 11:7) in quadrants 1 (C.ADDI, C.LI, C.LUI) and 2, rs2 (bits 6:2) in quadrant 2."""
-    q, f3 = p & 3, p >> 13
-    hi, lo = (p >> 7) & 31, (p >> 2) & 31
-    if q == 1 and f3 in (0, 2, 3):
-        return hi >= 16
-    if q == 2:
-        return hi >= 16 or lo >= 16
-    return False
-
-
 def classify(p, rocq, emu, emu_message):
     """Class name of a parcel's difference, or None if unexplained."""
     (r_lines, r_end), (e_lines, e_end) = rocq, emu
     r_fail = next((l[len("step_result "):] for l in r_lines if l.startswith('step_result "')), None)
-    # RV32E: Error_not_rv32e_register thrown: µSail fails, the emulator traps illegal (as rv32e-rd).
-    if (r_fail == '"failure"' and e_end == "end" and "mcause 0x00000002" in e_lines
-            and reg_fields_ge16(p)):
-        return "rv32e"
     # Both stop on the same Sail assertion or exception.
     if r_fail is not None and e_end is not None and e_end.startswith("stop") and emu_message \
             and (emu_message in r_fail or "message computed at run time" in r_fail):

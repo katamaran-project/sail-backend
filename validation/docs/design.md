@@ -53,5 +53,4 @@ Running it: [validate.md](validate.md).
 ## Known divergences
 
 - **Asserted, not skipped**: each is a case whose divergence (step, both sides' changes there) is recorded in `validation/cases/divergences.toml`; any other behaviour fails, so a change shows up.
-- RV32E registers >= 16: µSail fails where Sail traps illegal ([exceptions fail](../../case-studies/cheriot/docs/design.md#exceptions-fail)).
 - Excluded features (PMP, Sv32) have no cases. RV64-only Zb\* encodings must trap illegal on both sides: an ordinary case.
