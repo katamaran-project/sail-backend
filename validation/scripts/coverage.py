@@ -64,8 +64,9 @@ DEAD = [
     (r"execute_RISCV_JALR|get_arch_pc",
      "JAL, JALR, AUIPC decode as CJAL, CJALR, AUIPCC: ext_decode tries encdec_capmode first; "
      "C.JR, C.JALR (which execute JALR) never decode (below); JAL is reached only from C.J"),
-    (r"execute_C_(JAL|JR|JALR)",
-     "decode as C.CJAL, C.CJR, C.CJALR: ext_decode_compressed tries encdec_compressed_capmode first"),
+    (r"execute_C_(JAL|JR|JALR|ADDI16SP|ADDI4SPN)",
+     "decode as C.CJAL, C.CJR, C.CJALR, C.CIncAddr16CSP, C.CIncAddr4CSPN: ext_decode_compressed tries "
+     "encdec_compressed_capmode first (with immediate 0, C.ADDI16SP and C.ADDI4SPN are reserved in both)"),
     (r"execute_NOT_(C_)?CAPMODE|report_invalid_width",
      "unreachable by design: internal_error (inlined in report_invalid_width); ext_decode and "
      "ext_decode_compressed replace NOT_CAPMODE, NOT_C_CAPMODE by the standard decoder's result"),

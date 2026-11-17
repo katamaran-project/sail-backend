@@ -28,10 +28,24 @@ registers as x0..x31, c0..c31 or ABI names (a0, ca0, ...).
               clc cd, off(rs1)     csc cs2, off(rs1)     auipcc auicgp cd, imm20
               cspecialr cd, SCR    cspecialw SCR, cs1    cspecialrw cd, SCR, cs1
               (SCR: mtcc, mtdc, mscratchc, mepcc)
-    C         c.addi rd, nzimm6    c.nop    (16 bits; the next instruction follows at +2)
+    C         (16 bits; the next instruction follows at +2; rd'/rs' are x8-x15)
+              c.nop [imm6]    c.addi c.li c.slli rd, imm    c.lui rd, imm6 (bits 17:12)
+              c.srli c.srai c.andi rd', imm    c.sub c.xor c.or c.and rd', rs2'
+              c.mv c.add rd, rs2    c.lw rd', off(rs1')    c.sw rs2', off(rs1')
+              c.lwsp rd, off(sp)    c.swsp rs2, off(sp)    c.j c.jal label|offset
+              c.beqz c.bnez rs1', label|offset    c.jr c.jalr rs1    c.ebreak
+              c.addi16sp sp, imm    c.addi4spn rd', sp, imm
+              (operands outside the instruction's constraints give its hint or
+              reserved encoding, e.g. c.addi a0, 0 or c.lui a0, 0)
+    CHERIoT C c.clc cd', off(cs1')    c.csc cs2', off(cs1')    c.clcsp cd, off(csp)
+              c.cscsp cs2, off(csp)    c.cincaddr16csp csp, imm    c.cincaddr4cspn cd', csp, imm
+              c.cjal label|offset    c.cjr c.cjalr cs1   (same encodings as c.addi16sp,
+              c.addi4spn, c.jal, c.jr, c.jalr; c.clc, c.csc, c.clcsp, c.cscsp are
+              c.fld, c.fsd, c.fldsp, c.fsdsp with funct3 bit 1 set)
     pseudo    li rd, imm32|label (always lui + addi)    mv rd, rs
               cla cd, label (auipcc cd, 0; cincaddrimm cd, cd, label - .)
     data      .word 0x...    .half 0x...
+    .align N  pad with C.NOPs (executed) to a multiple of N bytes (N even)
 
 Encodings: RV32I/M/Zicsr/C checked against llvm-mc (validation/scripts/check-encodings.sh);
 CHERIoT ones from the encdec clauses in cheriot-sail src/cheri_insts.sail.
@@ -104,12 +118,16 @@ FIXED = {"ecall": 0x00000073, "ebreak": 0x00100073, "mret": 0x30200073, "nop": 0
 # Pseudo-instructions of two words.
 TWO_WORDS = {"li", "cla"}
 # 16-bit parcels.
-HALF = {".half", "c.addi", "c.nop"}
+HALF = {".half"}  # and every mnemonic starting with "c."
 
 
 def size(mnem):
     """Bytes of one line's encoding."""
-    return 8 if mnem in TWO_WORDS else 2 if mnem in HALF else 4
+    return 8 if mnem in TWO_WORDS else 2 if is_half(mnem) else 4
+
+
+def is_half(mnem):
+    return mnem in HALF or mnem.startswith("c.")
 
 
 def reg(name):
@@ -201,10 +219,129 @@ def csr_num(text):
     return CSR[text] if text in CSR else imm(text, 12)
 
 
-def c_addi(rd, nzimm):
-    """C.ADDI: 000 nzimm[5] rd nzimm[4:0] 01."""
-    i = check_range(nzimm, 6, True, str(nzimm))
-    return (((i >> 5) & 1) << 12) | (rd << 7) | ((i & 0x1F) << 2) | 0x1
+def bits(v, hi, lo):
+    """v[hi:lo]."""
+    return (v >> lo) & ((1 << (hi - lo + 1)) - 1)
+
+
+def place(v, *fields):
+    """Scatter bits of v: fields (hi, lo, at) put v[hi:lo] at bit `at` up."""
+    return sum(bits(v, hi, lo) << at for hi, lo, at in fields)
+
+
+def creg(name):
+    """3-bit register x8-x15."""
+    r = reg(name)
+    if not 8 <= r <= 15:
+        raise ValueError(f"not a compressed register (x8-x15): {name}")
+    return r - 8
+
+
+def scaled(text, bits_, scale, signed):
+    """An immediate that is a multiple of `scale`, in `bits_` bits (after scaling)."""
+    v = int(text.strip(), 0)
+    if v % scale:
+        raise ValueError(f"immediate {text} not a multiple of {scale}")
+    return check_range(v, bits_, signed, text)
+
+
+def sp_operand(text):
+    """off(sp)."""
+    off, base = mem_operand_raw(text)
+    if reg(base) != 2:
+        raise ValueError(f"base must be sp: {text}")
+    return off
+
+
+def mem_operand_raw(text):
+    m = re.fullmatch(r"\s*(-?\w+)?\s*\(\s*(\w+)\s*\)\s*", text)
+    if not m:
+        raise ValueError(f"bad memory operand: {text}")
+    return m.group(1) or "0", m.group(2)
+
+
+# C.SRLI, C.SRAI, C.ANDI: funct2 at 11:10. C.SUB ... C.AND: funct2 at 6:5.
+C_SHIFT = {"c.srli": 0, "c.srai": 1, "c.andi": 2}
+C_ARITH = {"c.sub": 0, "c.xor": 1, "c.or": 2, "c.and": 3}
+# CJ format (C.JAL, C.J): imm[11|4|9:8|10|6|7|3:1|5].
+CJ_FIELDS = ((11, 11, 12), (4, 4, 11), (9, 8, 9), (10, 10, 8), (6, 6, 7), (7, 7, 6), (3, 1, 3), (5, 5, 2))
+
+
+def encode_c(mnem, args, pc, labels):
+    """The 16-bit parcel of a C or CHERIoT C instruction."""
+    a = args
+    if mnem == "c.nop":
+        i = check_range(int(a[0], 0), 6, True, a[0]) if a else 0
+        return place(i, (5, 5, 12), (4, 0, 2)) | 0x1
+    if mnem in ("c.addi", "c.li"):
+        i = check_range(int(a[1], 0), 6, True, a[1])
+        f3 = 0 if mnem == "c.addi" else 2
+        return (f3 << 13) | place(i, (5, 5, 12), (4, 0, 2)) | (reg(a[0]) << 7) | 0x1
+    if mnem == "c.lui":
+        v = int(a[1], 0)
+        v = v - (1 << 20) if v >= 0xFFFE0 else v      # llvm-mc writes -1 as 0xfffff
+        i = check_range(v, 6, True, a[1])
+        return (3 << 13) | place(i, (5, 5, 12), (4, 0, 2)) | (reg(a[0]) << 7) | 0x1
+    if mnem in ("c.addi16sp", "c.cincaddr16csp"):
+        i = scaled(a[-1], 10, 16, True)
+        return (3 << 13) | (2 << 7) | place(i, (9, 9, 12), (4, 4, 6), (6, 6, 5), (8, 7, 3), (5, 5, 2)) | 0x1
+    if mnem in ("c.addi4spn", "c.cincaddr4cspn"):
+        if reg(a[1]) != 2:
+            raise ValueError("source must be sp")
+        i = scaled(a[2], 10, 4, False)
+        return place(i, (5, 4, 11), (9, 6, 7), (2, 2, 6), (3, 3, 5)) | (creg(a[0]) << 2)
+    if mnem in C_SHIFT:
+        i = check_range(int(a[1], 0), 6, mnem == "c.andi", a[1])
+        return (4 << 13) | (C_SHIFT[mnem] << 10) | place(i, (5, 5, 12), (4, 0, 2)) | (creg(a[0]) << 7) | 0x1
+    if mnem in C_ARITH:
+        return (4 << 13) | (3 << 10) | (creg(a[0]) << 7) | (C_ARITH[mnem] << 5) | (creg(a[1]) << 2) | 0x1
+    if mnem in ("c.j", "c.jal", "c.cjal"):
+        o = target(a[0], pc, labels)
+        if o % 2:
+            raise ValueError(f"jump offset {o} odd")
+        f3 = 5 if mnem == "c.j" else 1
+        return (f3 << 13) | place(check_range(o, 12, True, str(o)), *CJ_FIELDS) | 0x1
+    if mnem in ("c.beqz", "c.bnez"):
+        o = target(a[1], pc, labels)
+        if o % 2:
+            raise ValueError(f"branch offset {o} odd")
+        o = check_range(o, 9, True, str(o))
+        f3 = 6 if mnem == "c.beqz" else 7
+        return (f3 << 13) | place(o, (8, 8, 12), (4, 3, 10), (7, 6, 5), (2, 1, 3), (5, 5, 2)) \
+            | (creg(a[0]) << 7) | 0x1
+    if mnem == "c.slli":
+        i = check_range(int(a[1], 0), 6, False, a[1])
+        return place(i, (5, 5, 12), (4, 0, 2)) | (reg(a[0]) << 7) | 0x2
+    if mnem in ("c.lw", "c.sw", "c.clc", "c.csc"):
+        off_text, base = mem_operand_raw(a[1])
+        r = (creg(a[0]) << 2) | (creg(base) << 7)
+        if mnem in ("c.lw", "c.sw"):
+            o = scaled(off_text, 7, 4, False)
+            return ((2 if mnem == "c.lw" else 6) << 13) | place(o, (5, 3, 10), (2, 2, 6), (6, 6, 5)) | r
+        o = scaled(off_text, 8, 8, False)
+        return ((3 if mnem == "c.clc" else 7) << 13) | place(o, (5, 3, 10), (7, 6, 5)) | r
+    if mnem in ("c.lwsp", "c.clcsp"):
+        r = reg(a[0]) << 7
+        if mnem == "c.lwsp":
+            o = scaled(sp_operand(a[1]), 8, 4, False)
+            return (2 << 13) | place(o, (5, 5, 12), (4, 2, 4), (7, 6, 2)) | r | 0x2
+        o = scaled(sp_operand(a[1]), 9, 8, False)
+        return (3 << 13) | place(o, (5, 5, 12), (4, 3, 5), (8, 6, 2)) | r | 0x2
+    if mnem in ("c.swsp", "c.cscsp"):
+        r = reg(a[0]) << 2
+        if mnem == "c.swsp":
+            o = scaled(sp_operand(a[1]), 8, 4, False)
+            return (6 << 13) | place(o, (5, 2, 9), (7, 6, 7)) | r | 0x2
+        o = scaled(sp_operand(a[1]), 9, 8, False)
+        return (7 << 13) | place(o, (5, 3, 10), (8, 6, 7)) | r | 0x2
+    if mnem in ("c.jr", "c.cjr", "c.jalr", "c.cjalr"):
+        link = mnem.endswith("jalr")
+        return (4 << 13) | (link << 12) | (reg(a[0]) << 7) | 0x2
+    if mnem in ("c.mv", "c.add"):
+        return (4 << 13) | ((mnem == "c.add") << 12) | (reg(a[0]) << 7) | (reg(a[1]) << 2) | 0x2
+    if mnem == "c.ebreak":
+        return 0x9002
+    raise ValueError(f"unknown mnemonic: {mnem}")
 
 
 def encode(mnem, args, pc, labels):
@@ -213,10 +350,8 @@ def encode(mnem, args, pc, labels):
         return [int(args[0], 0) & 0xFFFFFFFF]
     if mnem == ".half":
         return [int(args[0], 0) & 0xFFFF]
-    if mnem == "c.nop":
-        return [0x0001]
-    if mnem == "c.addi":
-        return [c_addi(reg(args[0]), int(args[1], 0))]
+    if mnem.startswith("c."):
+        return [encode_c(mnem, args, pc, labels)]
     if mnem in FIXED:
         return [FIXED[mnem]]
     if mnem == "fence":
@@ -303,23 +438,33 @@ def parse(path):
     return out
 
 
+def align_pad(pc, args):
+    """Bytes from pc to the next multiple of .align's N."""
+    return -pc % int(args[0], 0)
+
+
 def assemble(path, base):
     lines = parse(path)
     labels = {}
     pc = base
-    for n, label, mnem, _ in lines:                 # pass 1: label addresses
+    for n, label, mnem, args in lines:              # pass 1: label addresses
         if label:
             if label in labels:
                 sys.exit(f"{path}:{n}: label {label} defined twice")
             labels[label] = pc
-        if mnem:
+        if mnem == ".align":
+            pc += align_pad(pc, args)
+        elif mnem:
             pc += size(mnem)
     code = b""
     for n, _, mnem, args in lines:                  # pass 2: encodings
         if not mnem:
             continue
+        if mnem == ".align":
+            code += struct.pack("<H", 0x0001) * (align_pad(base + len(code), args) // 2)
+            continue
         try:
-            fmt = "<H" if mnem in HALF else "<I"
+            fmt = "<H" if is_half(mnem) else "<I"
             code += b"".join(struct.pack(fmt, p) for p in encode(mnem, args, base + len(code), labels))
         except (ValueError, KeyError, IndexError) as e:
             sys.exit(f"{path}:{n}: {e}")

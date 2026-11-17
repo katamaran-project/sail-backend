@@ -81,6 +81,16 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-zb` | `ANDN`: Zb\* absent, traps illegal |
 | `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
 | `c-addi` | C.ADDI (positive, negative), C.NOP; a 32-bit instruction at an address 2 mod 4 |
+| `c-alu` | C.LI, C.LUI, C.ADDI, C.SLLI, C.SRLI, C.SRAI, C.ANDI: edge immediates; C.SUB, C.XOR, C.OR, C.AND, C.MV, C.ADD (overflow); C.SRLI/C.SRAI with shamt[5] = 1 (Sail decodes them on RV32) |
+| `c-hints` | every compressed hint (C.NOP, C.ADDI, C.LI, C.LUI, C.MV, C.ADD, C.SLLI, C.SRLI, C.SRAI forms): no effect; C.MV/C.ADD hints naming x16, x31 |
+| `c-mem` | C.LW, C.SW, C.LWSP, C.SWSP: offsets 0 and max; misaligned C.LW |
+| `c-cap` | C.CLC, C.CSC, C.CLCSP, C.CSCSP (offsets 0 and max, tags kept), C.CIncAddr16CSP (+, max, min), C.CIncAddr4CSPN (min, max) |
+| `c-jumps` | C.J forward and backward (the only way to `RISCV_JAL`), C.BEQZ/C.BNEZ taken and not, C.CJAL, C.CJALR, C.CJR; 16/32-bit mixed, targets 0 and 2 mod 4 |
+| `c-reserved` | 16 reserved 16-bit encodings (C.ILLEGAL, zero immediates, C.CLCSP into `cnull`, C.SLLI shamt[5], C.JR x0, F/D and RV64 slots) trap illegal to the case's handler, which returns |
+| `trap-c-ebreak` | C.EBREAK: breakpoint |
+| `trap-c-j-far` | C.J by -2048 from the start of RAM: fetch access fault |
+| `trap-c-split-bounds` | a 32-bit instruction whose second parcel is outside PCC bounds: bounds violation |
+| `rv32e-c-mv`, `rv32e-c-add` | RV32E register >= 16 in C.MV, C.ADD (expected divergences) |
 | `cap-misc` | CMove, CClearTag, CGetAddr, CGetType, CGetHigh, CSetHigh (incl. garbage high bits), CSEQX, CSub, CTestSubset |
 | `cap-perm-bounds` | CAndPerm (re-encoded by CGetHigh), CRRL, CRAM, CSetBoundsRoundDown: exact, rounded, zero, beyond parent, null |
 | `seal` | CSeal/CUnseal by the sealing root; refused: wrong otype, already sealed, no SE/US, untagged, sealed or out-of-bounds authority; sealed operands to other ops |
@@ -117,7 +127,8 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 - Registers `x0`–`x13`; `c14`, `c15` belong to the prologue and epilogue.
 - Integer and capability registers are the same (`a2` is `ca2`): keep integers and capabilities in different registers.
 - Memory needs a tagged capability: `cspecialr ca0, mtdc` (the root, address 0), then `csetaddr`. Code at `0x80000000`, `tohost` at `0x80001000`.
-- New mnemonics go in `mk-test-elf.py`; `validation/scripts/check-encodings.sh` checks the standard ones against `llvm-mc`.
+- New mnemonics go in `mk-test-elf.py`; `validation/scripts/check-encodings.sh` checks the standard ones (and the CHERIoT compressed loads and stores, by their F/D layout) against `llvm-mc`.
+- Compressed instructions (`c.*`, `.half`) take 2 bytes. A trap handler (MTCC) must be 4-byte aligned: `.align 4` pads with C.NOPs; the epilogue starts with one.
 - `--trace` on `validation/build/validate/<name>/prog.elf` shows what the program does.
 
 ## Known divergences
@@ -130,6 +141,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 |---|---|---|---|---|
 | `rv32e-rd` | 5 | `stm_fail` | illegal-instruction trap | `Error_not_rv32e_register` is thrown; µSail has no exceptions ([design](../../case-studies/cheriot/docs/design.md#exceptions-fail)) |
 | `rv32e-rs` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
+| `rv32e-c-mv`, `rv32e-c-add` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
 
 ### Both sides stop
 
