@@ -8,38 +8,52 @@
  
  #ifdef ENABLE_SPIKE
  #include "tv_spike_intf.h"
-@@ -53,6 +54,8 @@
+@@ -53,8 +54,13 @@
  #define OPT_ENABLE_WRITABLE_FIOM 1001
  #define OPT_PMP_COUNT 1002
  #define OPT_PMP_GRAIN 1003
 +#define OPT_DUMP_STATE 1004
 +#define OPT_INSNS_PER_TICK 1005
++#define OPT_SWEEP_PARCELS 1006
  
  static bool do_dump_dts = false;
++static bool do_sweep = false;
++static uint64_t sweep_lo = 0, sweep_hi = 0;
  static bool do_show_times = false;
-@@ -155,6 +158,8 @@
+ struct tv_spike_t *s = NULL;
+ char *term_log = NULL;
+@@ -155,6 +161,9 @@
      {"no-trace",                    optional_argument, 0, 'V'                     },
      {"trace-output",                required_argument, 0, OPT_TRACE_OUTPUT        },
      {"inst-limit",                  required_argument, 0, 'l'                     },
 +    {"dump-state",                  required_argument, 0, OPT_DUMP_STATE          },
 +    {"insns-per-tick",              required_argument, 0, OPT_INSNS_PER_TICK      },
++    {"sweep-parcels",               required_argument, 0, OPT_SWEEP_PARCELS       },
      {"enable-zfinx",                no_argument,       0, 'x'                     },
      {"enable-writable-fiom",        no_argument,       0, OPT_ENABLE_WRITABLE_FIOM},
      {"boot-rom",                    no_argument, &config_use_boot_rom, true},
-@@ -419,6 +424,12 @@
+@@ -418,7 +427,20 @@
+     case OPT_TRACE_OUTPUT:
        trace_log_path = optarg;
        fprintf(stderr, "using %s for trace output.\n", trace_log_path);
-       break;
++      break;
 +    case OPT_DUMP_STATE:
 +      dump_state_open(optarg);
 +      break;
 +    case OPT_INSNS_PER_TICK:
 +      rv_insns_per_tick = strtoull(optarg, NULL, 0);
 +      break;
++    case OPT_SWEEP_PARCELS: {
++      char *colon;
++      sweep_lo = strtoull(optarg, &colon, 0);
++      sweep_hi = *colon == ':' ? strtoull(colon + 1, NULL, 0) : sweep_lo + 1;
++      do_sweep = true;
+       break;
++    }
      case '?':
        print_usage(argv[0], 1);
        break;
-@@ -695,6 +706,7 @@
+@@ -695,6 +717,7 @@
  
  void close_logs(void)
  {
@@ -47,7 +61,7 @@
  #ifdef SAILCOV
    if (sail_coverage_exit() != 0) {
      fprintf(stderr, "Could not write coverage information!\n");
-@@ -875,6 +887,7 @@
+@@ -875,6 +898,7 @@
  
    /* initialize the step number */
    mach_int step_no = 0;
@@ -55,7 +69,7 @@
    int insn_cnt = 0;
  #ifdef RVFI_DII
    bool need_instr = true;
-@@ -886,7 +899,9 @@
+@@ -886,7 +910,9 @@
      exit(1);
    }
  
@@ -66,7 +80,7 @@
  #ifdef RVFI_DII
      if (rvfi_dii) {
        mach_bits instr_bits;
-@@ -993,6 +1008,7 @@
+@@ -993,6 +1019,7 @@
        stepped = zstep(sail_step);
        if (have_exception)
          goto step_exception;
@@ -74,7 +88,16 @@
        flush_logs();
        KILL(sail_int)(&sail_step);
      }
-@@ -1188,6 +1204,7 @@
+@@ -1056,6 +1083,8 @@
+   }
+ 
+ dump_state:
++  if (do_sweep && !zhtif_done)
++    dump_state_sweep(sweep_lo, sweep_hi, (uint64_t)step_no);
+   if (diverged) {
+     /* TODO */
+   }
+@@ -1188,6 +1217,7 @@
     */
    init_spike(initial_elf_file, entry, rv_ram_size);
    init_sail(entry);

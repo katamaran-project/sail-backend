@@ -47,6 +47,7 @@ Running it: [validate.md](validate.md).
 ## Inputs
 
 - Hand-picked programs, one per instruction class ([cases](validate.md#cases)).
+- Every 16-bit parcel, one step from one fixed state ([all 16-bit parcels](validate.md#all-16-bit-parcels)): the compressed decoders exhaustively, cheap because both sides start each parcel from the same state in one process (a `fork` per parcel in the emulator, a list in Rocq).
 - Next: `riscv-tests` traces; random encodings once the interpreter is extracted.
 
 ## Known divergences

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gmp.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "dump_state.h"
 #include "dump_sim.h"
@@ -134,27 +136,106 @@ void dump_state_open(const char *path)
   }
 }
 
-void dump_state_step(uint64_t step, const char *result)
+/* The state's lines in `lines`: registers sorted bytewise (with step_result),
+   then mem, then tag. */
+static void collect(const char *result)
 {
-  if (!out)
-    return;
+  for (size_t i = 0; i < nlines; i++)
+    free(lines[i]);
   nlines = 0;
   zdump_state(UNIT);
   add_line("step_result", result); /* pseudo-item (state-format.md) */
   qsort(lines, nlines, sizeof *lines, cmp_line);
-  for (size_t i = 0; i < nlines; i++) {
-    fprintf(out, "%llu %s\n", (unsigned long long)step, lines[i]);
-    free(lines[i]);
-  }
+  char key[32], value[32];
   normalise(&mem);
-  for (size_t i = 0; i < mem.n; i++)
-    fprintf(out, "%llu mem 0x%08llx 0x%02llx\n", (unsigned long long)step,
-            (unsigned long long)mem.a[i], (unsigned long long)read_mem(mem.a[i]));
+  for (size_t i = 0; i < mem.n; i++) {
+    snprintf(key, sizeof key, "mem 0x%08llx", (unsigned long long)mem.a[i]);
+    snprintf(value, sizeof value, "0x%02llx", (unsigned long long)read_mem(mem.a[i]));
+    add_line(key, value);
+  }
   normalise(&tags);
-  for (size_t i = 0; i < tags.n; i++)
-    fprintf(out, "%llu tag 0x%08llx %s\n", (unsigned long long)step,
-            (unsigned long long)(8 * tags.a[i]),
-            read_tag_bool(tags.a[i]) ? "true" : "false");
+  for (size_t i = 0; i < tags.n; i++) {
+    snprintf(key, sizeof key, "tag 0x%08llx", (unsigned long long)(8 * tags.a[i]));
+    add_line(key, read_tag_bool(tags.a[i]) ? "true" : "false");
+  }
+}
+
+void dump_state_step(uint64_t step, const char *result)
+{
+  if (!out)
+    return;
+  collect(result);
+  for (size_t i = 0; i < nlines; i++)
+    fprintf(out, "%llu %s\n", (unsigned long long)step, lines[i]);
+  fflush(out);
+}
+
+/* The model (riscv_model_RV32.c). */
+bool zstep(sail_int);
+extern uint64_t zPC;
+extern bool have_exception;
+extern sail_string *throw_location;
+
+/* Sweep file (validate.md, "All 16-bit parcels"): the fixed state (the state
+   now) as "fixed <line>", then per parcel P in [lo, hi) with P[1:0] != 0b11,
+   P written at PC (not logged), one step, in a child process (fork), so each
+   starts from the fixed state: "<P> <line>" for each line not in the fixed
+   state, then "<P> end"; or "<P> stop <how>" if the child stops otherwise.
+   Before each child, "sweep <P>" on stderr: the child's messages follow. */
+void dump_state_sweep(uint64_t lo, uint64_t hi, uint64_t step_no)
+{
+  if (!out)
+    return;
+  collect("true");
+  char **fixed = lines;
+  size_t nfixed = nlines;
+  lines = NULL;
+  nlines = caplines = 0;
+  for (size_t i = 0; i < nfixed; i++)
+    fprintf(out, "fixed %s\n", fixed[i]);
+  qsort(fixed, nfixed, sizeof *fixed, cmp_line); /* for bsearch */
+  uint64_t pc = zPC;
+  for (uint64_t p = lo; p < hi; p++) {
+    if ((p & 3) == 3)
+      continue;
+    fflush(out);
+    fprintf(stderr, "sweep 0x%04llx\n", (unsigned long long)p);
+    fflush(stdout);
+    fflush(stderr);
+    pid_t pid = fork();
+    if (pid < 0) {
+      perror("dump_state: fork");
+      exit(1);
+    }
+    if (pid == 0) {
+      write_mem(pc, p & 0xff);
+      write_mem(pc + 1, p >> 8);
+      sail_int step;
+      CREATE(sail_int)(&step);
+      CONVERT_OF(sail_int, mach_int)(&step, (mach_int)step_no);
+      bool stepped = zstep(step);
+      if (have_exception) {
+        fprintf(out, "0x%04llx stop exception %s\n", (unsigned long long)p, *throw_location);
+        fflush(out);
+        _exit(0);
+      }
+      collect(stepped ? "true" : "false");
+      for (size_t i = 0; i < nlines; i++)
+        if (!bsearch(&lines[i], fixed, nfixed, sizeof *fixed, cmp_line))
+          fprintf(out, "0x%04llx %s\n", (unsigned long long)p, lines[i]);
+      fprintf(out, "0x%04llx end\n", (unsigned long long)p);
+      fflush(out);
+      _exit(0);
+    }
+    int status;
+    if (waitpid(pid, &status, 0) < 0) {
+      perror("dump_state: waitpid");
+      exit(1);
+    }
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+      fprintf(out, "0x%04llx stop exit %d\n", (unsigned long long)p,
+              WIFEXITED(status) ? WEXITSTATUS(status) : 128 + WTERMSIG(status));
+  }
   fflush(out);
 }
 

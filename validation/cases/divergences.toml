@@ -59,6 +59,52 @@ emulator.delta = [
   'nextPCC.address 0x80000030',
 ]
 
+[rv32e-c-mv]
+what = "`c.mv a0, x16`: RV32E register >= 16 as source of a compressed instruction"
+reason = "as `rv32e-rd`"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 5
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x00008542',
+  'nextPC 0x80000010',
+  'step_result "failure"',
+]
+emulator.exit = 1
+emulator.delta = [
+  'MEPCC.address 0x8000000e',
+  'PC 0x8000002c',
+  'PCC.address 0x8000002c',
+  'instbits 0x00008542',
+  'mcause 0x00000002',
+  'mepc 0x8000000e',
+  'nextPC 0x8000002c',
+  'nextPCC.address 0x8000002c',
+]
+
+[rv32e-c-add]
+what = "`c.add x16, a1`: RV32E register >= 16 as source and destination of a compressed instruction"
+reason = "as `rv32e-rd`"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 5
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x0000982e',
+  'nextPC 0x80000010',
+  'step_result "failure"',
+]
+emulator.exit = 1
+emulator.delta = [
+  'MEPCC.address 0x8000000e',
+  'PC 0x8000002c',
+  'PCC.address 0x8000002c',
+  'instbits 0x0000982e',
+  'mcause 0x00000002',
+  'mepc 0x8000000e',
+  'nextPC 0x8000002c',
+  'nextPCC.address 0x8000002c',
+]
+
 [umode]
 what = "MRET with `mstatus.MPP` = 0 enters User although `misa.U` = 0; the next step"
 reason = "`dispatchInterrupt` asserts the privilege is Machine when U-mode is absent: µSail `stm_fail`, the emulator's assertion fails"

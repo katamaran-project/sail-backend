@@ -1,5 +1,6 @@
 # Epilogue of every case (validate.md).
 # pass: htif exit code 0 (tohost = 1, then tohost+4 = 0 completes the command).
+.align 4                  # C.NOP if the case ends at 2 mod 4: MTCC needs 4-byte alignment
 pass:
 cspecialr c15, mtdc       # root memory capability
 lui a4, 0x80001           # tohost

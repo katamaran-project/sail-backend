@@ -4,6 +4,7 @@
 #   dumps    the ADDI state dumps in ../build/dumps (DumpADDI.v; docs/state-format.md)
 #   validate Validate.vos, the runner of gmake validate (docs/validate.md); the model as .vos
 #   coverage Coverage.vos, the runner of gmake validate-coverage (docs/validate.md); the model as .vos
+#   sweep    Sweep.vos, the runner of gmake validate-sweep (docs/validate.md); the model as .vos
 #   model    regenerate base.v/machine.v with this checkout's plugin (needs CHERIOT_SAIL_DIR)
 COQC  ?= coqc
 ROOT  := $(abspath ../..)
@@ -40,10 +41,12 @@ Dump.vos: Harness.vos Names.vos
 Validate.vos: Dump.vos
 InterpCov.vos: Interp.vos
 Coverage.vos: InterpCov.vos Harness.vos Names.vos
+Sweep.vos: Dump.vos
 
 validate: Validate.vos
 
 coverage: Coverage.vos
+sweep: Sweep.vos
 
 # Compiling DumpADDI.v writes the dumps (Redirect writes <name>.out; renamed to <name>).
 # Then: grammar check, Rocq's delta must equal statefile.py's delta of the two states,
@@ -94,4 +97,4 @@ clean:
 clean-model:
 	rm -rf $(BUILD)
 
-.PHONY: all cheriot dumps validate coverage model clean clean-model
+.PHONY: all cheriot dumps validate coverage sweep model clean clean-model

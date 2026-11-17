@@ -90,6 +90,16 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-zb-rv64` | ADD.UW (RV64 only) on RV32: traps illegal |
 | `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
 | `c-addi` | C.ADDI (positive, negative), C.NOP; a 32-bit instruction at an address 2 mod 4 |
+| `c-alu` | C.LI, C.LUI, C.ADDI, C.SLLI, C.SRLI, C.SRAI, C.ANDI: edge immediates; C.SUB, C.XOR, C.OR, C.AND, C.MV, C.ADD (overflow); C.SRLI/C.SRAI with shamt[5] = 1 (Sail decodes them on RV32) |
+| `c-hints` | every compressed hint (C.NOP, C.ADDI, C.LI, C.LUI, C.MV, C.ADD, C.SLLI, C.SRLI, C.SRAI forms): no effect; C.MV/C.ADD hints naming x16, x31 |
+| `c-mem` | C.LW, C.SW, C.LWSP, C.SWSP: offsets 0 and max; misaligned C.LW |
+| `c-cap` | C.CLC, C.CSC, C.CLCSP, C.CSCSP (offsets 0 and max, tags kept), C.CIncAddr16CSP (+, max, min), C.CIncAddr4CSPN (min, max) |
+| `c-jumps` | C.J forward and backward (the only way to `RISCV_JAL`), C.BEQZ/C.BNEZ taken and not, C.CJAL, C.CJALR, C.CJR; 16/32-bit mixed, targets 0 and 2 mod 4 |
+| `c-reserved` | 16 reserved 16-bit encodings (C.ILLEGAL, zero immediates, C.CLCSP into `cnull`, C.SLLI shamt[5], C.JR x0, F/D and RV64 slots) trap illegal to the case's handler, which returns |
+| `trap-c-ebreak` | C.EBREAK: breakpoint |
+| `trap-c-j-far` | C.J by -2048 from the start of RAM: fetch access fault |
+| `trap-c-split-bounds` | a 32-bit instruction whose second parcel is outside PCC bounds: bounds violation |
+| `rv32e-c-mv`, `rv32e-c-add` | RV32E register >= 16 in C.MV, C.ADD (expected divergences) |
 | `cap-misc` | CMove, CClearTag, CGetAddr, CGetType, CGetHigh, CSetHigh (incl. garbage high bits), CSEQX, CSub, CTestSubset |
 | `cap-perm-bounds` | CAndPerm (re-encoded by CGetHigh), CRRL, CRAM, CSetBoundsRoundDown: exact, rounded, zero, beyond parent, null |
 | `seal` | CSeal/CUnseal by the sealing root; refused: wrong otype, already sealed, no SE/US, untagged, sealed or out-of-bounds authority; sealed operands to other ops |
@@ -126,7 +136,8 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 - Registers `x0`–`x13`; `c14`, `c15` belong to the prologue and epilogue.
 - Integer and capability registers are the same (`a2` is `ca2`): keep integers and capabilities in different registers.
 - Memory needs a tagged capability: `cspecialr ca0, mtdc` (the root, address 0), then `csetaddr`. Code at `0x80000000`, `tohost` at `0x80001000`.
-- New mnemonics go in `mk-test-elf.py`; `validation/scripts/check-encodings.sh` checks the standard ones against `llvm-mc`.
+- New mnemonics go in `mk-test-elf.py`; `validation/scripts/check-encodings.sh` checks the standard ones (and the CHERIoT compressed loads and stores, by their F/D layout) against `llvm-mc`.
+- Compressed instructions (`c.*`, `.half`) take 2 bytes. A trap handler (MTCC) must be 4-byte aligned: `.align 4` pads with C.NOPs; the epilogue starts with one.
 - `--trace` on `validation/build/validate/<name>/prog.elf` shows what the program does.
 
 ## Known divergences
@@ -139,6 +150,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 |---|---|---|---|---|
 | `rv32e-rd` | 5 | `stm_fail` | illegal-instruction trap | `Error_not_rv32e_register` is thrown; µSail has no exceptions ([design](../../case-studies/cheriot/docs/design.md#exceptions-fail)) |
 | `rv32e-rs` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
+| `rv32e-c-mv`, `rv32e-c-add` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
 
 ### Both sides stop
 
@@ -173,8 +185,8 @@ emulator.message = "invalid current privilege"
 
 ## Rocq side
 
-- `validation/rocq/`: `Interp.v` (interpreter), `Harness.v` (foreign calls, start state, runs), `Dump.v`/`Names.v` (state format), `Validate.v` (runner), `InterpCov.v`/`Coverage.v` ([coverage](#coverage)); `InterpTests.v`, `StepADDI.v`, `DumpADDI.v` check them.
-- `gmake -C validation/rocq [all|cheriot|dumps|validate|coverage|model]`; the model in `validation/build/model`.
+- `validation/rocq/`: `Interp.v` (interpreter), `Harness.v` (foreign calls, start state, runs), `Dump.v`/`Names.v` (state format), `Validate.v` (runner), `InterpCov.v`/`Coverage.v` ([coverage](#coverage)), `Sweep.v` ([all 16-bit parcels](#all-16-bit-parcels)); `InterpTests.v`, `StepADDI.v`, `DumpADDI.v` check them.
+- `gmake -C validation/rocq [all|cheriot|dumps|validate|coverage|sweep|model]`; the model in `validation/build/model`.
 - `validate` and `coverage` compile the model and their runners with `coqc -vos`: definitions are checked, `Qed` proofs are not (`gmake cheriot` checks them).
   The interpreter never unfolds a `Qed` proof, so the runs are the same; `machine.v` compiles in about half the time.
 - Fuel bounds nesting depth, not steps: `init_model` needs 65, one step about 50; the runner uses 1000.
@@ -210,7 +222,7 @@ gmake -C validation/emulator check                               # compare with 
 - Targets depend on the commands that build them (`build/emulator/*.cmd`, rewritten when a command changes), not on the Makefiles: a changed flag rebuilds what it uses, a comment or a touched Makefile rebuilds nothing.
 - The instruction set is cheriot-sail's (`SAIL_DEFAULT_INST`, Zb\* included); nothing in the clone is edited, its Makefile is queried (`query.mk`).
 - `dump_state.sail`: prints every register, capabilities by record field. Generated by `gen-dump.py` from the Rocq reset state's register names (`gmake dump-sail`).
-- `riscv_sim.patch`, applied at build time: `--dump-state FILE`, `--insns-per-tick N`, and `--inst-limit` counting every step.
+- `riscv_sim.patch`, applied at build time: `--dump-state FILE`, `--insns-per-tick N`, `--inst-limit` counting every step, and `--sweep-parcels LO:HI` ([below](#all-16-bit-parcels)).
 - `dump_state.c`: memory and tag writes, logged by wrapping the platform's write functions.
 
 ## Output
@@ -247,6 +259,36 @@ validation/scripts/coverage.py [CASE...] [-j N] [--no-cache] [--cache-dir DIR]  
 
 Output: `validation/build/coverage/<case>/` (`prog.s`, `prog.elf`, `Cov.v`, `cov.out`: `call <name> <count>`, `foreign <name> <count>`, `end <stop> <steps>`), and `validation/build/coverage/report.md`: totals, per case (functions only that case calls), the live functions not called per area, the dead ones per reason.
 Rocq results cached as `gmake validate`'s, by the hash of `Cov.v`, the model and the Rocq files.
+
+## All 16-bit parcels
+
+Each of the 49152 16-bit parcels (bits 1:0 != `0b11`): one step from one fixed state, in µSail and the emulator, the changes compared.
+Not part of `gmake validate`.
+
+```sh
+gmake validate-sweep CHERIOT_SAIL_DIR=/path/to/cheriot-sail
+gmake validate-sweep SWEEP_ARGS='--range 0:0x4000 -j 2'
+validation/scripts/sweep.py [--range LO:HI] [-j N] [--batches B] [--no-cache] [--cache-dir DIR]   # once built
+```
+
+- The fixed state: `validation/cases/lib/prologue.s`, `sweep.s`, `epilogue.s`, run from reset until `PC` reaches the label `slot` (2 mod 4).
+  Memory capabilities in `csp` and `cs0`–`ca1` with data behind them, a 64-byte one in `ca2`, `cnull` in `ca3`, one without store permission in `ca4`, an executable one in `ca5`, a return sentry in `cra`, distinct integers in `x3`–`x7`, `x16`–`x31` zero; MTCC the epilogue's handler.
+- Each parcel is written at `slot` (not logged as a memory write) and runs one step from the fixed state.
+  - Emulator: `--sweep-parcels LO:HI` (`riscv_sim.patch`, `dump_state.c`): after `--inst-limit` steps, one child process (`fork`) per parcel; one emulator process per CPU, each a range.
+  - Rocq: `Sweep.v`: the setup once per batch, then a step per parcel of a list; `--batches` batches (default 16) in at most `-j` `coqc` processes (default 2), cached as `gmake validate`'s runs.
+- Both print the fixed state in full (`fixed <line>`) and per parcel the lines of its state that are not in the fixed state (`<parcel> <line>`, then `<parcel> end`), or why it stopped (`<parcel> stop ...`).
+- Compared: the fixed states, then each parcel's lines as a set.
+
+| class | the parcel |
+|---|---|
+| `equal` | the same changes |
+| `rv32e` | names a register >= 16 (bits 11:7 in quadrant 1's C.ADDI/C.LI/C.LUI, bits 11:7 or 6:2 in quadrant 2): µSail `stm_fail`s, the emulator traps illegal (as `rv32e-rd`) |
+| `both stop` | µSail `stm_fail`s, the emulator stops on the same Sail assertion or exception |
+| `unexplained` | anything else: exit status 1 |
+
+- Output: `validation/build/sweep/`: `prog.s`, `prog.elf`, `setup.run` (the emulator's setup run), `emu<i>.sweep`, `emu<i>.log`, `rocq/<i>/rocq.out`; `report.md`: the classes, the parcels of each, the unexplained ones' differences.
+- Rocq takes a step per parcel, so a cold run is long; `--range` runs a part.
+- Covers every clause of `encdec_compressed` and `encdec_compressed_capmode` that RV32 decodes, with one operand state each.
 
 ## Limitations
 
