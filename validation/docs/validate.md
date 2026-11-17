@@ -20,11 +20,11 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `--full-states` | Rocq prints every state in full instead of deltas (slower; a check of the delta encoding) |
 | `--list-divergences` | print `divergences.toml` as a Markdown table |
 
-- `gmake validate` first builds what is missing: the emulator (about a minute), the model (`base.v`, `machine.v`, 1 to 2 minutes), the Rocq runner (the model's `.vos`, about a minute).
+- `gmake validate` first builds what is missing: the emulator (about a minute), the model (`base.v`, `machine.v`, about 2 minutes), the Rocq runner (the model's `.vos`, about a minute).
   After a translator change, regenerate the model: `gmake -C validation/rocq model CHERIOT_SAIL_DIR=...`.
   It copies `base.v`/`machine.v` only if they changed, so an unchanged model is not recompiled and the cached results stay valid.
 - `VALIDATE_CHERIOT=DIR`: the cheriot-sail checkout to build the emulator from (default `$CHERIOT_SAIL_DIR`, else `../cheriot-sail`).
-- Cached: under 1 s. Cold: about 5 s at `-j 4`.
+- Cached: a few seconds. Cold: under a minute at `-j 2`, most of it the longest cases (`cap-faults`, `seal`).
 - Exit status 1 if a case neither passes nor diverges as recorded.
 
 ## Stages, per case
