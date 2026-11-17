@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Standard RV32I/M/Zicsr encodings of mk-test-elf.py = llvm-mc's (Homebrew LLVM).
+# Standard RV32I/M/Zicsr, C and Zb* encodings of mk-test-elf.py = llvm-mc's (Homebrew LLVM).
 # CHERIoT encodings are not checked here (llvm-mc does not know them): see validate.md.
 #   validation/scripts/check-encodings.sh [LLVM_BIN]
 set -euo pipefail
@@ -99,6 +99,49 @@ c.nop
 c.addi t0, 7
 EOF
 
+# Zb*: as CHERIoT builds it (Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx).
+cat > "$tmp/zb.s" <<'EOF'
+sh1add a0, a1, a2
+sh2add a0, a1, a2
+sh3add a0, a1, a2
+andn a0, a1, a2
+orn a0, a1, a2
+xnor a0, a1, a2
+min a0, a1, a2
+minu a0, a1, a2
+max a0, a1, a2
+maxu a0, a1, a2
+rol a0, a1, a2
+ror a0, a1, a2
+rori a0, a1, 31
+clz a0, a1
+ctz a0, a1
+cpop a0, a1
+sext.b a0, a1
+sext.h a0, a1
+zext.h a0, a1
+orc.b a0, a1
+rev8 a0, a1
+clmul a0, a1, a2
+clmulr a0, a1, a2
+clmulh a0, a1, a2
+bclr a0, a1, a2
+bext a0, a1, a2
+binv a0, a1, a2
+bset a0, a1, a2
+bclri a0, a1, 31
+bexti a0, a1, 1
+binvi a0, a1, 7
+bseti a0, a1, 0
+pack a0, a1, a2
+packh a0, a1, a2
+brev8 a0, a1
+zip a0, a1
+unzip a0, a1
+xperm4 a0, a1, a2
+xperm8 a0, a1, a2
+EOF
+
 compare() {  # compare FILE MATTR: mk-test-elf.py's words = llvm-mc's; prints their number
   "$here/mk-test-elf.py" "$tmp/$1" "$tmp/ours.elf" | cut -d' ' -f2 > "$tmp/ours.txt"
   "$llvm/llvm-mc" --triple=riscv32 -mattr="$2" -filetype=obj "$tmp/$1" -o "$tmp/llvm.o"
@@ -109,4 +152,5 @@ compare() {  # compare FILE MATTR: mk-test-elf.py's words = llvm-mc's; prints th
 }
 words=$(compare t.s +m,+zifencei,-relax)
 cwords=$(compare c.s +c,-relax)
-echo "encodings: $words words (RV32I/M/Zicsr), $cwords words (C) equal to llvm-mc"
+zbwords=$(compare zb.s +zba,+zbb,+zbc,+zbs,+zbkb,+zbkx,-relax)
+echo "encodings: $words words (RV32I/M/Zicsr), $cwords words (C), $zbwords words (Zb*) equal to llvm-mc"

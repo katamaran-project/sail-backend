@@ -79,6 +79,15 @@ R_OPS = {
     "cincaddr": (0x11, 0, CHERI_OP), "csub": (0x14, 0, CHERI_OP),
     "csethigh": (0x16, 0, CHERI_OP), "ctestsubset": (0x20, 0, CHERI_OP),
     "cseqx": (0x21, 0, CHERI_OP),
+    # Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx (RV32)
+    "sh1add": (0x10, 2, 0x33), "sh2add": (0x10, 4, 0x33), "sh3add": (0x10, 6, 0x33),
+    "andn": (0x20, 7, 0x33), "orn": (0x20, 6, 0x33), "xnor": (0x20, 4, 0x33),
+    "min": (0x05, 4, 0x33), "minu": (0x05, 5, 0x33), "max": (0x05, 6, 0x33), "maxu": (0x05, 7, 0x33),
+    "rol": (0x30, 1, 0x33), "ror": (0x30, 5, 0x33),
+    "clmul": (0x05, 1, 0x33), "clmulr": (0x05, 2, 0x33), "clmulh": (0x05, 3, 0x33),
+    "bclr": (0x24, 1, 0x33), "bext": (0x24, 5, 0x33), "binv": (0x34, 1, 0x33), "bset": (0x14, 1, 0x33),
+    "pack": (0x04, 4, 0x33), "packh": (0x04, 7, 0x33),
+    "xperm4": (0x14, 2, 0x33), "xperm8": (0x14, 4, 0x33),
 }
 # I-type: funct3, opcode
 I_OPS = {
@@ -87,7 +96,11 @@ I_OPS = {
     "cincaddrimm": (1, CHERI_OP), "csetboundsimm": (2, CHERI_OP),
 }
 # Shifts by immediate: funct7, funct3
-SHIFT_OPS = {"slli": (0x00, 1), "srli": (0x00, 5), "srai": (0x20, 5)}
+SHIFT_OPS = {"slli": (0x00, 1), "srli": (0x00, 5), "srai": (0x20, 5),
+             "rori": (0x30, 5), "bclri": (0x24, 1), "bexti": (0x24, 5), "binvi": (0x34, 1), "bseti": (0x14, 1)}
+# Zb* operations on one register (OP-IMM, the immediate fixed): imm12, funct3
+UNARY_OPS = {"clz": (0x600, 1), "ctz": (0x601, 1), "cpop": (0x602, 1), "sext.b": (0x604, 1), "sext.h": (0x605, 1),
+             "orc.b": (0x287, 5), "rev8": (0x698, 5), "brev8": (0x687, 5), "zip": (0x08F, 1), "unzip": (0x08F, 5)}
 # Two-operand CHERI ops: 0x7F @ sub @ cs1 @ 000 @ rd @ 0x5B
 CAP2_OPS = {
     "cgetperm": 0x00, "cgettype": 0x01, "cgetbase": 0x02, "cgetlen": 0x03, "cgettag": 0x04,
@@ -234,6 +247,11 @@ def encode(mnem, args, pc, labels):
     if mnem in SHIFT_OPS:
         f7, f3 = SHIFT_OPS[mnem]
         return [r_type(f7, check_range(int(args[2], 0), 5, False, args[2]), reg(args[1]), f3, reg(args[0]), 0x13)]
+    if mnem in UNARY_OPS:
+        imm12, f3 = UNARY_OPS[mnem]
+        return [i_type(imm12, reg(args[1]), f3, reg(args[0]), 0x13)]
+    if mnem == "zext.h":                         # pack rd, rs, zero
+        return [r_type(0x04, 0, reg(args[1]), 4, reg(args[0]), 0x33)]
     if mnem in CAP2_OPS:
         return [r_type(0x7F, CAP2_OPS[mnem], reg(args[1]), 0, reg(args[0]), CHERI_OP)]
     if mnem in LOAD_OPS:

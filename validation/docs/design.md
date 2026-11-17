@@ -35,7 +35,7 @@ Running it: [validate.md](validate.md).
   | compressed (C) | on: `sys_enable_rvc = true` | on (default) |
   | misaligned accesses | on: `plat_enable_misaligned_access = true` | on (default) |
   | F/D, V | off: `sys_enable_fdext`, `sys_enable_zfinx`, `sys_enable_vext` = `false` | `-F -W` |
-  | Zb\*, Zbk\* | `haveZb* = false` | built without the Zb\* files |
+  | Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx | on (`haveZb*()` are `true` in the model) | on (cheriot-sail's instruction list) |
   | PMP | `sys_pmp_count = 0` | `--pmp-count 0` (default) |
 
   The µSail column is value exclusions in `tests/cheriot/scope.toml` ([platform settings](../../case-studies/cheriot/docs/design.md#platform-settings)): fixed in the model, not answered by the harness.
@@ -53,4 +53,4 @@ Running it: [validate.md](validate.md).
 
 - **Asserted, not skipped**: each is a case whose divergence (step, both sides' changes there) is recorded in `validation/cases/divergences.toml`; any other behaviour fails, so a change shows up.
 - RV32E registers >= 16: µSail fails where Sail traps illegal ([exceptions fail](../../case-studies/cheriot/docs/design.md#exceptions-fail)).
-- Excluded features (PMP, Sv32) have no cases. Zb\* must trap illegal on both sides: an ordinary case.
+- Excluded features (PMP, Sv32) have no cases. RV64-only Zb\* encodings must trap illegal on both sides: an ordinary case.
