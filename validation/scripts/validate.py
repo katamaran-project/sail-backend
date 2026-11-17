@@ -15,11 +15,16 @@ Per case, in validation/build/validate/<case>/:
     emu.run, emu.log    emulator run file (--dump-state) and output
     Run.v, rocq.run     generated Rocq runner and its run file
     diff.txt            diff -u of the first differing step (if any)
+    divergence.txt      recorded vs actual divergence, if it does not match
+
+Expected divergences: validation/cases/divergences.toml (validate.md, "Known
+divergences"); such a case reports `expected divergence at step N` only if the
+run matches the table exactly.
 
 Rocq results are cached by input hash (generated Run.v, the model, the
 runner's .v files, the Rocq installation), shared by all checkouts:
 $SAIL_BACKEND_VALIDATE_CACHE or ~/.cache/sail-backend/validate-cache.
-Exit status 1 if any case does not pass.
+Exit status 1 if any case neither passes nor is an expected divergence.
 """
 
 import argparse
@@ -31,6 +36,7 @@ import re
 import subprocess
 import sys
 import time
+import tomllib
 from pathlib import Path
 
 VAL = Path(__file__).resolve().parent.parent
@@ -48,6 +54,7 @@ DEFAULT_CACHE = Path(
     os.environ.get("SAIL_BACKEND_VALIDATE_CACHE")
     or Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "sail-backend" / "validate-cache")
 COQC_TIMEOUT = 1800
+DIVERGENCES = CASES / "divergences.toml"
 
 sys.path.insert(0, str(VAL / "compare"))
 import statefile  # noqa: E402
@@ -140,7 +147,61 @@ def run_rocq(out, source, cache):
     return False, time.time() - start
 
 
-def compare(case, out, exit_code, expect_exit):
+def load_divergences():
+    """{case: entry} of divergences.toml, checked against the case files."""
+    table = tomllib.loads(DIVERGENCES.read_text())
+    for name, d in table.items():
+        if not (CASES / f"{name}.s").is_file():
+            sys.exit(f"{DIVERGENCES}: [{name}]: no case {name}.s")
+        try:
+            ok = (isinstance(d["step"], int) and d["step"] >= 1 and isinstance(d["rocq"]["stop"], str)
+                  and isinstance(d["emulator"]["exit"], int)
+                  and all(isinstance(d[k], str) for k in ("what", "reason", "doc"))
+                  and all(isinstance(l, str) for side in ("rocq", "emulator") for l in d[side]["delta"]))
+        except (KeyError, TypeError):
+            ok = False
+        if not ok:
+            sys.exit(f"{DIVERGENCES}: [{name}]: needs what, reason, doc, step >= 1, "
+                     "rocq.stop, rocq.delta, emulator.exit, emulator.delta")
+    return table
+
+
+def step_delta(run, step):
+    """Lines of run's state at step that differ from step - 1."""
+    return [f"{k} {v}" for k, v in statefile.delta(run.get(step - 1, []), run.get(step, []))]
+
+
+def check_divergence(d, rocq, emu, why, exit_code, step):
+    """None if the run diverges exactly as recorded (d), else what differs."""
+    if step is None:
+        return f"no divergence, expected one at step {d['step']}"
+    if step != d["step"]:
+        return f"diverges at step {step}, expected at step {d['step']}"
+    problems = []
+    if why != d["rocq"]["stop"] or len(rocq) - 1 != step:
+        problems.append(f"Rocq stops {why} after step {len(rocq) - 1}, expected {d['rocq']['stop']} after step {step}")
+    for side, run in (("rocq", rocq), ("emulator", emu)):
+        if step_delta(run, step) != d[side]["delta"]:
+            problems.append(f"{side} delta at step {step}")
+    if exit_code != d["emulator"]["exit"]:
+        problems.append(f"emulator exit {'-' if exit_code is None else exit_code}, expected {d['emulator']['exit']}")
+    return "; ".join(problems) or None
+
+
+def divergence_report(d, rocq, emu, step):
+    """Recorded vs actual deltas at the recorded step (and the actual one), diff -u."""
+    import difflib
+    text = ""
+    for s in sorted({d["step"], step} - {None}):
+        for side, run in (("rocq", rocq), ("emulator", emu)):
+            recorded = [f"{l}\n" for l in d[side]["delta"]] if s == d["step"] else []
+            actual = [f"{l}\n" for l in step_delta(run, s)] if s in run else []
+            text += "".join(difflib.unified_diff(recorded, actual, f"recorded {side} step {s}",
+                                                 f"actual {side} step {s}")) or f"= {side} step {s}\n"
+    return text
+
+
+def compare(case, out, exit_code, expect_exit, divergence):
     """(steps, stop, result) of a case whose two runs are in out."""
     lines = statefile.read_lines(out / "rocq.out")
     why = lines[-1].removeprefix("end ") if lines and lines[-1].startswith("end ") else "?"
@@ -150,8 +211,16 @@ def compare(case, out, exit_code, expect_exit):
     steps = len(rocq) - 1
     step = statefile.first_difference(rocq, emu)
     (out / "diff.txt").unlink(missing_ok=True)
+    (out / "divergence.txt").unlink(missing_ok=True)
     if step is not None:
         (out / "diff.txt").write_text(statefile.state_diff(rocq, emu, step, "rocq", "emulator"))
+    if divergence is not None:
+        problem = check_divergence(divergence, rocq, emu, why, exit_code, step)
+        if problem is None:
+            return steps, why, f"expected divergence at step {step}"
+        (out / "divergence.txt").write_text(divergence_report(divergence, rocq, emu, step))
+        return steps, why, f"FAIL: {problem} (divergences.toml)"
+    if step is not None:
         note = ""
         if step in rocq and dict(rocq[step]).get("step_result", "").startswith('"'):
             note = f" (Rocq stm_fail {dict(rocq[step])['step_result']})"
@@ -165,13 +234,32 @@ def compare(case, out, exit_code, expect_exit):
     return steps, why, "pass"
 
 
+def divergences_md(table):
+    """Markdown table of divergences.toml for validate.md ("Known divergences"); doc links
+    relative to validation/docs."""
+    rows = ["| case | what | step | µSail | emulator | reason | doc |", "|---|---|---|---|---|---|---|"]
+    for name, d in table.items():
+        rocq = d["rocq"]["stop"] + ": " + ", ".join(f"`{l}`" for l in d["rocq"]["delta"])
+        emu = f"exit {d['emulator']['exit']}: " + ", ".join(f"`{l}`" for l in d["emulator"]["delta"])
+        doc = f"[{d['doc'].rsplit('/', 1)[-1]}](../../{d['doc']})"
+        rows.append(f"| `{name}` | {d['what']} | {d['step']} | {rocq} | {emu} | {d['reason']} | {doc} |")
+    return "\n".join(rows) + "\n"
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("cases", nargs="*")
     p.add_argument("--jobs", "-j", type=int, default=4)
     p.add_argument("--no-cache", action="store_true")
     p.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
+    p.add_argument("--list-divergences", action="store_true",
+                   help="print divergences.toml as a Markdown table and exit")
     a = p.parse_args()
+
+    divergences = load_divergences()
+    if a.list_divergences:
+        sys.stdout.write(divergences_md(divergences))
+        return 0
 
     names = a.cases or sorted(c.stem for c in CASES.glob("*.s"))
     for prerequisite in (EMULATOR, MODEL / "machine.vo", ROCQ / "Validate.vo"):
@@ -200,7 +288,7 @@ def main():
         for name, (future, out, exit_code, expect_exit) in jobs.items():
             try:
                 cached, seconds = future.result()
-                steps, why, result = compare(name, out, exit_code, expect_exit)
+                steps, why, result = compare(name, out, exit_code, expect_exit, divergences.get(name))
                 rows[name] = (str(steps), why, "-" if exit_code is None else str(exit_code), result,
                               "cached" if cached else f"{seconds:.0f} s")
             except (RuntimeError, OSError, subprocess.TimeoutExpired, statefile.FormatError) as e:
@@ -213,10 +301,14 @@ def main():
     text = text.replace("\n", "\n|" + "|".join("-" * (w + 2) for w in widths) + "|\n", 1)
     (BUILD / "results.md").write_text(text)
     sys.stdout.write(text)
-    failed = [n for n in names if rows[n][3] != "pass"]
+    expected = [n for n in names if rows[n][3].startswith("expected divergence")]
+    failed = [n for n in names if rows[n][3] != "pass" and n not in expected]
     diffs = [n for n in failed if (BUILD / n / "diff.txt").is_file()]
-    print(f"{len(names) - len(failed)}/{len(names)} pass ({time.time() - start:.0f} s)"
-          + (f"; diffs: {BUILD}/<case>/diff.txt ({', '.join(diffs)})" if diffs else ""))
+    divs = [n for n in failed if (BUILD / n / "divergence.txt").is_file()]
+    print(f"{len(names) - len(failed) - len(expected)}/{len(names)} pass, {len(expected)} expected divergence,"
+          f" {len(failed)} fail ({time.time() - start:.0f} s)"
+          + (f"; diffs: {BUILD}/<case>/diff.txt ({', '.join(diffs)})" if diffs else "")
+          + (f"; {BUILD}/<case>/divergence.txt ({', '.join(divs)})" if divs else ""))
     return 1 if failed else 0
 
 

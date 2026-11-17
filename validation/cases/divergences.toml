@@ -1,0 +1,54 @@
+# Expected divergences (validate.md, "Known divergences"): one table per case in
+# validation/cases. validate.py reports `expected divergence at step N` only if
+#   - the states are equal up to step - 1 and differ at `step`;
+#   - Rocq stops there (`rocq.stop`) and its delta at `step` (vs step - 1) is `rocq.delta`;
+#   - the emulator's delta at `step` is `emulator.delta` and its htif exit code `emulator.exit`.
+# Anything else (passes, diverges earlier/later or differently) fails, with the
+# recorded and actual deltas in validation/build/validate/<case>/divergence.txt.
+# Deltas: state-format.md lines, sorted as there.
+
+[rv32e-rd]
+what = "`addi x16, zero, 1`: RV32E register >= 16 as destination"
+reason = "`Error_not_rv32e_register` is thrown; µSail has no exceptions (`throw` = `stm_fail`, `try` handler dropped), Sail's `try_execute` catches it and traps illegal"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 5
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x00100813',
+  'nextPC 0x80000014',
+  'step_result "failure"',
+]
+emulator.exit = 1
+emulator.delta = [
+  'MEPCC.address 0x80000010',
+  'PC 0x80000030',
+  'PCC.address 0x80000030',
+  'instbits 0x00100813',
+  'mcause 0x00000002',
+  'mepc 0x80000010',
+  'nextPC 0x80000030',
+  'nextPCC.address 0x80000030',
+]
+
+[rv32e-rs]
+what = "`add a2, a1, x31`: RV32E register >= 16 as source"
+reason = "as `rv32e-rd`"
+doc = "case-studies/cheriot/docs/design.md#exceptions-fail"
+step = 5
+rocq.stop = "Failed"
+rocq.delta = [
+  'instbits 0x01f58633',
+  'nextPC 0x80000014',
+  'step_result "failure"',
+]
+emulator.exit = 1
+emulator.delta = [
+  'MEPCC.address 0x80000010',
+  'PC 0x80000030',
+  'PCC.address 0x80000030',
+  'instbits 0x01f58633',
+  'mcause 0x00000002',
+  'mepc 0x80000010',
+  'nextPC 0x80000030',
+  'nextPCC.address 0x80000030',
+]
