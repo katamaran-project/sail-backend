@@ -2,34 +2,34 @@
 
 How much of the CHERIoT core translates to µSail and compiles in Rocq.
 
-- The core: the scope in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml) (119 instructions and everything they reach; [design](design.md#scope)).
+- The core: the scope in [`tests/cheriot/scope.toml`](../../../tests/cheriot/scope.toml) (147 instructions and everything they reach; [design](design.md#scope)).
 - Numbers: from `gmake cheriot CHERIOT_SAIL_DIR=<cheriot-sail>` ([loop](loop.md)): the report, `metrics.json`, `progress.json`; [`history.csv`](history.csv) has a line per run.
 - *Clean* instruction: everything it reaches translates without holes and calls no missing function; ready for Rocq.
 - A commit that changes the numbers updates *Now* and adds a row to *History* (usually the commit that runs `CHERIOT_ARGS=--update-baseline`).
 
 ## Now
 
-Measured on `58497392`+ (compressed instructions in scope, platform settings fixed); cheriot-sail `518813e`, Katamaran `1688c950`.
+Measured on `0146ed05`+ (bit manipulation in scope); cheriot-sail `518813e`, Katamaran `1688c950`.
 
 | | core |
 |---|---|
-| instructions clean | **119 of 119** |
-| instructions generated | 119 of 119 |
-| functions generated | 552 of 552 |
+| instructions clean | **147 of 147** |
+| instructions generated | 147 of 147 |
+| functions generated | 590 of 590 (plus 17 loop helpers) |
 | untranslated definitions | 0 |
 | `NYI` holes | 0 |
 | hard failures | 0 |
-| calls to missing functions | 0; `execute`'s 28 calls for out-of-scope instructions (Zb\*) are failures, unreachable as Zb\* is absent ([design](design.md#scope)) |
-| foreign functions | 34 externs in `FunX` (298 `stm_foreign` calls): 13 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, ...), 21 unconstrained (memory, tags, platform settings CHERIoT leaves open, ...) |
-| policy exclusions | 51, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 13 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
-| Rocq, plain | all of `base.v` and `machine.v` compile (slowest: `fundef_bindfree` 19.5 s, `execute_LoadCapImm` 3.4 s) |
+| calls to missing functions | 0; `execute` has no failure arms ([design](design.md#scope)) |
+| foreign functions | 38 externs in `FunX` (337 `stm_foreign` calls): 18 with a semantics (`emod_int`, `pow2`, `count_leading_zeros`, `length`, `vector_subrange`, ...), 20 unconstrained (memory, tags, platform settings CHERIoT leaves open, ...) |
+| policy exclusions | 44, removed with their uses (plus the pattern `undefined_*`, which matches nothing in scope yet): 10 no-op, 7 failure, 18 unconstrained, 6 value, 3 registers (`tests/cheriot/scope.toml`, [design](design.md#policy-exclusions)) |
+| Rocq, plain | all of `base.v` and `machine.v` compile (slowest: `fundef_bindfree` 19.1 s, `encdec_backwards` 4.3 s) |
 | Rocq, probe (`NYI` as an axiom) | same as plain: nothing to axiomatise |
 
 The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status of all definitions in scope.
 
 ## Known limitations
 
-- PMP and Zb\* are absent, virtual memory excluded; see [design](design.md#scope). Platform settings are CHERIoT's where it fixes them ([design](design.md#platform-settings)).
+- PMP is absent, virtual memory excluded; see [design](design.md#scope). Platform settings are CHERIoT's where it fixes them ([design](design.md#platform-settings)).
 - `try` is its body, handler dropped: an RV32E register >= 16 fails instead of trapping ([design](design.md#exceptions-fail)).
 - Details and what each blocks: [roadmap](roadmap.md).
 
@@ -85,6 +85,7 @@ The baseline (`tests/cheriot/baseline.json`) holds these numbers and the status 
 | 2026-11-16 | `51a49aa1`+ | core + fallbacks | 67 / 67, 67 clean | 499 / 499 | 0 | 0 | 0 | compiles (plain) | `try { e } catch ...` is `e`, handler dropped: `try_execute` translates; missing calls 2 -> 0; plain Rocq compiles all of `machine.v` |
 | 2026-11-17 | `21e4e07e`+ | core + C | 119 / 119, 119 clean | 552 / 552 | 0 | 0 | 0 | compiles | compressed instructions (C, CHERIoT's compressed capability instructions, compressed hints) in scope: 52 more, all clean without translator changes; Sail's rewrites make their `execute(ITYPE(...))` a call to `execute_ITYPE`; `sys_enable_rvc` is an unconstrained foreign function; `execute` keeps 28 failure arms (Zb\*) |
 | 2026-11-17 | `58497392`+ | core + C | 119 / 119, 119 clean | 552 / 552 | 0 | 0 | 0 | compiles | platform settings that CHERIoT fixes are value exclusions: `sys_enable_rvc`, `plat_enable_misaligned_access` = `true`; `sys_enable_fdext`, `sys_enable_zfinx`, `sys_enable_vext` = `false`; `FunX` externs 39 -> 34 |
+| 2026-11-17 | `0146ed05`+ | core + C + Zb\* | 147 / 147, 147 clean | 590 / 590 | 0 | 0 | 0 | compiles | bit manipulation (Zba, Zbb, Zbc, Zbs, Zbkb, Zbkx) in scope, `haveZb*` no longer excluded: 28 more instructions, all clean; loops are recursive helper functions (17), slices at run-time indices foreign calls with a semantics; `reverse_bits_in_byte` no longer ignored; `execute` has no failure arms |
 
 Rows with a different scope are not comparable. Function totals before `c6e58096` come from a call graph that missed 9 functions with a doc comment; the `c6e58096` row (without `+`) still merged the 5 operators into one node.
 A commit with `+` means: measured on that commit plus the changes of the commit that follows it.
