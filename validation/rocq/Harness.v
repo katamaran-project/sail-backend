@@ -97,11 +97,6 @@ Definition c_mtval_has_illegal_inst_bits : bool := false.
 
 (*** Oracle ***)
 
-Definition bitvector_update_val {n} (x : bv n) (i : Z) (b : bv 1) : bv n :=
-  bv.of_Z (if bv.unsigned b =? 0
-           then Z.land (bv.unsigned x) (Z.lnot (Z.shiftl 1 i))
-           else Z.lor (bv.unsigned x) (Z.shiftl 1 i)).
-
 Definition oracle : Oracle :=
   fun Δ σ f args st =>
   let ok {τ} (v : Val τ) : option (Result τ * State) := Some (inr v, st) in
@@ -118,7 +113,7 @@ Definition oracle : Oracle :=
   | truncateLSB            => fun a => ok (semantics_truncateLSB (env.head (env.tail a)) (env.head a))
   | bitvector_access       => fun a => ok (semantics_bitvector_access (env.head (env.tail a)) (env.head a))
   | bitvector_update       => fun a =>
-      @ok (ty.bvec _) (bitvector_update_val (env.head (env.tail (env.tail a))) (env.head (env.tail a)) (env.head a))
+      ok (semantics_bitvector_update (env.head (env.tail (env.tail a))) (env.head (env.tail a)) (env.head a))
   | sail_zeros             => fun a => ok (semantics_sail_zeros (env.head a))
   | get_slice_int          => fun a =>
       ok (semantics_get_slice_int (env.head (env.tail (env.tail a))) (env.head (env.tail a)) (env.head a))

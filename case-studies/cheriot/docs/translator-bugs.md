@@ -7,26 +7,21 @@ Titles tagged `[validator]`: found by translation validation (`validation/`, `gm
 ## Fixed
 
 ### [validator] Tag writes leave `Memory` unchanged in `ForeignCall`
-- Found: the validation harness keeps tags in `Memory`; its oracle is not sound w.r.t. `ForeignCall` for `MEMw_tag` (`validation/docs/harness.md`, Limitations).
-- Cause: `ForeignFunctions.ml` emits `μ' = μ` for every extern declared pure; CHERIoT declares `val MEMw_tag = "write_tag_bool" : (bits(64), bool) -> unit` (`cheri_prelude.sail`) without effects. The comment's justification ("no foreign function reads the memory") fails once `MEMr_tag`/`__read_mem` are answered from memory.
+- Found: the validation harness answers `MEMw_tag` by changing `Memory`, which `ForeignCall` forbade.
+- Cause: every extern declared pure got `μ' = μ`; CHERIoT declares `MEMw_tag` (binding `write_tag_bool`) without effects.
+- Fix: `550e24c7`: a monadic extern, or binding `write_tag_bool`, gets no `μ' = μ`. Test `externs-tag-write`.
 ```coq
-| @MEMw_tag => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v   (* μ' must be free, as for __write_mem *)
-```
-- Fix (`b6db2fa3`): `ForeignFunctions.writes_memory`: a monadic extern, or binding key `write_tag_bool`, gets no `μ' = μ`. Test: e2e `externs-tag-write`.
-```coq
-| @MEMw_tag => fun args res => γ' = γ /\ exists v, res = inr v
+(* before *) | @MEMw_tag => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+(* after  *) | @MEMw_tag => fun args res => γ' = γ /\ exists v, res = inr v
 ```
 
 ### [validator] `bitvector_update` has no semantics
-- Found: the validation harness has to compute it itself (`validation/docs/harness.md`, foreign-function table).
-- Cause: `default_semantics` (`ForeignFunctions.ml`) has no case for its binding, so the result is unconstrained: any bitvector, not `x` with bit `i` set to `b`. Proofs about callers (e.g. CSR field updates) cannot use its value.
+- Found: the validation harness had to compute it itself.
+- Cause: `default_semantics` (`ForeignFunctions.ml`) had no case for binding `vector_update` on bits, so the result was unconstrained.
+- Fix: `550e24c7`: `semantics_bitvector_update`. Test `externs-bitvector-update`.
 ```coq
-| @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
-```
-- Fix (`b6db2fa3`): default semantics for binding `vector_update` on bits. Test: e2e `externs-bitvector-update`.
-```coq
-Definition semantics_bitvector_update {kid__n : nat} (arg1 : Val (ty.bvec kid__n)) (arg2 : Val ty.int) (arg3 : Val (ty.bvec 1)) : Val (ty.bvec kid__n) :=
-  bv.of_Z (if bv.unsigned arg3 =? 0 then Z.clearbit (bv.unsigned arg1) arg2 else Z.setbit (bv.unsigned arg1) arg2)%Z.
+(* before *) | @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ exists v, res = inr v
+(* after  *) | @bitvector_update _ => fun args res => γ' = γ /\ μ' = μ /\ res = inr (semantics_bitvector_update ...)
 ```
 
 ### A model type named `S` broke `machine.v`'s `sail_constraint`

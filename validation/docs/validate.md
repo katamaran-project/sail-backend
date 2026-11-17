@@ -107,8 +107,7 @@ Inductive Outcome A := Done (a : A) | OutOfFuel | NoAnswer Δ σ (f : 𝑭𝑿 �
 |---|---|
 | `__read_mem`, `__write_mem` | byte map at the physical address, little-endian; unwritten bytes 0 |
 | `MEMr_tag`, `MEMw_tag` | tag map; unwritten tags `false` |
-| externs with `semantics_*` | that term |
-| `bitvector_update` | computed by the harness |
+| externs with `semantics_*` (`bitvector_update`, `pow2`, ...) | that term |
 | `unconstrained σ` | the type's generated inhabitant |
 | `plat_*`, `sys_*` | the emulator's defaults (`riscv_platform_impl.c`), with `-F -W` |
 | `get_16_random_bits` | 0 |
