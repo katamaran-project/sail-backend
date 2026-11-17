@@ -7,15 +7,13 @@ $include <prelude.sail>
    (`type vregtype = bits(65536)`). Rocq finds the inhabitant that
    `unconstrained σ` needs by type class search; at this width it must not
    reduce the width (a unary `nat`) before building the value.
-   The union holds the wide bitvector through a record: a union field of
-   this width makes `base.v` slow on its own.
 */
 
 type vregtype = bits(65536)
 
 struct vpair = { lo : vregtype, hi : vregtype }
 
-union vresult = { VOk : vpair, VErr : bits(8) }
+union vresult = { VOk : vregtype, VErr : bits(8) }
 
 val vread : unit -> vregtype
 
