@@ -33,6 +33,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 4. **compare**: the first step whose states differ, as a `diff -u`.
 
 - Both sides stop at the same step: the run ends via `tohost`, or after `L` steps (200, or `# limit: N` in the case). The emulator patch counts every step, retired or not.
+- A Sail assertion or uncaught exception stops both sides inside a step: µSail `stm_fail` (Rocq `Failed`, the step's state printed), the emulator exits without a state for that step ([below](#both-sides-stop)).
 - A trap jumps to the epilogue's handler, which ends the run; without it, the reset `MTCC` (address 0) fetch-faults forever.
 
 ## Results
@@ -46,8 +47,9 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 
 - `pass`: every state equal, and the expected exit code (`trap-*` cases 1, others 0).
 - `expected divergence at step n`: diverges exactly as recorded ([below](#known-divergences)).
+- `both stop at step n`: both sides stop in step n exactly as recorded ([below](#both-sides-stop)).
 - `FAIL at step n`: the first differing state; `diff.txt` holds the diff.
-- `FAIL: ...`: a recorded divergence that did not happen as recorded; `divergence.txt` holds both.
+- `FAIL: ...`: a recorded divergence or stop that did not happen as recorded; `divergence.txt` holds both.
 - `BAD CASE`: both sides agree, but the program did not end as intended.
 - `ERROR`: assembler, emulator or `coqc` error.
 
@@ -82,7 +84,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-sealed-load` | LW through a sealed capability: seal violation |
 | `csr-cheriot` | `mccsr`; `mshwm`, `mshwmb` rounding; stores in and outside `[mshwmb, mshwm)`; `mtvec` read |
 | `csr-misc` | writes of `misa`, `mie`, `mip`, `mstatus` (legalized), `mcountinhibit`, `mcycle(h)`, `minstreth`; seed CSR; `mepc` read; machine IDs |
-| `csrw-mtvec`, `csrw-mepc` | CSR write of `mtvec`, `mepc`: `internal_error` (expected divergences) |
+| `csrw-mtvec`, `csrw-mepc` | CSR write of `mtvec`, `mepc`: `internal_error` (both sides stop) |
 | `mmio` | CLINT, UART, HTIF loads and stores; HTIF putchar |
 | `trap-csr-asr` | CSR reads allowed and a write trapping with ASR cleared in PCC |
 | `trap-medeleg` | `medeleg`: not defined without U, S, N; traps illegal |
@@ -100,7 +102,7 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-mret-untagged` | MEPCC written with bit 0 set (tag cleared), MRET: fetch tag violation on PCC |
 | `trap-pcc-bounds` | fetch past the end of a bounded PCC: bounds violation |
 | `trap-branch-bounds` | taken branch outside PCC bounds: the fetch faults |
-| `umode`, `untagged-mtcc` | MRET into U with `misa.U` = 0; trap to an untagged MTCC (expected divergences: both sides stop) |
+| `umode`, `untagged-mtcc` | MRET into U with `misa.U` = 0; trap to an untagged MTCC (both sides stop) |
 
 ### Adding a case
 
@@ -115,16 +117,43 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 
 - `validation/cases/divergences.toml`, one entry per case: the step, each side's changes at that step (lines of the state format), Rocq's stop and the emulator's exit code, the reason.
 - `expected divergence` only if the states are equal before that step and everything at it is exactly as recorded.
-- `emulator.exit = "none"`: the emulator stopped on a Sail assertion or uncaught exception, without an htif exit and without a state for that step (its delta is empty).
+- `validate.py --list-divergences` prints the whole table.
 
 | case | step | µSail | emulator | reason |
 |---|---|---|---|---|
 | `rv32e-rd` | 5 | `stm_fail` | illegal-instruction trap | `Error_not_rv32e_register` is thrown; µSail has no exceptions ([design](../../case-studies/cheriot/docs/design.md#exceptions-fail)) |
 | `rv32e-rs` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
-| `csrw-mtvec` | 6 | `stm_fail` | assertion failure, no state | CHERIoT's `set_mtvec` is `internal_error` (an assertion): both sides stop |
-| `csrw-mepc` | 6 | `stm_fail` | assertion failure, no state | as `csrw-mtvec`, `set_xret_target` |
-| `umode` | 11 | `stm_fail` | assertion, no state | first step in U: `dispatchInterrupt` asserts Machine when U-mode is absent; both sides stop |
-| `untagged-mtcc` | 7 | `stm_fail` | uncaught exception, no state | PCC and MTCC untagged: `ext_fetch_check_pc` calls `not_implemented`; both sides stop |
+
+### Both sides stop
+
+A Sail assertion or uncaught exception in a step: µSail `stm_fail`s (Rocq `Failed`, its state for the step has `step_result "<message>"`), the emulator prints a message and exits without a state for that step and without an htif exit code.
+Recorded in `divergences.toml` too, with `emulator.stop` and `emulator.message` in place of `emulator.exit` and `emulator.delta`:
+
+```toml
+[umode]
+step = 11
+rocq.stop = "Failed"
+rocq.delta = ['step_result "invalid current privilege"']
+emulator.stop = "assertion"              # or "exception"
+emulator.message = "invalid current privilege"
+```
+
+| `emulator.stop` | the emulator's output |
+|---|---|
+| `assertion` | `Assertion failed: <msg>` (Sail runtime, `sail_assert`) |
+| `exception` | `Exiting due to uncaught exception: <msg>`, `<msg>` the `throw`'s location (`riscv_sim.c`) |
+
+- `both stop at step n` only if the states are equal up to step n - 1; Rocq stops `Failed` after step n with the recorded delta; the emulator has states up to n - 1 only, no htif exit code, and an output line of the recorded kind whose `<msg>` contains `emulator.message`.
+- Unrecorded, the same run is `FAIL at step n`, with both messages.
+
+| case | step | µSail `step_result` | emulator | reason |
+|---|---|---|---|---|
+| `csrw-mtvec` | 6 | assertion failed (message dropped) | assertion `cheri_sys_exceptions.sail:144: unsupported` | CHERIoT's `set_mtvec` is `internal_error` |
+| `csrw-mepc` | 6 | assertion failed (message dropped) | assertion `cheri_sys_exceptions.sail:117: unsupported` | CHERIoT's `set_xret_target` is `internal_error` (MEPCC is written by CSpecialW) |
+| `umode` | 11 | `invalid current privilege` | assertion `invalid current privilege` | first step in U: `dispatchInterrupt` asserts Machine when U-mode is absent |
+| `untagged-mtcc` | 7 | `failure` | exception at `riscv_types.sail:88` | PCC and MTCC untagged: `ext_fetch_check_pc` calls `not_implemented` |
+
+- `internal_error`'s message is computed at run time; the translation drops it (`step_result "assertion failed (message computed at run time, dropped by the translation)"`).
 
 ## Rocq side
 
