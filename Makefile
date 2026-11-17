@@ -109,6 +109,15 @@ validate-coverage: validate
 	$(MAKE) -C validation/rocq coverage
 	validation/scripts/coverage.py $(VALIDATE_ARGS)
 
+# Every 16-bit parcel, one step from one fixed state (validation/docs/validate.md, "All 16-bit
+# parcels"); not part of gmake validate. SWEEP_ARGS: e.g. "--range 0:0x4000 -j 2".
+.PHONY: validate-sweep
+validate-sweep: build
+	$(MAKE) -C validation/emulator CHERIOT=$(VALIDATE_CHERIOT)
+	test -f validation/build/model/base.v || $(MAKE) -C validation/rocq model CHERIOT_SAIL_DIR=$(VALIDATE_CHERIOT)
+	$(MAKE) -C validation/rocq sweep
+	validation/scripts/sweep.py $(SWEEP_ARGS)
+
 
 .PHONY: clean
 clean:

@@ -8,5 +8,7 @@ void dump_state_open(const char *path);
 /* State after step STEP (0: after reset); RESULT: the step_result value. */
 void dump_state_step(uint64_t step, const char *result);
 void dump_state_close(void);
+/* After the run: one step of each 16-bit parcel in [LO, HI) from the state now (dump_state.c). */
+void dump_state_sweep(uint64_t lo, uint64_t hi, uint64_t step_no);
 
 #endif
