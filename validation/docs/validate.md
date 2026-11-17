@@ -72,6 +72,15 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 | `trap-rvc` | `C.ADDI`: compressed absent, traps illegal |
 | `trap-zb` | `ANDN`: Zb\* absent, traps illegal |
 | `rv32e-rd`, `rv32e-rs` | RV32E register >= 16 as destination, as source (expected divergences) |
+| `csr-cheriot` | `mccsr`; `mshwm`, `mshwmb` rounding; stores in and outside `[mshwmb, mshwm)`; `mtvec` read |
+| `csr-misc` | writes of `misa`, `mie`, `mip`, `mstatus` (legalized), `mcountinhibit`, `mcycle(h)`, `minstreth`; seed CSR; `mepc` read; machine IDs |
+| `csrw-mtvec`, `csrw-mepc` | CSR write of `mtvec`, `mepc`: `internal_error` (expected divergences) |
+| `mmio` | CLINT, UART, HTIF loads and stores; HTIF putchar |
+| `trap-csr-asr` | CSR reads allowed and a write trapping with ASR cleared in PCC |
+| `trap-medeleg` | `medeleg`: not defined without U, S, N; traps illegal |
+| `trap-msip` | software interrupt: CLINT `msip`, `mie.MSIE`, `mstatus.MIE` |
+| `trap-mtimer` | timer interrupt: CLINT `mtimecmp` <= `mtime`, `mie.MTIE` |
+| `trap-clint-load` | load from an unmapped CLINT offset: load access fault |
 
 ### Adding a case
 
@@ -86,11 +95,14 @@ validation/scripts/validate.py [CASE...] [options]                     # the sam
 
 - `validation/cases/divergences.toml`, one entry per case: the step, each side's changes at that step (lines of the state format), Rocq's stop and the emulator's exit code, the reason.
 - `expected divergence` only if the states are equal before that step and everything at it is exactly as recorded.
+- `emulator.exit = "-"`: no htif exit code, e.g. the emulator stopped at a failed assertion (`internal_error`) and printed no state for that step (`emulator.delta = []`).
 
 | case | step | µSail | emulator | reason |
 |---|---|---|---|---|
 | `rv32e-rd` | 5 | `stm_fail` | illegal-instruction trap | `Error_not_rv32e_register` is thrown; µSail has no exceptions ([design](../../case-studies/cheriot/docs/design.md#exceptions-fail)) |
 | `rv32e-rs` | 5 | `stm_fail` | illegal-instruction trap | as `rv32e-rd` |
+| `csrw-mtvec` | 6 | `stm_fail` | assertion failure, no state | CHERIoT's `set_mtvec` is `internal_error` (an assertion): both sides stop |
+| `csrw-mepc` | 6 | `stm_fail` | assertion failure, no state | as `csrw-mtvec`, `set_xret_target` |
 
 ## Rocq side
 
@@ -111,7 +123,7 @@ Inductive Outcome A := Done (a : A) | OutOfFuel | NoAnswer Δ σ (f : 𝑭𝑿 �
 | `bitvector_update` | computed by the harness |
 | `unconstrained σ` | the type's generated inhabitant |
 | `plat_*`, `sys_*` | the emulator's defaults (`riscv_platform_impl.c`), with `-F -W` |
-| `get_16_random_bits` | 0 |
+| `get_16_random_bits` | 0 (the emulator reads `/dev/urandom`: cases read the seed CSR into `x0`) |
 | barriers, `__write_mem_ea`, `plat_term_write` | no effect |
 
 - The model's `Memory` is `Z -> Z`: bytes at their address, tags at negative keys, and a log of written keys above `2^40`, from which the dump lists the writes.
@@ -166,6 +178,6 @@ Rocq results cached as `gmake validate`'s, by the hash of `Cov.v`, the model and
 
 ## Limitations
 
-- Not covered: interrupts, `mret`/`ecall`, U-mode, sealing, `AUICGP`, PCC bounds faults.
+- Not covered: `mret`/`ecall`, U-mode, sealing, `AUICGP`, PCC bounds faults.
 - The interpreter's soundness is not proved.
 - `unconstrained` answers the type's inhabitant (`true` for `bool`); the emulator's undefined values are 0 or `false`. No case reads one.
