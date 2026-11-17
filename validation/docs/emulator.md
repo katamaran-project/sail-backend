@@ -62,7 +62,7 @@ Design: [`design.md`](design.md).
   - Also available locally, if wanted later: Homebrew LLVM 22 (`clang --target=riscv32`, `llvm-mc`, `ld.lld`) and `riscv64-elf-gcc`/binutils; neither knows CHERIoT encodings (use `.insn`/`.word`).
 - Reset state: all GPRs null; `PCC`, `MTCC`, `MEPCC` = root executable cap, `MTDC` = root memory cap, `MScratchC` = root sealing cap; all at address 0. A store needs a tagged cap: `cspecialr cX, mtdc` + `csetaddr`.
 - End of run: htif. Store 1 to `tohost`, then 0 to `tohost+4` (one 4-byte store does not complete a command); exit code 0, `SUCCESS`.
-- A trap goes to `MTCC` (address 0, outside RAM): fetch faults forever, and `--inst-limit` does not stop it (fetch faults are not counted). Programs that trap must install a handler in `MTCC` that writes `tohost`; until then use `gtimeout`.
+- A trap goes to `MTCC` (address 0, outside RAM): fetch faults forever. Upstream `--inst-limit` does not stop it (fetch faults are not counted); `cheriot_sim_dump`'s does (every `zstep` counts). The cases of `gmake validate` install a handler in `MTCC` that writes `tohost` (`validate.md`).
 - Examples: `validation/scripts/examples/*.s` (`addi-add-sw`, `addi-x1`, `trap-null-store`, `zb-andn`, `rvc-addi`).
   ```sh
   validation/scripts/mk-test-elf.py validation/scripts/examples/addi-add-sw.s /tmp/t.elf
@@ -130,7 +130,7 @@ Emulator `cheriot_sim_dump`: prints the full state after reset and after every `
   - `dump_state.sail`: `dump_state()`, one `dump_*` call per register; capabilities field by field from the Sail record (`E`, `B`, `T`, `reserved`, perms, `otype`, `address`, `tag`), no bounds decoding. Bitfields as `.bits`, `bit` as `[b]`, enums by constructor name.
   - `gen-dump.py`: writes `dump_state.sail` from the Rocq reset state's register names and the Sail sources' types (`gmake dump-sail`; committed, so the build needs no Rocq).
   - `dump_state.c`/`.h`: the `dump_*` externs; lines sorted in C (`strcmp` = bytewise); `step_result`; `mem`/`tag` lines.
-  - `riscv_sim.patch`: applied to upstream `riscv_sim.c` at build time: `--dump-state FILE`, `--insns-per-tick N`, `dump_state_step` after `init_sail` (`step_result ()`) and after each `zstep` (`stepped`), retired or not.
+  - `riscv_sim.patch`: applied to upstream `riscv_sim.c` at build time: `--dump-state FILE`, `--insns-per-tick N`, `dump_state_step` after `init_sail` (`step_result ()`) and after each `zstep` (`stepped`), retired or not; `--inst-limit N` counts every `zstep` (as `Harness.run_steps`), not only retired ones.
   - `query.mk`: prints cheriot-sail's Makefile variables (`SAIL_SRCS`, `C_FLAGS`, ...) with the no-Zb `SAIL_DEFAULT_INST`; no clone file edited.
 - Memory/tag writes: the model object is compiled with `-Dplatform_write_mem=dump_platform_write_mem -Dwrite_tag_bool=dump_write_tag_bool`; the wrappers log the addresses, then write. At each dump: every logged byte (`read_mem`, last value), every logged tag (`read_tag_bool`, address 8 × argument). ELF loading (`write_mem`) and htif stores are not logged, as on the Rocq side.
 - Output: run file (`<step> <line>`); `statefile.py split RUN DIR` → `reset.state`, `step<i>.state`.
@@ -167,6 +167,6 @@ Emulator `cheriot_sim_dump`: prints the full state after reset and after every `
     3. Dump only at the end of each program: cheaper output, but loses per-step localisation (the design compares per step).
   - Recommendation: 2. The register list can come from the generated µSail `Reg` (same names), so both sides print the same fields.
   - Done as 2, with changes: caps as record fields (not `capToBits`), so the lines equal the Rocq dump's; register names from the Rocq reset state (`gen-dump.py`); a patch, not a copy, of `riscv_sim.c`.
-- **Endless trap loops in dumps.** A trap to `MTCC` (address 0) fetch-faults forever; `--inst-limit` does not count those steps, so `--dump-state` grows without bound. Options: (a) count every `zstep` for `--inst-limit` in the patch; (b) a trap-handler prologue (below); (c) `gtimeout`. Recommendation: (a) plus (b). Not done.
+- **Endless trap loops in dumps.** A trap to `MTCC` (address 0) fetch-faults forever; `--inst-limit` does not count those steps, so `--dump-state` grows without bound. Options: (a) count every `zstep` for `--inst-limit` in the patch; (b) a trap-handler prologue (below); (c) `gtimeout`. Recommendation: (a) plus (b). Done: both (`validate.md`).
 - **F/D, V platform flags** (`sys_enable_fdext`, `sys_enable_vext`) are not pinned in `scope.toml`; they set `misa.F/D/V`. Options: add value exclusions `= false` in `scope.toml`, or let the harness model answer `false`. Recommendation: the harness answers `false` (emulator run with `-F -W`); no change to the translation needed.
-- **Trap handler for trapping tests**: the harness programs need a prologue that sets `MTCC` to a handler ending the run via `tohost` (task 4).
+- **Trap handler for trapping tests**: done, `validation/cases/lib/` (`validate.md`).

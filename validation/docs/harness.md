@@ -87,7 +87,7 @@ Sources in `cheriot-sail/sail-riscv/c_emulator/` (`impl` = `riscv_platform_impl.
 
 - `run_steps fuel n st : Outcome (list (Result bool * State) * Stop)`: up to `n` steps, as the emulator's loop (`while (!htif_done ...)`, sim:889), without `tick_clock`.
 - `Stop`: `Halted` (`htif_done` after a step), `Failed` (a step returned `inl`), `StepLimit` (`n` steps).
-- Every step counts, also `false` ones; the emulator's `--inst-limit` counts only `true` steps, so it never stops a fetch-fault loop.
+- Every step counts, also `false` ones; so does `cheriot_sim_dump`'s `--inst-limit` (patched; upstream counts only `true` steps and never stops a fetch-fault loop). Same `n` on both sides: same last step.
 - Termination: fuel bounds each step's depth, `n` the number of steps, so every run ends with `Done`, `OutOfFuel` or `NoAnswer`; no hang.
 - Trap with `MTCC` = 0 (reset value, outside memory): the trapping instruction returns `true` (decoded), then every fetch faults (`mcause` 1, step `false`, PC stays 0) until `StepLimit`.
 ## StepADDI
