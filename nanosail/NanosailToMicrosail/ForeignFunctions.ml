@@ -212,6 +212,7 @@ let default_semantics (foreign_function : t) : Semantics.t =
   | "min_int"              -> given "Z.min arg1 arg2"
   | "max_int"              -> given "Z.max arg1 arg2"
   | "abs_int"              -> given "Z.abs arg1"
+  | "length"               -> given "Z.of_nat (bv_width arg1)"
   | "count_leading_zeros"  -> given "(Z.of_nat (bv_width arg1) - Z.log2_up (bv.unsigned arg1 + 1))%Z"
   | "count_trailing_zeros" -> given "(if bv.unsigned arg1 =? 0 then Z.of_nat (bv_width arg1) else Z.log2 (Z.land (bv.unsigned arg1) (- bv.unsigned arg1)))%Z"
   (* shifts by an integer amount *)
