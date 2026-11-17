@@ -2,6 +2,7 @@
 #   all      Interp.vo, InterpTests.vo
 #   cheriot  the CHERIoT harness, StepADDI and the ADDI dumps (compiles the model in ../build/model if needed)
 #   dumps    the ADDI state dumps in ../build/dumps (DumpADDI.v; docs/state-format.md)
+#   validate Validate.vo, the runner of gmake validate (docs/validate.md)
 #   model    regenerate base.v/machine.v with this checkout's plugin (needs CHERIOT_SAIL_DIR)
 COQC  ?= coqc
 ROOT  := $(abspath ../..)
@@ -24,6 +25,9 @@ InterpTests.vo: Interp.vo
 Harness.vo: Interp.vo $(MODEL)/machine.vo
 StepADDI.vo: Harness.vo
 Dump.vo: Harness.vo Names.vo
+Validate.vo: Dump.vo
+
+validate: Validate.vo
 
 # Compiling DumpADDI.v writes the dumps (Redirect writes <name>.out; renamed to <name>).
 # Then: grammar check, and Rocq's delta must equal statefile.py's delta of the two states.
@@ -67,4 +71,4 @@ clean:
 clean-model:
 	rm -rf $(BUILD)
 
-.PHONY: all cheriot dumps model clean clean-model
+.PHONY: all cheriot dumps validate model clean clean-model

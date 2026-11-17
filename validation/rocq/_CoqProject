@@ -7,3 +7,4 @@ StepADDI.v
 Names.v
 Dump.v
 DumpADDI.v
+Validate.v

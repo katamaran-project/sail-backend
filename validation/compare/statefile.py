@@ -6,6 +6,8 @@
   statefile.py split RUN DIR             DIR/reset.state (step 0), DIR/step<i>.state
   statefile.py keys A B                  register keys of A and B are equal; else list the
                                          missing (-) and extra (+) keys of B, exit 1
+  statefile.py compare RUN_A RUN_B       first step whose states differ, with diff -u of the
+                                         two states; exit 1 if any (validate.md)
 """
 
 import os
@@ -100,6 +102,24 @@ def split(run_path, out_dir):
             f.write(render(items))
 
 
+def first_difference(a, b):
+    """First step whose states differ in the runs a, b ({step: items}), or None.
+    A step present in only one run differs (its state against an empty one)."""
+    for step in range(max(len(a), len(b))):
+        if a.get(step) != b.get(step):
+            return step
+    return None
+
+
+def state_diff(a, b, step, label_a, label_b):
+    """diff -u of step's states in runs a and b (missing: empty)."""
+    import difflib
+    return "".join(difflib.unified_diff(
+        render(a.get(step, [])).splitlines(keepends=True),
+        render(b.get(step, [])).splitlines(keepends=True),
+        f"{label_a} step {step}", f"{label_b} step {step}"))
+
+
 def reg_keys(path):
     return {k for k, _ in parse_state(read_lines(path), path) if not k.startswith(("mem ", "tag "))}
 
@@ -143,6 +163,20 @@ def main(argv):
         for k in sorted(b - a, key=str.encode):
             print("+", k)
         return 0 if a == b else 1
+    if len(argv) == 3 and argv[0] == "compare":
+        try:
+            a = parse_run(read_lines(argv[1]), argv[1])
+            b = parse_run(read_lines(argv[2]), argv[2])
+        except FormatError as e:
+            print(e, file=sys.stderr)
+            return 1
+        step = first_difference(a, b)
+        if step is None:
+            print(f"equal: {len(a)} states")
+            return 0
+        print(f"first difference at step {step}")
+        sys.stdout.write(state_diff(a, b, step, argv[1], argv[2]))
+        return 1
     print(__doc__, file=sys.stderr)
     return 2
 
