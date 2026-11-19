@@ -2,7 +2,7 @@
 
 ## Environment
 
-- Nix: the flake (`.envrc` runs `use flake`) pins OCaml 5.2.1, Sail 0.20.3, Rocq 9.2 and Katamaran main.
+- Nix: the flake (`.envrc` runs `use flake`) pins OCaml 5.5.1, Sail 0.20.3, Rocq 9.2 and Katamaran main.
 - opam: see [installation](docs/installation.md).
 - Keep the versions in `flake.nix` and the CI workflow (`.github/workflows/build.yaml`) in sync.
 - Use GNU make 4 or later (`gmake` on macOS); macOS's `make` 3.81 cannot parse some of the Makefiles.

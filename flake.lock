@@ -26,17 +26,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1793951130,
-        "narHash": "sha256-NjccQx6cgvuKXpDClRwwgH6NLIuIX3Jevqjj18m5hzo=",
+        "lastModified": 1795089315,
+        "narHash": "sha256-MFnzC+CG1U/KWVYEmc/pwd5U9QY4C/fT4BUpmbTFlBY=",
         "owner": "katamaran-project",
         "repo": "katamaran",
-        "rev": "4f7cef1e8e10d5a0d244c64ffd8e26c9137ea40a",
+        "rev": "0fe351401e7ef1c83842eff6c4d9736c97e74da3",
         "type": "github"
       },
       "original": {
         "owner": "katamaran-project",
         "repo": "katamaran",
-        "rev": "4f7cef1e8e10d5a0d244c64ffd8e26c9137ea40a",
+        "rev": "0fe351401e7ef1c83842eff6c4d9736c97e74da3",
         "type": "github"
       }
     },

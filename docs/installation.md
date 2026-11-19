@@ -1,7 +1,7 @@
 # Installation
 
 These are the same steps the GitHub workflow (`.github/workflows/build.yaml`) runs.
-The project targets OCaml 5.2.1 and Sail 0.20.3.
+The project targets OCaml 5.5.1 and Sail 0.20.3.
 
 ```sh
 # Install Sail's system dependencies
@@ -10,7 +10,7 @@ $ sudo apt install build-essential libgmp-dev z3 opam pkg-config zlib1g-dev
 
 # Create new switch (optional)
 # "katamaran" is the name of the switch and can be chosen freely
-$ opam switch create katamaran ocaml.5.2.1
+$ opam switch create katamaran ocaml.5.5.1
 
 # Install Sail, pinned to the version this project targets
 $ opam pin add sail 0.20.3

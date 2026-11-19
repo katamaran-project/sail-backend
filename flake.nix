@@ -8,7 +8,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     katamaran = {
       # Katamaran main, built with Rocq 9.2 (its packages.rocq920).
-      url = "github:katamaran-project/katamaran/4f7cef1e8e10d5a0d244c64ffd8e26c9137ea40a";
+      url = "github:katamaran-project/katamaran/0fe351401e7ef1c83842eff6c4d9736c97e74da3";
       inputs.flake-utils.follows = "flake-utils";
     };
     # Use Katamaran's nixpkgs, so that Rocq and its libraries are the same
@@ -22,7 +22,7 @@
 
       # Keep in sync with OCAML_VERSION and SAIL_VERSION in .github/workflows/build.yaml.
       sailVersion = "0.20.3";
-      ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_2.overrideScope (self: super: {
+      ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_5.overrideScope (self: super: {
         sail = super.sail.overrideAttrs (old: {
           version = sailVersion;
           src = pkgs.fetchurl {

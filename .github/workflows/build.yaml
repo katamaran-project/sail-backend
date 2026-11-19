@@ -6,7 +6,7 @@ on:
 
 env:
   # Keep these in sync with the opam switch used for development and with flake.nix.
-  OCAML_VERSION: "5.2.1"
+  OCAML_VERSION: "5.5.1"
   SAIL_VERSION: "0.20.3"
 
 jobs:

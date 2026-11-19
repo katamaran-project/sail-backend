@@ -8,7 +8,7 @@ A [Sail](https://github.com/rems-project/sail) plugin (`sail --katamaran`) that 
 the Rocq embedding verified with [Katamaran](https://github.com/katamaran-project/katamaran).
 
 - Status: translates small and medium models; whole ISA models are work in progress (see [case studies](case-studies/README.md)).
-- Targets Sail 0.20.3, OCaml 5.2.1, Rocq 9.2 and Katamaran main.
+- Targets Sail 0.20.3, OCaml 5.5.1, Rocq 9.2 and Katamaran main.
 
 ## Quick start
 

@@ -21,7 +21,7 @@ Needs opam, git, Python 3.11 or later, make, GNU make 4 or later for cheriot-sai
 ### 1. Create an opam switch with the dependencies
 
 ```bash
-opam switch create sail-backend --packages=ocaml.5.2.1,sail.0.20.3,dune,base,stdio,pprint,ppx_here,ocaml_intrinsics_kernel,ounit2
+opam switch create sail-backend --packages=ocaml.5.5.1,sail.0.20.3,dune,base,stdio,pprint,ppx_here,ocaml_intrinsics_kernel,ounit2
 eval $(opam env --switch=sail-backend)
 ```
 
