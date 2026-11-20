@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* One constructor per polymorphic function, with the widths as implicit arguments, in order of appearance *)

@@ -1,14 +1,14 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 
 (*
 
 (*<
-  (generate (argument-types-of-polymorphic-function-calls))
+  argument-types-of-polymorphic-function-calls
 >*)
 
 *)

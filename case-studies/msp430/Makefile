@@ -32,7 +32,7 @@ SAIL_SRCS = $(MSP430_BASE) $(MSP430_INST)
 	coqc $<
 
 base.v machine.v: $(SAIL_SRCS)
-	sail --katamaran --katamaran-config configuration.lisp $(SAIL_SRCS)
+	sail --katamaran --katamaran-config configuration.sexp $(SAIL_SRCS)
 
 all: base.vo machine.vo
 

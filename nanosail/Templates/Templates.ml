@@ -1,41 +1,15 @@
 open ExtBase
-open Monads.Notations.Star(Slang.EvaluationContext)
 
-module Blocks = Blocks
-module Prelude = Prelude
-
-module EC = Slang.EvaluationContext
-
-module GC = struct
-  include NanosailToMicrosail.GenerationContext
-  include Monads.Util.Make(NanosailToMicrosail.GenerationContext)
-end
+module Blocks  = Blocks
+module Outputs = Outputs
 
 type katamaran = NanosailToMicrosail.Katamaran.katamaran
-
-
-let run_code
-      (translation : katamaran)
-      (source      : string   ) : string
-  =
-  let program =
-    let* () = Slang.Prelude.initialize
-    and* fetch_generated = Prelude.prelude translation
-    in
-    let* _ = Slang.Evaluation.parse_and_evaluate_string source
-    in
-    fetch_generated
-  in
-  let value, _state = Slang.EvaluationContext.run program
-  in
-  match value with
-   | Success string -> string
-   | _              -> failwith "Code should produce string"
 
 
 (* Processes a single template, given the input and output as channels *)
 let process_template_streams
     (translation    : katamaran          )
+    ~(template_name : string             )
     (input_channel  : Stdio.In_channel.t )
     (output_channel : Stdio.Out_channel.t) : unit
   =
@@ -62,11 +36,9 @@ let process_template_streams
   let process_out_of_block_line line =
     output_line line
   and process_block lines =
-    let code = String.concat ~sep:"\n" lines
+    let contents = String.concat ~sep:"\n" lines
     in
-    let generated_output = run_code translation code
-    in
-    output_line generated_output
+    output_line @@ Outputs.render translation ~file:template_name contents
   in
   Blocks.process_lines (module Input) ~process_out_of_block_line ~process_block
 
@@ -80,7 +52,7 @@ let process_template
   Logging.info [%here] @@ lazy (PP.format "Processing template %s -> %s" input_file output_file);
   Stdio.In_channel.with_file ~binary:false input_file ~f:begin fun input_stream ->
     Stdio.Out_channel.with_file output_file ~f:begin fun output_stream ->
-      process_template_streams translation input_stream output_stream
+      process_template_streams translation ~template_name:input_file input_stream output_stream
     end
   end
 

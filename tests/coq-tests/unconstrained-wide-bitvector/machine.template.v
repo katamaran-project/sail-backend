@@ -4,7 +4,7 @@ Require Export base.
 Set Default Timeout 60.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* The inhabitants at a 65536-bit width, found by type class search. *)

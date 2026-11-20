@@ -13,6 +13,7 @@
         base.base_internalhash_types
         base.shadow_stdlib
         base
+        parsexp
         stdio
         monads
         nanosail))

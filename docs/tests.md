@@ -29,11 +29,11 @@ $ make cheriot-lib-tests        # unit tests of tests/cheriot/lib and run.py, on
 
 These tests translate a Sail model into Coq code and have Coq check its validity.
 They can be found in `tests/coq-tests`: each subdirectory containing a `model.sail` is one test.
-Each test also has a `configuration.lisp`, which includes `../shared-configuration.lisp`.
+Each test also has a `configuration.sexp`, which includes `../shared-configuration.sexp`.
 
 A test proceeds in two phases:
 
-1. Sail translates `model.sail` using the plugin (`sail --katamaran --katamaran-config configuration.lisp model.sail`).
+1. Sail translates `model.sail` using the plugin (`sail --katamaran --katamaran-config configuration.sexp model.sail`).
 2. `coqc` compiles the generated `base.v` and `machine.v`.
 
 A test passes if both files compile.
@@ -145,12 +145,12 @@ A run directory contains
 * `summary.txt`: PASS/FAIL and duration for each test, followed by the totals.
 * `failures.txt`: the names of the failed tests, one per line, usable with `--include-file`.
 * `run.json`: the run's settings and results.
-* `shared-configuration.lisp`: a copy of the shared configuration, included by each test's configuration.
+* `shared-configuration.sexp`: a copy of the shared configuration, included by each test's configuration.
 * one directory per test.
 
 Each test directory contains
 
-* copies of the test's inputs (`model.sail`, `configuration.lisp`, templates, ...);
+* copies of the test's inputs (`model.sail`, `configuration.sexp`, templates, ...);
 * the generated Coq files (`base.v`, `machine.v`, ...);
 * `output.txt`: the commands that were run, their combined stdout/stderr and exit codes;
 * `output.ast.txt`: `output.txt` reindented by `tests/reindent-ast.py`, to make dumped ASTs readable;

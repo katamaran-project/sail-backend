@@ -34,7 +34,7 @@ tests/cheriot/run.py --cheriot-sail DIR [options]                        # the s
 
 1. **inputs**: check them, record versions (commits, Sail, Katamaran).
 2. **typecheck**: plain Sail, so a model problem is not blamed on the plugin.
-3. **scope**: compute the core from `scope.toml` and the call graph; write `scope-ignores.lisp`, included by the run's copy of the configuration.
+3. **scope**: compute the core from `scope.toml` and the call graph; write `scope-ignores.sexp`, included by the run's copy of the configuration.
 4. **translate**: the plugin at `VERBOSE=4` (lower levels lose which definition each warning belongs to, and save little time).
 5. **rocq**: plain and probe compilation (below).
 6. **analyse**: items (untranslated definitions, holes, warnings, coqc errors), reachability, missing calls, definition statuses, clean instructions.
@@ -127,7 +127,7 @@ All restricted to the scope (`metrics.json`):
 
 - `tests/cheriot/output/<timestamp>-<commit>[-dirty]/`, `latest` points at the newest; about 160 MB per run, mostly the log.
   - `base.v`, `machine.v`, `probe/`, `coqc-*.log`, `log.txt`, `dump/`;
-  - `items.csv`, `dangling-calls.csv`, `piles.txt`, `metrics.json`, `progress.json`, `run.json`, `scope.json`, `scope-ignores.lisp`.
+  - `items.csv`, `dangling-calls.csv`, `piles.txt`, `metrics.json`, `progress.json`, `run.json`, `scope.json`, `scope-ignores.sexp`.
 - Only the 5 newest runs are kept (`--keep-runs N`).
 - Each run that gets through the analysis appends a line to [`history.csv`](history.csv) (tracked).
 - `make cheriot-lib-tests`: unit tests of the library and of `run.py`, on the fixture run in `tests/cheriot/tests/fixtures`.

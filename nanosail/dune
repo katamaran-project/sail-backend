@@ -13,4 +13,5 @@
             stdio
             libsail
             pprint
+            parsexp
             monads))

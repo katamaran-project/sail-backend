@@ -31,8 +31,8 @@ Where things are:
   A loop becomes a recursive helper function (`statement_of_loop`); the `TranslationContext` collects the helpers of the function being translated, and `Translation.translate_definition_and_loop_functions` emits them before it.
 * `nanosail/Ast/`: the nanosail IR. Expressions and statements are separate, as in muSail; numeric expressions and constraints are kept.
 * `nanosail/NanosailToMicrosail/`: pretty-prints the IR as Rocq.
-* `nanosail/Configuration.ml`: the configuration options. `nanosail/Slang/`: the configuration language ([Slang](slang.md)).
-* `nanosail/Templates/`: evaluates the `(*< ... >*)` blocks in templates; `Prelude.ml` defines the Slang functions they call (`base-translation`, `program-translation`, ...).
+* `nanosail/Configuration.ml`: the configuration options and how they are read; `ConfigurationFile.ml` reads the S-expression files (with `parsexp`), `NameFilter.ml` the name patterns of `ignore` ([configuration file](usage.md#configuration-file)).
+* `nanosail/Templates/`: replaces the `(*< ... >*)` blocks in templates; `Outputs.ml` defines what a block can generate (`base-translation`, `program-translation`, ...).
 * `nanosail/ExtBase/`: extensions to Jane Street `Base`, which the code uses instead of the OCaml standard library.
 
 ## `Ast` Module

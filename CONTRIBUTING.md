@@ -34,7 +34,7 @@ Details in [tests](docs/tests.md).
   - `coqc` verdicts are cached in `~/.cache/sail-backend/coq-cache`, shared by all checkouts (`--no-coq-cache` disables it);
   - output: `tests/coq-tests/test-output/<timestamp>-<commit>[-dirty]/<test>/`, with `latest` pointing at the newest run;
   - some tests fail on purpose: they track features that are not implemented yet.
-- Each test's `configuration.lisp` does `$include ../shared-configuration.lisp`.
+- Each test's `configuration.sexp` does `(include ../shared-configuration.sexp)`.
 
 ## Coding conventions
 

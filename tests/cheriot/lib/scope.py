@@ -18,9 +18,8 @@ Policy exclusions (the scope file's [policy-excluded] table; case-studies/cherio
 are definitions that in-scope code reaches but that are not wanted, such as printing,
 tracing and virtual memory. The scope does not follow edges into them, so what only
 they reach leaves the scope too. They are removed together with their uses, with the
-configuration functions exclude-functions-as-no-op, exclude-functions-as-failure,
-exclude-functions-as-unconstrained, exclude-functions-as-value and exclude-registers
-(docs/usage.md): a call to an excluded function becomes the unit value, a failure, an
+configuration option exclude (docs/usage.md), with its parts as-no-op, as-failure,
+as-unconstrained, as-value and registers: a call to an excluded function becomes the unit value, a failure, an
 unconstrained value or a given Sail expression, a read of an excluded register an
 unconstrained value, and a write to it a no-op.
 
@@ -29,12 +28,12 @@ values; it excludes the definitions it matches that in-scope code reaches, which
 scope then lists by name. Patterns are for functions only.
 
 Functions and top-level values outside the scope are ignored with the
-configuration functions ignore-functions and ignore-values. Types are not
+configuration option ignore, with its parts functions and values. Types are not
 excluded: a type that only out-of-scope code uses is still translated, which is
 harmless, while a wrongly excluded one would break the translation.
 
 A dispatcher's calls to the functions of out-of-scope instructions become failures
-(exclude-functions-as-failure): executing an instruction outside the scope is
+((exclude (as-failure ...))): executing an instruction outside the scope is
 unreachable for a proof about the scope. Any call in machine.v into excluded code
 means the scope is wrong (see unexpected_calls).
 """
@@ -54,13 +53,13 @@ CONSTRUCTOR = re.compile(r'^\s*union\s+clause\s+ast\s*=\s*([A-Za-z0-9_]+)', re.M
 DECLARATION = re.compile(r'^val\s+([A-Za-z0-9_#]+)', re.M)
 
 # What the uses of a policy-excluded definition become: the keys of the scope file's
-# [policy-excluded] table, and the configuration function that each one generates.
+# [policy-excluded] table, and the part of the configuration option exclude that each one generates.
 POLICIES = {
-    'no-op': 'exclude-functions-as-no-op',
-    'failure': 'exclude-functions-as-failure',
-    'unconstrained': 'exclude-functions-as-unconstrained',
-    'value': 'exclude-functions-as-value',          # a table: function -> Sail expression
-    'registers': 'exclude-registers',
+    'no-op': 'as-no-op',
+    'failure': 'as-failure',
+    'unconstrained': 'as-unconstrained',
+    'value': 'as-value',                            # a table: function -> Sail expression
+    'registers': 'registers',
 }
 
 
@@ -94,16 +93,15 @@ def policy_exclusions(table: dict[str, Any]) -> dict[str, str]:
     """
     The scope file's [policy-excluded] table as a map from each definition to its policy.
     Each key holds a list of names, except value, which holds a table from names to Sail
-    expressions. Unknown keys, a definition under two keys, a value that is not a string,
-    and an expression with a double quote (Slang strings have no escapes) are errors (ValueError).
+    expressions. Unknown keys, a definition under two keys and a value that is not a string
+    are errors (ValueError).
     """
     unknown = sorted(set(table) - set(POLICIES))
     if unknown:
         raise ValueError(f'[policy-excluded] has unknown keys {", ".join(unknown)}; the keys are {", ".join(POLICIES)}')
     for name, expression in table.get('value', {}).items():
-        if not isinstance(expression, str) or '"' in expression:
-            raise ValueError(f'[policy-excluded] value for {name} must be a Sail expression without double quotes, '
-                             f'got {expression!r}')
+        if not isinstance(expression, str):
+            raise ValueError(f'[policy-excluded] value for {name} must be a Sail expression, got {expression!r}')
     result: dict[str, str] = {}
     for policy in POLICIES:
         for name in table.get(policy, []):
@@ -239,32 +237,41 @@ def declarations(dump: str) -> set[str]:
     return set(DECLARATION.findall(dump))
 
 
+def sexp_string(text: str) -> str:
+    """text as a quoted S-expression string."""
+    return '"' + text.replace('\\', '\\\\').replace('"', '\\"') + '"'
+
+
 def configuration(scope: Scope) -> str:
     """
-    The Slang configuration that ignores the definitions outside the scope, and excludes the
-    policy-excluded definitions together with their uses.
+    The configuration (docs/usage.md#configuration-file) that ignores the definitions outside the
+    scope, and excludes the policy-excluded definitions together with their uses.
     """
     def names(identifiers: set[str]) -> str:
-        return '\n'.join(f'   "{identifier}"' for identifier in sorted(identifiers))
+        return '\n'.join(f'  {sexp_string(identifier)}' for identifier in sorted(identifiers))
+
+    def form(option: str, part: str, body: str) -> str:
+        return f'({option}\n ({part}\n{body}))\n'
+
     text = (f';; Generated by tests/cheriot/run.py from tests/cheriot/scope.toml:\n'
             f';; the {len(scope.excluded_functions)} functions and {len(scope.excluded_values)} values outside the scope.\n'
-            f'(ignore-functions\n  \'(\n{names(scope.excluded_functions)}\n  ))\n'
-            f'(ignore-values\n  \'(\n{names(scope.excluded_values)}\n  ))\n')
+            + form('ignore', 'functions', names(scope.excluded_functions))
+            + form('ignore', 'values', names(scope.excluded_values)))
     if scope.policy:
         text += ';; The policy exclusions ([policy-excluded]): removed together with their uses.\n'
-        for policy, function in POLICIES.items():
+        for policy, part in POLICIES.items():
             selected = {name for name, p in scope.policy.items() if p == policy}
             if not selected:
                 continue
             if policy == 'value':
-                pairs = '\n'.join(f'   ("{name}" "{scope.values[name]}")' for name in sorted(selected))
-                text += f'({function}\n  \'(\n{pairs}\n  ))\n'
+                pairs = '\n'.join(f'  ({sexp_string(name)} {sexp_string(scope.values[name])})' for name in sorted(selected))
+                text += form('exclude', part, pairs)
             else:
-                text += f'({function}\n  \'(\n{names(selected)}\n  ))\n'
+                text += form('exclude', part, names(selected))
     if scope.undispatched:
         text += (f';; The {len(scope.undispatched)} functions of out-of-scope instructions that dispatchers call: '
                  f'each call is a failure.\n'
-                 f'(exclude-functions-as-failure\n  \'(\n{names(scope.undispatched)}\n  ))\n')
+                 + form('exclude', 'as-failure', names(scope.undispatched)))
     return text
 
 

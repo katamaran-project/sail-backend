@@ -18,6 +18,6 @@ then
 fi
 
 
-$SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+$SAIL $OPT -katamaran -katamaran_config configuration.sexp $SAIL_SOURCES
 
 ../process-rewrites.rb
