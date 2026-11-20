@@ -1,4 +1,3 @@
-;; dropped the obsolete option (use-list-notations ...): the plugin no longer has it
 (ignore (overloads))
 (ignore (pragmas include_start include_end file_start file_end sail_internal))
 (ignore (function-definitions "*_of_num"
@@ -21,5 +20,4 @@
                               fdiv_int
                               fmod_int))
 (ignore (types option register_value bits))
-;; (ignore-value-definition-predicate ...) selected no names
 (templates base.template.v machine.template.v base.template.html machine.template.html)

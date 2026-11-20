@@ -1,4 +1,3 @@
-;; dropped the obsolete option (use-list-notations ...): the plugin no longer has it
 (include-original-code)
 (ignore (pragmas file_start include_start include_end sail_internal file_end))
 (ignore (functions eq_unit
@@ -33,6 +32,5 @@
                    num_of_trans_kind
                    num_of_Permission))
 (ignore (overloads))
-;; dropped the obsolete option (ignore-definition-predicate ...): the plugin no longer has it
 (ignore (values default_capability initial_regstate initial_Capability))
 (templates microsail.template.v)

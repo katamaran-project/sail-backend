@@ -1,4 +1,3 @@
-;; dropped the obsolete option (use-list-notations ...): the plugin no longer has it
 (ignore (overloads))
 (ignore (pragmas include_start include_end file_start file_end sail_internal))
 (ignore (function-definitions "*_of_num"
