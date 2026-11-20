@@ -1,16 +1,15 @@
 (*<
-  (generate (base-translation))
+  base-translation
 >*)
 
 (*<
-  (if (untranslated-definitions?)
-    (generate "(* UNTRANSLATED_DEFINITIONS: the Sail definitions below have no translation *)"))
+  (when untranslated-definitions "(* UNTRANSLATED_DEFINITIONS: the Sail definitions below have no translation *)")
 >*)
 
 (*
 
 (*<
-  (generate (untranslated-definitions))
+  untranslated-definitions
 >*)
 
 *)

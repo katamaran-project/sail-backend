@@ -16,7 +16,7 @@ fi
 
 ruby generate.rb > generated.sail
 
-$SAIL $OPT -katamaran -katamaran_config configuration.lisp $SAIL_SOURCES
+$SAIL $OPT -katamaran -katamaran_config configuration.sexp $SAIL_SOURCES
 
 if [[ ! -v NO_COQ ]]
 then

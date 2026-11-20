@@ -24,6 +24,7 @@
                  ppx_here
                  pprint
                  base
+                 parsexp
                  stdio)
 	(allow_empty))
 

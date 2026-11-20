@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* One family indexed by the width; its closed uses are the family at that width *)

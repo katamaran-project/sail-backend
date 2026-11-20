@@ -4,7 +4,7 @@ Translates the core of the [CHERIoT Sail model](https://github.com/microsoft/che
 
 ## Files
 
-- `configuration.lisp`: the translation's configuration (Slang); names the templates below.
+- `configuration.sexp`: the translation's configuration ([format](../../docs/usage.md#configuration-file)); names the templates below.
 - `base.template.v`, `machine.template.v`: templates for the generated `base.v` (types, registers) and `machine.v` (functions).
 - `output/`: the output of `make cheriot-translate` (not tracked).
 - `printvar.mak`: prints a variable of cheriot-sail's Makefile; the loop uses it to get the model's sources (`SAIL_SRCS`).

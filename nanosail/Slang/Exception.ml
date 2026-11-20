@@ -1,2 +1,0 @@
-exception SlangError of string
-

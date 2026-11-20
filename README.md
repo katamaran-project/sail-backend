@@ -15,12 +15,12 @@ the Rocq embedding verified with [Katamaran](https://github.com/katamaran-projec
 ```sh
 nix develop                 # or an opam switch, see docs/installation.md
 dune build
-bin/sail-local --katamaran --katamaran-config configuration.lisp model.sail
+bin/sail-local --katamaran --katamaran-config configuration.sexp model.sail
 ```
 
 - `bin/sail-local` is `sail` with the plugin built in this checkout; `dune install` installs it into the switch instead.
-- The configuration (Slang, a small Lisp) names the templates that receive the generated Rocq ([usage](docs/usage.md)).
-- Small examples: each directory of `tests/coq-tests` holds a `model.sail` and its `configuration.lisp`.
+- The configuration (S-expressions, read as data) names the templates that receive the generated Rocq ([usage](docs/usage.md#configuration-file)).
+- Small examples: each directory of `tests/coq-tests` holds a `model.sail` and its `configuration.sexp`.
 
 ## Documentation
 
@@ -28,7 +28,6 @@ bin/sail-local --katamaran --katamaran-config configuration.lisp model.sail
 - [Usage](docs/usage.md): configuration, templates, verbosity
   - [HTML generation](docs/html-generation.md)
   - [Monomorphization](docs/monomorphization.md) (optional)
-  - [Slang](docs/slang.md), the configuration language
 - [Tests](docs/tests.md)
 - [Code overview](docs/code-overview.md)
 - [Notes on Sail](docs/sail-notes.md)

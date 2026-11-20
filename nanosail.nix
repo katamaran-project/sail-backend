@@ -1,6 +1,7 @@
 { lib
 , buildDunePackage
 , monads
+, parsexp
 , pprint
 , ppx_here
 , sail
@@ -14,6 +15,7 @@ buildDunePackage {
 
   propagatedBuildInputs = [
     monads
+    parsexp
     pprint
     ppx_here
     sail

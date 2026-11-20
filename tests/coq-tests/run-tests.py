@@ -11,8 +11,8 @@ The sandbox for a run lives in
 
     <output-dir>/<timestamp>-<commit>[-dirty]/<test>/
 
-with a copy of shared-configuration.lisp one level up, because every test's
-configuration.lisp does `$include ../shared-configuration.lisp`.
+with a copy of shared-configuration.sexp one level up, because every test's
+configuration.sexp does `(include ../shared-configuration.sexp)`.
 
 Usage:
     ./run-tests.py                                   # run everything
@@ -60,7 +60,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REINDENT_AST = HERE.parent / 'reindent-ast.py'
-SHARED_CONFIGURATION = HERE / 'shared-configuration.lisp'
+SHARED_CONFIGURATION = HERE / 'shared-configuration.sexp'
 
 # One job per CPU.  Each coqc loads Katamaran and peaks at about 650 MB, so
 # running many more jobs than CPUs only adds contention and memory pressure:
@@ -116,7 +116,7 @@ def discover():
 
         looks_test_shaped = any(
             (directory / name).exists()
-            for name in ['configuration.lisp', 'base.template.v', 'base.v']
+            for name in ['configuration.sexp', 'base.template.v', 'base.v']
         )
         if looks_test_shaped:
             non_tests.append(entry)
@@ -433,7 +433,7 @@ def run_test(name, run_directory, arguments):
     if arguments.monomorphise:
         sail_command += ['--auto-mono', '--mono-rewrites']
     sail_command += ['--katamaran',
-                     '--katamaran-config', 'configuration.lisp',
+                     '--katamaran-config', 'configuration.sexp',
                      'model.sail']
 
     # A sail failure is recorded but does not stop the test: the Coq stage is
@@ -671,7 +671,7 @@ def main(argv=None):
     run_directory = arguments.output_dir.resolve() / identifier
     run_directory.mkdir(parents=True)
 
-    # Every test's configuration.lisp does `$include ../shared-configuration.lisp`,
+    # Every test's configuration.sexp does `(include ../shared-configuration.sexp)`,
     # so the shared configuration must sit one level above the sandboxes.
     shutil.copy2(SHARED_CONFIGURATION, run_directory / SHARED_CONFIGURATION.name)
 

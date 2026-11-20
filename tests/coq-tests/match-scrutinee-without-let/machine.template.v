@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* The match is on the call, not on a variable bound to it *)

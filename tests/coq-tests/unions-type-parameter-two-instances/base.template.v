@@ -1,5 +1,5 @@
 (*<
-  (generate (base-translation))
+  base-translation
 >*)
 
 (* The union is used at two types, so each copy has suffixed names. *)
@@ -9,14 +9,13 @@ Check (Val_bits_8 : bv 8 -> Res_bits_8).
 Check (Exc_bits_8 : bv 4 -> Res_bits_8).
 
 (*<
-  (if (untranslated-definitions?)
-    (generate "Theorem UNTRANSLATED_DEFINITIONS : False. Qed."))
+  (when untranslated-definitions "Theorem UNTRANSLATED_DEFINITIONS : False. Qed.")
 >*)
 
 (*
 
 (*<
-  (generate (untranslated-definitions))
+  untranslated-definitions
 >*)
 
 *)

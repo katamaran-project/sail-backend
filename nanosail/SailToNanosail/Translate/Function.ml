@@ -1548,7 +1548,7 @@ let rec statement_of_aexp
                 Printf.sprintf
                   "%s is excluded by %s, but this call to it has type %s instead of unit"
                   receiver_name
-                  (Configuration.FunctionExclusion.slang_function_name exclusion)
+                  (Configuration.FunctionExclusion.configuration_name exclusion)
                   (Ast.Type.to_string result_type)
               in
               TC.fail [%here] message
@@ -1567,7 +1567,7 @@ let rec statement_of_aexp
             Printf.sprintf
               "%s is excluded by %s, but its replacement %s does not parse, or does not type-check at the type of this call, %s"
               receiver_name
-              (Configuration.FunctionExclusion.slang_function_name exclusion)
+              (Configuration.FunctionExclusion.configuration_name exclusion)
               value
               (Ast.Type.to_string result_type)
           in

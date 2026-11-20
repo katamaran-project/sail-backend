@@ -118,20 +118,20 @@ The warnings give an indication of which monomorphizations are necessary, namely
 ## Summary Generation
 
 The output from the logs, while complete, can be overwhelming, especially in cases where there are many calls to polymorphic functions.
-An easier way to get an overview of which polymorphic calls have been made is to rely on the `argument-types-of-polymorphic-function-calls` Slang function which is usable in templates.
+An easier way to get an overview of which polymorphic calls have been made is the template output `argument-types-of-polymorphic-function-calls` ([template files](usage.md#template-files)).
 
 Create a file `polymorphic.template.txt` with as content
 
 ```text
 (*<
-  (generate (argument-types-of-polymorphic-function-calls))
+  argument-types-of-polymorphic-function-calls
 >*)
 ```
 
-Register it as a template in the `configuration.lisp` file:
+Add it to the templates in the configuration file:
 
 ```lisp
-(template "polymorphic.template.txt")
+(templates polymorphic.template.txt)
 ```
 
 Then run the translator, which will then generate a file `polymorphic.txt` with the following contents:
@@ -151,23 +151,13 @@ foo
 
 ## Monomorphization
 
-To have monomorphizations generated, add the following code to `configuration.lisp`:
+To have monomorphizations generated, add the following to the configuration file:
 
 ```lisp
-(monomorphize "foo" "foo_8_8" '(
-                                ("'n" 8)
-                                ("'m" 8)
-                                ))
-
-(monomorphize "foo" "foo_4_1" '(
-                                ("'n" 4)
-                                ("'m" 1)
-                                ))
-
-(monomorphize "foo" "foo_1_2" '(
-                                ("'n" 1)
-                                ("'m" 2)
-                                ))
+(monomorphize
+ (foo (name foo_8_8) (values ("'n" 8) ("'m" 8)))
+ (foo (name foo_4_1) (values ("'n" 4) ("'m" 1)))
+ (foo (name foo_1_2) (values ("'n" 1) ("'m" 2))))
 ```
 
 This causes the following Coq code to be generated:
@@ -243,5 +233,5 @@ There is limited support for Sail's `vector`s:
 
 ### Automatic Monomorphizations
 
-Instead of having to explicitly request monomorphizations in the `configuration.lisp` file,
+Instead of having to explicitly request monomorphizations in the configuration file,
 we could automatically monomorphize polymorphic functions whenever a call to such a function is encountered.
