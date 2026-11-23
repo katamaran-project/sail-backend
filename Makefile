@@ -3,6 +3,12 @@
 # tested in parallel without overwriting each other's installed plugin.
 SAIL_LOCAL := $(CURDIR)/bin/sail-local
 
+# Make every dune command (also those run by the scripts below) use this checkout as its workspace root.
+# Otherwise, in a worktree inside another checkout (such as .claude/worktrees/NAME), dune would pick the
+# outer checkout, since it takes the outermost directory with a dune-project or dune-workspace file.
+# A dune-workspace file in this checkout does not help: once the outer checkout has it too, the outer one wins.
+export DUNE_ROOT := $(CURDIR)
+
 
 .PHONY: all
 all: build test cheriot-lib-tests template-tests end-to-end-tests

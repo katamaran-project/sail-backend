@@ -10,6 +10,10 @@
 ## Build
 
 - `make build` (`dune build`): a cold build takes a few seconds.
+- In a worktree inside another checkout (such as `.claude/worktrees/NAME`), a bare `dune build` builds the outer checkout,
+  because dune takes the outermost directory with a `dune-project` as the workspace root.
+  The Makefile sets `DUNE_ROOT` to its own directory, so `make` targets build the right checkout;
+  run dune itself as `dune build --root .` (or with `DUNE_ROOT` set).
 - `make install` (`dune install`) overwrites the plugin in the opam switch, which other checkouts may share.
   To test this checkout's plugin without installing it, use `bin/sail-local`, a drop-in `sail` that loads `_build/default/sail_plugin/sail_plugin_katamaran.cmxs`.
   The test targets do this by default.
