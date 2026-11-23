@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
+# Runs every template test; exits with a non-zero status if any of them fails.
 
-for dir in `./list-tests`; do
-    (
-        cd $dir;
-        echo "Testing $(basename `pwd`)";
-        ../test.sh;
-        if [ $? != 0 ]; then
-            echo "FAILED $dir";
-            exit -1
-        fi
-    )
+failed=()
+
+for dir in $(./list-tests); do
+    name="$(basename "$dir")"
+    echo "Testing $name"
+    if ! (cd "$dir" && ../test.sh); then
+        echo "FAILED $name"
+        failed+=("$name")
+    fi
 done
+
+if (( ${#failed[@]} > 0 )); then
+    echo "${#failed[@]} template test(s) failed: ${failed[*]}"
+    exit 1
+fi

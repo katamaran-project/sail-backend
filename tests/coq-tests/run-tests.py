@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """Run the coq end-to-end tests.
 
-A test is a directory next to this script that contains a model.sail.  Each
-selected test is run in its own sandbox under the output directory, so that
+A test is a directory next to this script that contains a model.sail.  Tests
+that are known to fail (features not implemented yet) live in the
+expected-failing/ subdirectory instead.  They are run like all other tests,
+but are reported as XFAIL when they fail; one that passes is reported as
+XPASS, which fails the run just like an unexpected failure does, as a
+reminder to move it out of expected-failing/.
+
+Each selected test is run in its own sandbox under the output directory, so that
 the source tree is never touched, and every artifact the run produces --
 the generated Coq, the intermediate rewrite dumps, the diffs between them,
 and the combined stdout/stderr -- is archived there.
@@ -20,6 +26,8 @@ Usage:
     ./run-tests.py --include 'let-shadow-'           # run everything matching
     ./run-tests.py --include-file failures.txt       # run the tests listed
     ./run-tests.py --list                            # show the selection only
+    ./run-tests.py --no-expected-failing             # skip the tests in
+                                                     # expected-failing/
     ./run-tests.py --installed-plugin                # test the plugin installed in
                                                      # the opam switch instead
 
@@ -62,6 +70,10 @@ HERE = Path(__file__).resolve().parent
 REINDENT_AST = HERE.parent / 'reindent-ast.py'
 SHARED_CONFIGURATION = HERE / 'shared-configuration.lisp'
 
+# Tests that are known to fail live here rather than next to this script.  A
+# run fails if one of them passes: it should then be moved next to this script.
+EXPECTED_FAILING = HERE / 'expected-failing'
+
 # One job per CPU.  Each coqc loads Katamaran and peaks at about 650 MB, so
 # running many more jobs than CPUs only adds contention and memory pressure:
 # on an 8-CPU, 16 GB machine, 20 jobs took 94 s for 80 tests and 8 jobs 54 s.
@@ -97,31 +109,50 @@ REWRITE_DUMP_RE = re.compile(r'^intermediate_rewrite_(\d+)_(\w+)\.sail$')
 # --------------------------------------------------------------------------
 
 def discover():
-    """Return (tests, non_tests): directory names with and without model.sail.
+    """Return (tests, non_tests).
+
+    tests maps the name of each test to its directory, either next to this
+    script or in expected-failing/; non_tests lists the directories (relative
+    to this script) that look like tests but have no model.sail.
 
     A directory only counts as a would-be test -- and so only gets reported --
     if it holds something test-shaped; that keeps unrelated directories out of
     the warning.
+
+    Test names must be unique across both locations, since a test's name is
+    also its sandbox directory and what --test selects.
     """
-    tests, non_tests = [], []
+    tests, non_tests = {}, []
 
-    for entry in sorted(os.listdir(HERE)):
-        directory = HERE / entry
-        if not directory.is_dir() or entry.startswith('.'):
-            continue
+    roots = [HERE]
+    if EXPECTED_FAILING.is_dir():
+        roots.append(EXPECTED_FAILING)
 
-        if (directory / 'model.sail').is_file():
-            tests.append(entry)
-            continue
+    for root in roots:
+        for entry in sorted(os.listdir(root)):
+            directory = root / entry
+            if not directory.is_dir() or entry.startswith('.') or directory == EXPECTED_FAILING:
+                continue
 
-        looks_test_shaped = any(
-            (directory / name).exists()
-            for name in ['configuration.lisp', 'base.template.v', 'base.v']
-        )
-        if looks_test_shaped:
-            non_tests.append(entry)
+            if (directory / 'model.sail').is_file():
+                if entry in tests:
+                    sys.exit(f'error: test {entry} exists both in {tests[entry].relative_to(HERE)} '
+                             f'and in {directory.relative_to(HERE)}')
+                tests[entry] = directory
+                continue
+
+            looks_test_shaped = any(
+                (directory / name).exists()
+                for name in ['configuration.lisp', 'base.template.v', 'base.v']
+            )
+            if looks_test_shaped:
+                non_tests.append(str(directory.relative_to(HERE)))
 
     return tests, non_tests
+
+
+def is_expected_to_fail(directory):
+    return directory.parent == EXPECTED_FAILING
 
 
 def read_include_file(path):
@@ -162,6 +193,12 @@ def select(tests, arguments):
     for pattern in arguments.exclude:
         regex = re.compile(pattern)
         selected = {name for name in selected if not regex.search(name)}
+
+    # --no-expected-failing drops the expected failures, except those named
+    # explicitly with --test or --include-file.
+    if not arguments.expected_failing:
+        selected = {name for name in selected
+                    if name in named or not is_expected_to_fail(tests[name])}
 
     return sorted(selected)
 
@@ -413,13 +450,31 @@ def prune(sandbox):
             (sandbox / entry).unlink()
 
 
-def run_test(name, run_directory, arguments):
-    """Run one test in its own sandbox and return its result record."""
+def outcome(passed, expected_to_fail):
+    """PASS and XFAIL are as expected; FAIL and XPASS make the run fail."""
+    if expected_to_fail:
+        return 'XPASS' if passed else 'XFAIL'
+    return 'PASS' if passed else 'FAIL'
+
+
+def is_unexpected(result, coq):
+    """Whether the result makes the run fail.
+
+    Without the Coq phase, an XPASS only means that the translation succeeded;
+    the generated Coq may still fail to compile, which is why most expected
+    failures fail.  So it does not make the run fail.
+    """
+    return result['outcome'] == 'FAIL' or (result['outcome'] == 'XPASS' and coq)
+
+
+def run_test(name, source, run_directory, arguments):
+    """Run the test in directory source in its own sandbox and return its result record."""
     sandbox = run_directory / name
     started = time.monotonic()
     log = []
+    expected_to_fail = is_expected_to_fail(source)
 
-    populate_sandbox(HERE / name, sandbox)
+    populate_sandbox(source, sandbox)
 
     sail_command = [arguments.sail]
     sail_environment = None
@@ -462,6 +517,8 @@ def run_test(name, run_directory, arguments):
     result = {
         'name': name,
         'passed': passed,
+        'expected_to_fail': expected_to_fail,
+        'outcome': outcome(passed, expected_to_fail),
         'sail_exit': sail_exit,
         'coq_exits': coq_exits,
         'coq_cached': coq_cached,
@@ -480,20 +537,36 @@ def run_test(name, run_directory, arguments):
 # reporting
 # --------------------------------------------------------------------------
 
-def write_summary(run_directory, results):
+OUTCOMES = ['PASS', 'FAIL', 'XFAIL', 'XPASS']
+
+
+def count_outcomes(results):
+    return {label: sum(1 for r in results if r['outcome'] == label) for label in OUTCOMES}
+
+
+def format_counts(counts):
+    return ' '.join(f'{label}:{counts[label]}' for label in OUTCOMES)
+
+
+def write_summary(run_directory, results, coq):
+    """Write summary.txt, failures.txt (every test that failed, expected or not)
+    and unexpected.txt (the tests that make the run fail: FAIL and XPASS)."""
     failures = sorted(r['name'] for r in results if not r['passed'])
-    passes = sum(1 for r in results if r['passed'])
+    unexpected = sorted(r['name'] for r in results if is_unexpected(r, coq))
 
     lines = [
-        f'{"PASS" if r["passed"] else "FAIL"}  {r["duration_s"]:7.2f}s  {r["name"]}'
+        f'{r["outcome"]:<5}  {r["duration_s"]:7.2f}s  {r["name"]}'
         for r in sorted(results, key=lambda r: r['name'])
     ]
     lines.append('')
-    lines.append(f'PASS:{passes} FAIL:{len(failures)}')
+    lines.append(format_counts(count_outcomes(results)))
 
     (run_directory / 'summary.txt').write_text('\n'.join(lines) + '\n')
     (run_directory / 'failures.txt').write_text(
         ''.join(f'{name}\n' for name in failures)
+    )
+    (run_directory / 'unexpected.txt').write_text(
+        ''.join(f'{name}\n' for name in unexpected)
     )
 
 
@@ -574,6 +647,9 @@ def parse_arguments(argv):
                            help='run the tests named in this file, one per line')
     selection.add_argument('--exclude', action='append', default=[], metavar='REGEX',
                            help='skip tests whose name matches; repeatable')
+    selection.add_argument('--expected-failing', action=argparse.BooleanOptionalAction, default=True,
+                           help='also run the tests in expected-failing/ (default: on); '
+                                '--no-expected-failing still runs those named by --test or --include-file')
     selection.add_argument('--list', action='store_true',
                            help='print the selected tests and exit')
     selection.add_argument('--list-nontests', action='store_true',
@@ -683,7 +759,7 @@ def main(argv=None):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=arguments.jobs) as pool:
         futures = {
-            pool.submit(run_test, name, run_directory, arguments): name
+            pool.submit(run_test, name, tests[name], run_directory, arguments): name
             for name in selected
         }
 
@@ -692,18 +768,22 @@ def main(argv=None):
             try:
                 result = future.result()
             except Exception as error:                  # noqa: BLE001
-                result = {'name': name, 'passed': False, 'sail_exit': None,
+                expected_to_fail = is_expected_to_fail(tests[name])
+                result = {'name': name, 'passed': False,
+                          'expected_to_fail': expected_to_fail,
+                          'outcome': outcome(False, expected_to_fail),
+                          'sail_exit': None,
                           'coq_exits': {}, 'duration_s': 0.0,
                           'command': '', 'error': repr(error)}
             results.append(result)
-            print(f'[{len(results)}/{len(selected)}] '
-                  f'{"PASS" if result["passed"] else "FAIL"} {name}', flush=True)
+            print(f'[{len(results)}/{len(selected)}] {result["outcome"]} {name}', flush=True)
 
     elapsed = time.monotonic() - started
     passes = sum(1 for r in results if r['passed'])
+    counts = count_outcomes(results)
     coq_cache_hits = sum(1 for r in results if r.get('coq_cached'))
 
-    write_summary(run_directory, results)
+    write_summary(run_directory, results, arguments.coq)
     append_history(arguments.output_dir.resolve(), commit, dirty, results, identifier)
     update_latest_symlink(arguments.output_dir.resolve(), identifier)
     prune_runs(arguments.output_dir.resolve(), arguments.keep_runs)
@@ -721,15 +801,41 @@ def main(argv=None):
         'selected': selected,
         'pass_count': passes,
         'fail_count': len(results) - passes,
+        'outcome_counts': counts,
         'duration_s': round(elapsed, 2),
     }, indent=2) + '\n')
 
-    print(f'PASS:{passes} FAIL:{len(results) - passes} in {elapsed:.1f}s')
+    print(f'{format_counts(counts)} in {elapsed:.1f}s')
     if arguments.coq_fingerprint is not None:
         print(f'coqc verdicts reused from the cache: {coq_cache_hits}/{len(results)}')
     print(f'output: {run_directory}')
 
-    return 0 if passes == len(results) else 1
+    report_unexpected(results, arguments.coq)
+
+    return 1 if any(is_unexpected(r, arguments.coq) for r in results) else 0
+
+
+def report_unexpected(results, coq):
+    """Explain the outcomes that make the run fail."""
+    failed = sorted(r['name'] for r in results if r['outcome'] == 'FAIL')
+    xpassed = sorted(r['name'] for r in results if r['outcome'] == 'XPASS')
+
+    if xpassed and not coq:
+        print(f'\nnote: without the Coq phase, XPASS only means that the translation succeeded, '
+              f'so it does not fail the run ({len(xpassed)} test(s))')
+        xpassed = []
+
+    if failed:
+        print(f'\n{len(failed)} test(s) failed unexpectedly:')
+        for name in failed:
+            print(f'  {name}')
+
+    if xpassed:
+        print(f'\n{len(xpassed)} test(s) in {EXPECTED_FAILING.name}/ now pass. '
+              f'Move them out of it, so that they are expected to pass from now on:')
+        for name in xpassed:
+            print(f'  git mv {(EXPECTED_FAILING / name).relative_to(HERE.parent.parent)} '
+                  f'{(HERE / name).relative_to(HERE.parent.parent)}')
 
 
 if __name__ == '__main__':

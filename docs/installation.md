@@ -1,6 +1,6 @@
 # Installation
 
-These are the same steps the GitHub workflow (`.github/workflows/build.yaml`) runs.
+These are the same steps the `build` job of the GitHub workflow (`.github/workflows/build.yaml`) runs.
 The project targets OCaml 5.5.1 and Sail 0.20.3.
 
 ```sh

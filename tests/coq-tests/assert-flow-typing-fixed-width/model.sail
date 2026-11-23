@@ -3,7 +3,7 @@ default Order dec
 $include <prelude.sail>
 
 /*
-   The fixed-width sibling of ../assert-flow-typing-runtime-width.
+   The fixed-width sibling of ../expected-failing/assert-flow-typing-runtime-width.
 
    As there, the slice v[n - 1 .. 0] type-checks only because of the assert before it:
    n has type int, so only the assert tells Sail that 0 < n <= 64.
@@ -14,7 +14,7 @@ $include <prelude.sail>
 
    Unlike there, n is a constant, so the slice has a width known at compile time
    and the whole function can be translated to muSail.
-   This test guards the fix of the crash; ../assert-flow-typing-runtime-width additionally
+   This test guards the fix of the crash; ../expected-failing/assert-flow-typing-runtime-width additionally
    needs bitvectors whose width is only known at run time.
 */
 

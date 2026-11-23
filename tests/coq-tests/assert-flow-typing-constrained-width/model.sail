@@ -3,7 +3,7 @@ default Order dec
 $include <prelude.sail>
 
 /*
-   A sibling of ../assert-flow-typing-runtime-width and ../assert-flow-typing-fixed-width.
+   A sibling of ../expected-failing/assert-flow-typing-runtime-width and ../assert-flow-typing-fixed-width.
 
    n is read from a register, so it is a run-time value, but the assert pins it to 32:
    after the assert, Sail knows n == 32, so the slice v[n - 1 .. 0] has type bits(32),
