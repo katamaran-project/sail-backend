@@ -192,10 +192,7 @@ Each test directory contains
 * unless `--no-dump` is given, `rewrite-NN-<pass>.sail`, the Sail AST after each rewrite pass,
   and `delta-NN-<pass>.diff`, the diff between consecutive passes.
 
-After each run, a line is appended to `test-output/test-history.csv`
-containing the timestamp, the commit, whether there were uncommitted changes, the number of passed and failed tests, and the run identifier.
-These counts include the expected failures (an `XFAIL` counts as failed), so they stay comparable with older runs.
-This file is tracked by Git; the run directories are not.
+The run directories are not tracked by Git.
 
 ## Template Tests
 

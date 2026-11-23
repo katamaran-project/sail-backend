@@ -59,7 +59,7 @@ The run has these stages; a stage that fails ends the run.
                 makes the progress.
 
 Every run that gets through the analysis appends a line to case-studies/cheriot/docs/history.csv
-(tracked in git, like the end-to-end tests' history).
+(tracked in git).
 
 Everything goes to a fresh directory <output-dir>/<timestamp>-<commit>[-dirty]/,
 with <output-dir>/latest pointing to it (default output dir: tests/cheriot/output):

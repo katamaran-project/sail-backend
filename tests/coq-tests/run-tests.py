@@ -51,7 +51,6 @@ share one: by default $XDG_CACHE_HOME/sail-backend/coq-cache (that is,
 
 import argparse
 import concurrent.futures
-import csv
 import datetime
 import difflib
 import fnmatch
@@ -600,24 +599,6 @@ def prune_runs(output_dir: Path, keep: int) -> list[Path]:
     return old
 
 
-def append_history(output_directory, commit, dirty, results, run_identifier):
-    """Append to the historical record, keeping its existing schema."""
-    path = output_directory / 'test-history.csv'
-    passes = sum(1 for r in results if r['passed'])
-    failures = len(results) - passes
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S+')
-
-    exists = path.exists()
-
-    with open(path, 'a', newline='') as file:
-        writer = csv.writer(file)
-        if not exists:
-            writer.writerow(['timestamp', 'commit', 'files changed wrt commit',
-                             'pass count', 'fail count', 'run'])
-        writer.writerow([timestamp, commit, dirty, passes, failures,
-                         run_identifier])
-
-
 # --------------------------------------------------------------------------
 # command line
 # --------------------------------------------------------------------------
@@ -784,7 +765,6 @@ def main(argv=None):
     coq_cache_hits = sum(1 for r in results if r.get('coq_cached'))
 
     write_summary(run_directory, results, arguments.coq)
-    append_history(arguments.output_dir.resolve(), commit, dirty, results, identifier)
     update_latest_symlink(arguments.output_dir.resolve(), identifier)
     prune_runs(arguments.output_dir.resolve(), arguments.keep_runs)
 
