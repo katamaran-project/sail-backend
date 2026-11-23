@@ -11,7 +11,7 @@ $include <prelude.sail>
    "Internal error: Unreachable code (at src/lib/type_error.ml line 577)".
    Reduced from wV in sail-riscv's riscv_vext_regs.sail, which breaks the CHERIoT model.
 
-   Status: the crash is fixed (remove_blocks is no longer used; ../assert-flow-typing-fixed-width
+   Status: the crash is fixed (remove_blocks is no longer used; ../../assert-flow-typing-fixed-width
    guards that). This test is expected to fail until muSail translation supports bitvectors
    whose width is only known at run time: the slice has width n, a run-time value,
    and is translated to `uop.vector_subrange NYI NYI`.

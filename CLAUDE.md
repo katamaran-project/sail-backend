@@ -21,6 +21,7 @@ A Sail plugin (`sail --katamaran`) that translates Sail ISA models to µSail, th
 - After a change: `dune build`, `make test`, and `make e2e` (or `tests/coq-tests/run-tests.py --test NAME` for one test).
   `--no-coq` translates only, which is much faster.
 - E2E `coqc` verdicts are cached across checkouts, so a new worktree needs no cold run.
-- Some e2e tests are expected to fail (unimplemented features); compare pass/fail counts with `tests/coq-tests/test-output/test-history.csv`.
+- E2E tests that are expected to fail (unimplemented features) live in `tests/coq-tests/expected-failing`; `make e2e` succeeds only without `FAIL` or `XPASS`.
+  An `XPASS` means: move the test out of `expected-failing` and update its `README.md`. CI runs all of this.
 - New dependency of `nanosail`: add it to `embed_in_plugin_libraries` in `sail_plugin/dune` too (order matters).
 - Logging level: `VERBOSE=0..4` (default 2).

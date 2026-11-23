@@ -31,6 +31,9 @@ These tests translate a Sail model into Coq code and have Coq check its validity
 They can be found in `tests/coq-tests`: each subdirectory containing a `model.sail` is one test.
 Each test also has a `configuration.sexp`, which includes `../shared-configuration.sexp`.
 
+Tests that are known to fail, usually because the translation does not support a feature yet,
+live in `tests/coq-tests/expected-failing` instead (see [Expected Failures](#expected-failures)).
+
 A test proceeds in two phases:
 
 1. Sail translates `model.sail` using the plugin (`sail --katamaran --katamaran-config configuration.sexp model.sail`).
@@ -59,7 +62,8 @@ This builds the plugin, then calls `tests/coq-tests/run-tests.py`.
 
 * Running all these tests from scratch takes a few minutes.
   Later runs are faster thanks to the Coq cache (see below).
-* Not all tests pass due to missing features in the Sail-Coq translation step.
+* The tests in `tests/coq-tests/expected-failing` are run too, and are expected to fail (see below).
+  The run succeeds (exit status 0) if every other test passes and every expected failure fails.
 * By default, one test runs per CPU. Use `-j N` to change this.
   More jobs than CPUs does not help: each `coqc` peaks at about 650MB, and on an 8-CPU, 16GB machine
   20 jobs were almost twice as slow as 8.
@@ -84,6 +88,35 @@ It lives in `~/.cache/sail-backend/coq-cache` (`$XDG_CACHE_HOME/sail-backend/coq
 * `--keep-vo` also always runs `coqc`, since a cache hit produces no `.vo` files.
 * The cache can be deleted at any time.
 
+### Expected Failures
+
+Each test has one of four outcomes:
+
+| Outcome | Test is in                         | Result | Fails the run |
+|---------|------------------------------------|--------|---------------|
+| `PASS`  | `tests/coq-tests`                  | passed | no            |
+| `FAIL`  | `tests/coq-tests`                  | failed | yes           |
+| `XFAIL` | `tests/coq-tests/expected-failing` | failed | no            |
+| `XPASS` | `tests/coq-tests/expected-failing` | passed | yes           |
+
+An `XPASS` fails the run so that a test that starts to pass (because a feature was implemented, say) is noticed
+and moved out of `expected-failing`, after which a regression makes it `FAIL`.
+The runner prints the `git mv` commands that do this:
+
+```bash
+$ git mv tests/coq-tests/expected-failing/NAME tests/coq-tests/NAME
+```
+
+Conversely, a new test for a feature that is not implemented yet goes into `expected-failing`.
+`tests/coq-tests/expected-failing/README.md` lists why each of its tests fails; keep it up to date when moving tests.
+
+* Test names must be unique across both directories: `--test NAME` works the same for either.
+* `--no-expected-failing` skips the expected failures, except those named with `--test` or `--include-file`.
+* With `--no-coq`, a test passes if Sail translates it, which most expected failures do: their generated Coq is what fails.
+  An `XPASS` therefore does not fail a run without the Coq phase.
+* `expected-failing/shared-configuration.sexp` is a symbolic link to `../shared-configuration.sexp`,
+  so the tests' `(include ../shared-configuration.sexp)` also resolves when running Sail in a test's directory.
+
 ### Selecting Tests
 
 ```bash
@@ -104,7 +137,7 @@ $ tests/coq-tests/run-tests.py --include 'atoms-' --list
 ```
 
 * `--test`, `--include` and `--include-file` are combined; `--exclude` is applied afterwards.
-  Without any of the first three, all tests are selected.
+  Without any of the first three, all tests are selected, including those in `expected-failing`.
 * Naming a nonexistent test with `--test` or `--include-file` is an error.
 * `--list-nontests` lists the directories that look like tests but lack a `model.sail`; these are ignored.
 * The `failures.txt` of a previous run can be passed to `--include-file` to rerun only the failed tests.
@@ -142,8 +175,9 @@ Only the 5 newest runs are kept; `--keep-runs N` changes that (0 keeps all).
 
 A run directory contains
 
-* `summary.txt`: PASS/FAIL and duration for each test, followed by the totals.
-* `failures.txt`: the names of the failed tests, one per line, usable with `--include-file`.
+* `summary.txt`: the outcome (`PASS`, `FAIL`, `XFAIL` or `XPASS`) and duration of each test, followed by the totals.
+* `failures.txt`: the names of the failed tests (`FAIL` and `XFAIL`), one per line, usable with `--include-file`.
+* `unexpected.txt`: the names of the tests that made the run fail (`FAIL`, and `XPASS` when the Coq phase ran).
 * `run.json`: the run's settings and results.
 * `shared-configuration.sexp`: a copy of the shared configuration, included by each test's configuration.
 * one directory per test.
@@ -154,10 +188,35 @@ Each test directory contains
 * the generated Coq files (`base.v`, `machine.v`, ...);
 * `output.txt`: the commands that were run, their combined stdout/stderr and exit codes;
 * `output.ast.txt`: `output.txt` reindented by `tests/reindent-ast.py`, to make dumped ASTs readable;
-* `result.json`: the test's result, exit codes, whether the Coq result came from the cache, duration and the Sail command used;
+* `result.json`: the test's result, whether it is expected to fail, its outcome, exit codes, whether the Coq result came from the cache, duration and the Sail command used;
 * unless `--no-dump` is given, `rewrite-NN-<pass>.sail`, the Sail AST after each rewrite pass,
   and `delta-NN-<pass>.diff`, the diff between consecutive passes.
 
-After each run, a line is appended to `test-output/test-history.csv`
-containing the timestamp, the commit, whether there were uncommitted changes, the number of passed and failed tests, and the run identifier.
-This file is tracked by Git; the run directories are not.
+The run directories are not tracked by Git.
+
+## Template Tests
+
+`tests/template-tests` holds one test per subdirectory: Sail translates its `model.sail`, and the generated `microsail.v`
+must be identical to `expected/microsail.v`.
+
+```bash
+$ make template-tests
+```
+
+## Continuous Integration
+
+The GitHub workflow `.github/workflows/build.yaml` runs on every push and pull request, in two jobs:
+
+* `build` builds the plugin in an opam switch, following [the installation instructions](installation.md), and runs the unit tests (`dune test`).
+* `test` runs, in the Nix development shell of `flake.nix` (which provides Rocq and Katamaran),
+  `make template-tests` and `make end-to-end-tests`.
+
+The end-to-end step fails if a test outside `expected-failing` fails, or if a test in `expected-failing` passes;
+in the latter case, move that test out of `expected-failing` in the same pull request.
+When the step fails, the job uploads the summary and each test's `output.txt`, `result.json` and generated Coq as the
+`end-to-end-test-results` artifact.
+
+The `test` job caches the Nix store (keyed by `flake.nix` and `flake.lock`) and the Coq cache.
+A run without a Nix store cache builds Sail, which takes a few minutes; Katamaran comes prebuilt from its cachix.
+
+The CHERIoT library tests, the MSP430 tests and the logging tests are not run by the workflow.

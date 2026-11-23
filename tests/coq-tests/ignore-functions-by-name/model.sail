@@ -6,7 +6,7 @@ $include <prelude.sail>
    (ignore (functions low_bits)) ignores low_bits by name, on top of the
    names that ../shared-configuration.sexp ignores: the two forms add up.
    low_bits slices a bitvector with a width known only at run time,
-   which generates NYI holes (see ../assert-flow-typing-runtime-width), so this
+   which generates NYI holes (see ../expected-failing/assert-flow-typing-runtime-width), so this
    test passes only if low_bits is ignored. The CHERIoT loop (tests/cheriot/run.py)
    ignores the definitions outside its scope this way.
 */

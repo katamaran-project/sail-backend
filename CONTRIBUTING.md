@@ -23,8 +23,9 @@ Details in [tests](docs/tests.md).
 | command | what |
 |---|---|
 | `make test` | unit tests (OUnit2, `tests/nanosail-tests`, `tests/monad-tests`); `VERBOSE=N` shows logging |
-| `make e2e` | end-to-end tests: translate each `tests/coq-tests/*/model.sail`, compile with `coqc` |
+| `make e2e` | end-to-end tests: translate each `tests/coq-tests/*/model.sail` (and `tests/coq-tests/expected-failing/*/model.sail`), compile with `coqc` |
 | `make template-tests` | template tests |
+| `make cheriot-lib-tests` | unit tests of the CHERIoT loop's library |
 | `make msp430-tests` | MSP430 tests |
 
 - A new unit test suite is registered in the top-level list in `NanosailTests.ml`.
@@ -33,8 +34,14 @@ Details in [tests](docs/tests.md).
   - `--no-coq`: translation only; `--no-dump`: skip the rewrite dumps; `-j N`: jobs (default: one per CPU, each `coqc` needs about 650 MB);
   - `coqc` verdicts are cached in `~/.cache/sail-backend/coq-cache`, shared by all checkouts (`--no-coq-cache` disables it);
   - output: `tests/coq-tests/test-output/<timestamp>-<commit>[-dirty]/<test>/`, with `latest` pointing at the newest run;
-  - some tests fail on purpose: they track features that are not implemented yet.
+  - tests that fail on purpose, because they track features that are not implemented yet, live in `tests/coq-tests/expected-failing`:
+    they are reported as `XFAIL`; one that passes is an `XPASS`, which fails the run like a `FAIL` does;
+  - an `XPASS` means the test must be moved out of `expected-failing` (`git mv`, printed by the runner);
+    a new test for a missing feature goes into it, with a line in its `README.md` saying why it fails;
+  - `--no-expected-failing` skips the expected failures.
 - Each test's `configuration.sexp` does `(include ../shared-configuration.sexp)`.
+- CI (`.github/workflows/build.yaml`) runs the unit tests, the template tests and the end-to-end tests, including the expected failures;
+  it fails on any `FAIL` or `XPASS` ([details](docs/tests.md#continuous-integration)).
 
 ## Coding conventions
 

@@ -2,6 +2,7 @@ _build
 *~
 *#
 test-results.txt
+tests/**/tests-output.txt
 z3_problems
 case-studies/msp430/_compilation
 intermediate_rewrite_*

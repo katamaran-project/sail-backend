@@ -1,4 +1,4 @@
-name: Build Sail Backend
+name: Build and Test Sail Backend
 
 on:
   push:
@@ -10,6 +10,7 @@ env:
   SAIL_VERSION: "0.20.3"
 
 jobs:
+  # Builds the plugin with opam, as described in docs/installation.md, and runs the unit tests.
   build:
     runs-on: ubuntu-22.04
 
@@ -63,3 +64,67 @@ jobs:
 
       - name: Run unit tests
         run: opam exec -- dune test
+
+  # Runs the other test suites (see docs/tests.md) in the Nix development shell of flake.nix,
+  # which provides Rocq and the Katamaran library that the end-to-end tests compile against.
+  # Katamaran comes prebuilt from its cachix; everything else from cache.nixos.org,
+  # except Sail and this project, which are built here, so the Nix store is cached too.
+  test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-substituters = https://katamaran.cachix.org
+            extra-trusted-public-keys = katamaran.cachix.org-1:6oOkbLd/LRTGiixl0cVyWC2/OXo5A0l1e84jqZf+dCE=
+
+      # Keyed by the flake, so that the cache is rebuilt whenever the development shell changes.
+      - name: Cache Nix store
+        uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 8G
+
+      - name: Set up development shell
+        run: nix develop --command true
+
+      # The coqc verdicts of the end-to-end tests, keyed by the generated Coq and the Coq installation
+      # (see docs/tests.md), so an entry can never be stale. Each run saves a new cache, which
+      # the next run restores.
+      - name: Restore Coq cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/sail-backend/coq-cache
+          key: coq-cache-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: coq-cache-${{ runner.os }}-
+
+      - name: Build project
+        run: nix develop --command make build
+
+      - name: Run template tests
+        run: nix develop --command make template-tests
+
+      # Runs the tests in tests/coq-tests, which must pass, and those in tests/coq-tests/expected-failing,
+      # which must fail: one that passes (XPASS) fails this step, and should be moved out of expected-failing.
+      - name: Run end-to-end tests
+        run: nix develop --command make end-to-end-tests
+
+      - name: Upload end-to-end test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: end-to-end-test-results
+          path: |
+            tests/coq-tests/test-output/2*/summary.txt
+            tests/coq-tests/test-output/2*/failures.txt
+            tests/coq-tests/test-output/2*/unexpected.txt
+            tests/coq-tests/test-output/2*/*/output.txt
+            tests/coq-tests/test-output/2*/*/result.json
+            tests/coq-tests/test-output/2*/*/*.v
+          if-no-files-found: ignore
