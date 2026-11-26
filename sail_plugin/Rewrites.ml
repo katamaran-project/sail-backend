@@ -375,3 +375,17 @@ let katamaran_rewrites =
     *)
     (* ("simple_types", []); *)
   ]
+
+
+(*
+  Rewrites of the plugin's own, run by the plugin after katamaran_rewrites.
+  Sail knows only its own rewrites by name (Libsail.Rewrites.all_rewriters) and runs
+  the rewrites a target registers before it calls the target, so the plugin runs these
+  itself, with Libsail.Rewrites.rewrite; --ddump-rewrite-ast dumps them too.
+*)
+let plugin_rewrites : R.rewrite_sequence =
+  ("fold_constant_type_conditionals", ConstantTypeConditionals.rewrite)
+  :: R.instantiate_rewrites [
+         ("recheck_defs", []);
+         ("attach_effects", []);
+       ]

@@ -55,11 +55,13 @@ let katamaran_target
       Stdio.print_endline "Starting translation from Sail to nanoSail";
       (* start by reading the configuration, as it impacts how the following phases act *)
       Nanosail.Configuration.load_configuration s;
-      let ast = state.ast
+      (* Sail has run the rewrites in Rewrites.katamaran_rewrites; the plugin's own come after *)
+      let _context, ast, _effect_info, env =
+        Libsail.Rewrites.rewrite state.ctx state.effect_info state.env Rewrites.plugin_rewrites state.ast
       in
       (* translate the Sail code into nanosail *)
       let translation : Nanosail.Ast.Program.t =
-        Nanosail.SailToNanosail.translate ast state.env
+        Nanosail.SailToNanosail.translate ast env
       in
       Stdio.print_endline "Done with translation from Sail to nanoSail";
       Stdio.print_endline "Starting translation from nanoSail to muSail";
