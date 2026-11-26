@@ -67,29 +67,45 @@ jobs:
 
   # Runs the other test suites (see docs/tests.md) in the Nix development shell of flake.nix,
   # which provides Rocq and the Katamaran library that the end-to-end tests compile against.
-  # Katamaran comes prebuilt from its cachix; everything else from cache.nixos.org,
-  # except Sail and this project, which are built here, so the Nix store is cached too.
+  # Katamaran comes prebuilt from its cachix when it is still there (that cache evicts old builds,
+  # and building Katamaran takes about 30 minutes); everything else from cache.nixos.org,
+  # except Sail and this project, which are built here. So the Nix store is cached too.
   test:
     runs-on: ubuntu-22.04
+
+    # Needed by cache-nix-action to purge outdated Nix store caches.
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      # A single-user installation, so that the Nix store belongs to the runner user:
+      # cache-nix-action restores the store with tar as that user, which fails on the
+      # root-owned store of a multi-user installation (such as cachix/install-nix-action's).
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: nixbuild/nix-quick-install-action@v35
         with:
-          extra_nix_config: |
+          nix_conf: |
             extra-substituters = https://katamaran.cachix.org
             extra-trusted-public-keys = katamaran.cachix.org-1:6oOkbLd/LRTGiixl0cVyWC2/OXo5A0l1e84jqZf+dCE=
 
-      # Keyed by the flake, so that the cache is rebuilt whenever the development shell changes.
+      # Keyed by the flake, so that a new cache is saved whenever the development shell changes;
+      # until then, the newest older cache is restored, so only what changed is fetched or built.
+      # Older caches of this branch are purged after a new one is saved, to stay under
+      # GitHub's cache size limit.
       - name: Cache Nix store
         uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
+          primary-key: nix-v2-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock') }}
+          restore-prefixes-first-match: nix-v2-${{ runner.os }}-
           gc-max-store-size-linux: 8G
+          purge: true
+          purge-prefixes: nix-v2-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
 
       - name: Set up development shell
         run: nix develop --command true
