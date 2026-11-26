@@ -70,6 +70,14 @@ module R = Libsail.Rewrites
 let katamaran_rewrites =
   [
     (*
+      Moves termination measures into the functions they belong to, and loop
+      measures (termination_measure f repeat/while/until N) into the loops.
+      Must come first, like in Sail's own Coq and Lem backends: monomorphise
+      rejects top-level loop measures as unreachable.
+    *)
+    ("move_termination_measures", []);
+
+    (*
       Since Sail 0.20, this rewrite takes an extra argument keep_original_defs.
       Previous versions behaved as if it were false.
     *)
@@ -213,7 +221,6 @@ let katamaran_rewrites =
     ("split", [R.String_arg "execute"]);
     ("minimise_recursive_functions", []);
     ("recheck_defs", []);
-    ("move_termination_measures", []);
     ("const_prop_mutrec", [R.String_arg "coq"]);
     ("exp_lift_assign", []);
     (*
