@@ -217,6 +217,9 @@ When the step fails, the job uploads the summary and each test's `output.txt`, `
 `end-to-end-test-results` artifact.
 
 The `test` job caches the Nix store (keyed by `flake.nix` and `flake.lock`) and the Coq cache.
-A run without a Nix store cache builds Sail, which takes a few minutes; Katamaran comes prebuilt from its cachix.
+A run without a Nix store cache builds Sail, which takes a few minutes, and fetches Katamaran from its cachix.
+That cache evicts old builds within days, so a run without a Nix store cache may also build Katamaran (about 30 minutes).
+Nix is installed single-user (`nix-quick-install-action`), because the cache cannot be restored into the root-owned
+store of a multi-user installation.
 
 The CHERIoT library tests, the MSP430 tests and the logging tests are not run by the workflow.

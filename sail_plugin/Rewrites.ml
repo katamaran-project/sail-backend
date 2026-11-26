@@ -70,6 +70,14 @@ module R = Libsail.Rewrites
 let katamaran_rewrites =
   [
     (*
+      Moves termination measures into the functions they belong to, and loop
+      measures (termination_measure f repeat/while/until N) into the loops.
+      Must come first, like in Sail's own Coq and Lem backends: monomorphise
+      rejects top-level loop measures as unreachable.
+    *)
+    ("move_termination_measures", []);
+
+    (*
       Since Sail 0.20, this rewrite takes an extra argument keep_original_defs.
       Previous versions behaved as if it were false.
     *)
@@ -110,21 +118,30 @@ let katamaran_rewrites =
 
     *)
     ("toplevel_nexps", []);
-    ("monomorphise", [String_arg "c"]);
+    (*
+      Monomorphisation: copies of functions for the values of their size arguments.
+      Only with --auto-mono or --mono-split, as in Sail's own backends. Without the
+      analysis these options enable, it still splits a union constructor whose payload
+      width ranges over a finite set into one constructor per width, while uses whose
+      width is not a constant keep naming the original constructor, which no longer exists.
+    *)
+    ("monomorphise", [String_arg "c"; If_mono_arg]);
 
     (*
-      This rewrite needs to be followed by recheck_defs, otherwise a crash ensues.
-      It is unclear what recheck_defs does, as it seems to have no impact on the Sail code,
-      at least in cases where it makes a difference in whether atoms_to_singletons leads
-      to a crash or not.
-
-      This can mean that
-      * it affects some internal state in Sail
-      * whatever changes it does make are not visible in the code
-
-      The second option seems more likely.
+      Turns int('n) parameters that determine a bitvector width into itself('n)
+      parameters, passed as make_the_value(n) and read back with size_itself_int(n).
+      Part of monomorphisation, so only with --auto-mono or --mono-split, as in Sail's
+      own backends. The translator does not need it: it translates make_the_value and
+      size_itself_int as the identity and itself('n) as an int.
     *)
-    ("atoms_to_singletons", [String_arg "c"]);
+    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);
+
+    (*
+      Type checks the definitions again, so that their type annotations agree with the
+      val specs that toplevel_nexps changed (bits(8 * 'n) becomes bits('p8_times_n)), and
+      that atoms_to_singletons changed if it ran. Later rewrites (e.g., remove_vector_concat)
+      fail on the outdated annotations otherwise.
+    *)
     ("recheck_defs", []);
 
     ("add_unspecified_rec", []);
@@ -213,7 +230,6 @@ let katamaran_rewrites =
     ("split", [R.String_arg "execute"]);
     ("minimise_recursive_functions", []);
     ("recheck_defs", []);
-    ("move_termination_measures", []);
     ("const_prop_mutrec", [R.String_arg "coq"]);
     ("exp_lift_assign", []);
     (*
@@ -359,3 +375,17 @@ let katamaran_rewrites =
     *)
     (* ("simple_types", []); *)
   ]
+
+
+(*
+  Rewrites of the plugin's own, run by the plugin after katamaran_rewrites.
+  Sail knows only its own rewrites by name (Libsail.Rewrites.all_rewriters) and runs
+  the rewrites a target registers before it calls the target, so the plugin runs these
+  itself, with Libsail.Rewrites.rewrite; --ddump-rewrite-ast dumps them too.
+*)
+let plugin_rewrites : R.rewrite_sequence =
+  ("fold_constant_type_conditionals", Nanosail.SailRewrites.ConstantTypeConditionals.rewrite)
+  :: R.instantiate_rewrites [
+         ("recheck_defs", []);
+         ("attach_effects", []);
+       ]

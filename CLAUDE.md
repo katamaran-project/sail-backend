@@ -15,6 +15,7 @@ A Sail plugin (`sail --katamaran`) that translates Sail ISA models to µSail, th
 - **In a multi-repository workspace**, use the sibling worktrees, not the main checkouts, and pass their paths explicitly.
 - **No bare `git stash`**: the stash is shared by all worktrees. Use a WIP commit instead.
 - **No macOS `make`**: always `gmake` (GNU make 4 or later).
+- **No bare `dune` in a worktree** under `.claude/worktrees`: it builds the outer checkout. Use `gmake build` or `dune build --root .`.
 
 ## Habits
 

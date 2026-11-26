@@ -21,3 +21,4 @@ module StringOf            = StringOf
 module Util                = Util
 module Normalize           = Normalize
 module ExtBase             = ExtBase
+module SailRewrites        = SailRewrites
