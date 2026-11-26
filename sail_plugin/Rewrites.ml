@@ -384,7 +384,7 @@ let katamaran_rewrites =
   itself, with Libsail.Rewrites.rewrite; --ddump-rewrite-ast dumps them too.
 *)
 let plugin_rewrites : R.rewrite_sequence =
-  ("fold_constant_type_conditionals", ConstantTypeConditionals.rewrite)
+  ("fold_constant_type_conditionals", Nanosail.SailRewrites.ConstantTypeConditionals.rewrite)
   :: R.instantiate_rewrites [
          ("recheck_defs", []);
          ("attach_effects", []);

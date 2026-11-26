@@ -20,6 +20,7 @@ let tests =
     BlockTests.test_suite;
     MakeSequenceTests.test_suite;
     IgnoreByNameTests.test_suite;
+    ConstantTypeConditionalsTests.test_suite;
   ]
 
 

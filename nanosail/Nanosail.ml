@@ -21,3 +21,4 @@ module Slang               = Slang
 module ConfigLib           = ConfigLib
 module Normalize           = Normalize
 module ExtBase             = ExtBase
+module SailRewrites        = SailRewrites

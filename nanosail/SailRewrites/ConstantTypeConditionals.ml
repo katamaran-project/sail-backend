@@ -19,7 +19,7 @@
    The rewrite changes only the syntax of the AST: recheck_defs must follow, so that the type
    environment and the type annotations agree with the folded types.
 *)
-open Base
+open ExtBase
 
 module S = Libsail.Ast
 module Env = Libsail.Type_check.Env
