@@ -2455,6 +2455,34 @@ let untyped_sail_call (name : string) (arguments : Libsail.Ast_util.uannot S.exp
 
 
 (*
+   The ways to write sail_ones(length), without type annotations.
+   sail_ones takes an int('n), unless Sail's atoms_to_singletons rewrite has run
+   (see sail_plugin/Rewrites.ml), which turns that parameter into an itself('n)
+   that is passed as make_the_value(length).
+   first_well_typed picks the form that type checks.
+*)
+let untyped_sail_ones_calls (length : Libsail.Ast_util.uannot S.exp) : Libsail.Ast_util.uannot S.exp list =
+  [
+    untyped_sail_call "sail_ones" [ length ];
+    untyped_sail_call "sail_ones" [ untyped_sail_call "make_the_value" [ length ] ];
+  ]
+
+
+(* The first of the candidates that type checks with the given type in the environment of the annotation *)
+let first_well_typed
+    (annotation : S.l * Sail.type_annotation          )
+    (candidates : Libsail.Ast_util.uannot S.exp list   ) : Sail.type_annotation S.exp option
+  =
+  let module TypeCheck = Libsail.Type_check
+  in
+  let check (candidate : Libsail.Ast_util.uannot S.exp) : Sail.type_annotation S.exp option =
+    try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) candidate (TypeCheck.typ_of_annot annotation))
+    with _ -> None
+  in
+  List.find_map candidates ~f:check
+
+
+(*
    Truncation of a bitvector padded with zeros of run-time length.
 
      truncate(X @ zeros(n), w)
@@ -2561,7 +2589,7 @@ let rewrite_truncated_zero_padding (expression : Sail.type_annotation S.exp) : S
 
      not_vec(sail_shiftleft(sail_ones(m), n))
 
-   (sail_ones(m) is written sail_ones(make_the_value(m)), as Sail does; n <= m is a constraint of the zero extension). It requires m to be known.
+   (n <= m is a constraint of the zero extension; for sail_ones(m), see untyped_sail_ones_calls). It requires m to be known.
    ones(n) is ones or sail_ones; zero_extend is sail-riscv's zero_extend or sail_zero_extend.
    The rewritten expression is type checked again in the environment of the original; if that fails,
    the original is kept.
@@ -2585,7 +2613,7 @@ let rewrite_zero_extended_ones (expression : Sail.type_annotation S.exp) : Sail.
         | Some _                                                      -> None
         | None                                                        -> None
       in
-      (* sail_ones takes its length as make_the_value(n) : itself('n); the length is then n *)
+      (* after atoms_to_singletons, sail_ones takes its length as make_the_value(n) : itself('n); the length is then n *)
       let rec integer_of_itself (expression : Sail.type_annotation S.exp) : Sail.type_annotation S.exp =
         let S.E_aux (unwrapped_expression, _) = expression
         in
@@ -2647,16 +2675,15 @@ let rewrite_zero_extended_ones (expression : Sail.type_annotation S.exp) : Sail.
         TypeCheck.strip_exp expression
       and call = untyped_sail_call
       in
-      let replacement =
+      let replacement (ones : Libsail.Ast_util.uannot S.exp) : Libsail.Ast_util.uannot S.exp =
         call "not_vec" [
           call "sail_shiftleft" [
-            call "sail_ones" [ call "make_the_value" [ untyped target_width_expression ] ];
+            ones;
             untyped mask_length
           ]
         ]
       in
-      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
-      with _ -> None
+      first_well_typed annotation (List.map (untyped_sail_ones_calls (untyped target_width_expression)) ~f:replacement)
     in
     Option.value rewritten ~default:original
   in
@@ -2725,24 +2752,22 @@ let rewrite_zero_extended_low_slice (expression : Sail.type_annotation S.exp) : 
       and integer (value : Z.t) : Libsail.Ast_util.uannot S.exp =
         Libsail.Ast_util.mk_lit_exp (S.L_num value)
       in
-      let masked =
-        call "and_vec" [
-          untyped bitvector;
-          call "not_vec" [
-            call "sail_shiftleft" [
-              call "sail_ones" [ call "make_the_value" [ integer bitvector_width ] ];
-              call "add_atom" [ untyped high_index; integer Z.one ]
+      let replacement (ones : Libsail.Ast_util.uannot S.exp) : Libsail.Ast_util.uannot S.exp =
+        let masked =
+          call "and_vec" [
+            untyped bitvector;
+            call "not_vec" [
+              call "sail_shiftleft" [
+                ones;
+                call "add_atom" [ untyped high_index; integer Z.one ]
+              ]
             ]
           ]
-        ]
-      in
-      let replacement =
-        let resize = if Z.leq target_width bitvector_width then "truncate" else "sail_zero_extend"
+        and resize = if Z.leq target_width bitvector_width then "truncate" else "sail_zero_extend"
         in
         call resize [ masked; untyped target_width_expression ]
       in
-      try Some (TypeCheck.check_exp (TypeCheck.env_of_annot annotation) replacement (TypeCheck.typ_of_annot annotation))
-      with _ -> None
+      first_well_typed annotation (List.map (untyped_sail_ones_calls (integer bitvector_width)) ~f:replacement)
     in
     Option.value rewritten ~default:original
   in

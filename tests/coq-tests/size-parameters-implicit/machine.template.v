@@ -13,14 +13,12 @@ Check (@fun_extend_to : forall {n m : nat} {H : IsTrue (Z.of_nat n <=? Z.of_nat 
 
 (* Rocq infers the widths at the call *)
 Goal fun_extend_byte =
-  stm_let "ga#0" ty.int (stm_exp (exp_int 32%Z))
-    (stm_call extend_to (env.snoc (env.snoc env.nil (_∷_) (exp_var "ga#0")) (_∷_) (exp_var "b"))).
+  stm_call extend_to (env.snoc (env.snoc env.nil (_∷_) (exp_int 32%Z)) (_∷_) (exp_var "b")).
 Proof. reflexivity. Qed.
 
 (* Inside, the extension is a foreign call (uop.zext would need n <= m) *)
 Goal forall n m H, @fun_extend_to n m H =
-  stm_let "m" ty.int (stm_exp (exp_var "m"))
-    (stm_foreign sail_zero_extend (env.snoc (env.snoc env.nil (_∷_) (exp_var "v")) (_∷_) (exp_var "m"))).
+  stm_foreign sail_zero_extend (env.snoc (env.snoc env.nil (_∷_) (exp_var "v")) (_∷_) (exp_var "m")).
 Proof. reflexivity. Qed.
 
 (* A discarded result whose type nothing determines is unit *)

@@ -424,8 +424,9 @@ let translate_indexed_definition ((index, sail_definition) : int * Sail.sail_def
    For each let, the result is its value, or why the interpreter could not compute it
    (e.g., because it reads a register or calls an extern that the interpreter does not know).
 
-   Sail's rewrites turn implicit size arguments into make_the_value(n) and size_itself_int(n),
-   externs that the interpreter does not know; both are the identity on integers.
+   Sail's atoms_to_singletons rewrite (only with --auto-mono or --mono-split) turns implicit size
+   arguments into make_the_value(n) and size_itself_int(n), externs that the interpreter does not know;
+   both are the identity on integers.
 *)
 let evaluate_top_level_lets
     (ast : Sail.ast               )
