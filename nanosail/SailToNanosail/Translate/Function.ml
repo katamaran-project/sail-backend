@@ -3039,7 +3039,10 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
   in
   match unwrapped_clause with
    | Pat_when (_, _, _) -> TC.not_yet_implemented [%here] location
-   | Pat_exp (parameter_bindings, raw_body) -> begin
+   | Pat_exp (original_parameter_bindings, raw_body) -> begin
+       (* parameters that are patterns, such as Regidx(i), become fresh names that the body matches on *)
+       let parameter_bindings, demoted_parameters = ParameterPatterns.demote_parameters original_parameter_bindings
+       in
        let body_without_messages, effectful_message_locations = drop_run_time_assert_messages raw_body
        in
        let* () =
@@ -3058,15 +3061,20 @@ let extract_function_parts (function_clause : Sail.type_annotation Libsail.Ast.f
        in
        let* union_instances = TC.union_instances
        in
-       let body        = S.anf @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ rewrite_constant_conditions @@ rewrite_solved_indices @@ replace_calls_by_values @@ inline_calls union_instances body_without_messages
+       let body        = S.anf @@ ParameterPatterns.match_demoted_parameters demoted_parameters @@ rewrite_zero_extended_low_slice @@ rewrite_zero_extended_ones @@ rewrite_truncated_zero_padding @@ rewrite_constant_conditions @@ rewrite_solved_indices @@ replace_calls_by_values @@ inline_calls union_instances body_without_messages
        (* the body's type, with widths that Sail proves equal to a size variable replaced by it (see normalise_widths) *)
        and return_type = normalise_widths (Libsail.Type_check.env_of raw_body) (Libsail.Type_check.typ_of raw_body)
        in
        let* locally_bound_identifiers =
          let sail_identifiers =
-           Libsail.Ast_compare.IdSet.union
-             (Libsail.Ast_util.pat_ids parameter_bindings)
-             (locally_bound_sail_identifiers raw_body)
+           List.fold
+             ~init:Libsail.Ast_compare.IdSet.empty
+             ~f:Libsail.Ast_compare.IdSet.union
+             [
+               Libsail.Ast_util.pat_ids original_parameter_bindings;
+               Libsail.Ast_util.pat_ids parameter_bindings;
+               locally_bound_sail_identifiers raw_body;
+             ]
          in
          TC.map ~f:(Identifier.translate_identifier [%here]) (Libsail.Ast_compare.IdSet.elements sail_identifiers)
        in

@@ -639,6 +639,30 @@ stm_exp (exp_var "count")
 
 See the tests `tests/coq-tests/loops-*`.
 
+### Patterns in function parameters
+
+A parameter that is a pattern rather than a name, such as a constructor, a struct or a nested tuple,
+becomes a fresh parameter `arg#0`, `arg#1`, …, and the body starts by matching it against the pattern.
+Parameters that are names keep their names.
+
+```sail
+newtype regidx = Regidx : bits(5)
+
+function wX_bits (Regidx(i) : regidx, data : bits(32)) = sail_zero_extend(i, 32) + data
+```
+```coq
+Definition fun_wX_bits : Stm [ "arg#0" ∷ ty.union Uregidx; "data" ∷ ty.bvec 32 ] (ty.bvec 32) :=
+  stm_match_union_alt_list Uregidx (stm_exp (exp_var "arg#0"))
+    [ existT Kregidx (MkAlt (pat_var "i") (* the body *)) ]
+    Logic.I.
+```
+
+- A `newtype` is a union with one constructor, here `Uregidx`; it is not erased.
+- Patterns that can fail to match (a literal, one constructor of several) never reach this step:
+  Sail's own rewrites turn them into a match with a failure branch, on a parameter `merge#var` or `p0#`.
+
+See the tests `tests/coq-tests/parameter-pattern-*`.
+
 ### `$include`
 
 ```lisp

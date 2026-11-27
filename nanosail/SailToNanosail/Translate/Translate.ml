@@ -14,3 +14,4 @@ module Variant                = Variant
 module Recursive              = Recursive
 module Literal                = Literal
 module Match                  = Match
+module ParameterPatterns      = ParameterPatterns
