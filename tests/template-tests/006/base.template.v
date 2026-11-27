@@ -1,3 +1,3 @@
 (*<
-  (generate (base-translation))
+  base-translation
 >*)

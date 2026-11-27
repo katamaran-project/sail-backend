@@ -16,7 +16,7 @@ This is `make cheriot-translate`.
 Inputs:
     --cheriot-sail DIR   a cheriot-sail checkout, with its sail-riscv submodule
                          (default: $CHERIOT_SAIL_DIR)
-    --case-study DIR     the case study: configuration.lisp, *.template.v and
+    --case-study DIR     the case study: configuration.sexp, *.template.v and
                          printvar.mak (default: $CHERIOT_CASE_STUDY, or else
                          case-studies/cheriot in this checkout)
 
@@ -28,7 +28,7 @@ The run has these stages; a stage that fails ends the run.
     scope       unless --no-scope: compute the CHERIoT core from scope.toml and the
                 call graph of the rewritten model (lib/scope.py), and write the
                 configuration that ignores everything else, and removes the policy
-                exclusions together with their uses (scope-ignores.lisp).
+                exclusions together with their uses (scope-ignores.sexp).
                 The call graph needs Sail's AST dump after the rewrites, which is
                 cached (see DUMP_CACHE below); without it, a Sail run that only
                 makes the dump takes about 20 s.
@@ -65,7 +65,7 @@ Everything goes to a fresh directory <output-dir>/<timestamp>-<commit>[-dirty]/,
 with <output-dir>/latest pointing to it (default output dir: tests/cheriot/output):
 sources.txt, the logs, base.v and machine.v, dump/ (only the last Sail rewrite
 dump, unless --keep-dumps), coqc-*.log, probe/, items.csv, dangling-calls.csv, piles.txt,
-run.json (inputs and stages), metrics.json, and scope-ignores.lisp and scope.json.
+run.json (inputs and stages), metrics.json, and scope-ignores.sexp and scope.json.
 
 ROCQ_CACHE: coqc verdicts and compiled .vo files, in $SAIL_BACKEND_CHERIOT_ROCQ_CACHE, or
 else $XDG_CACHE_HOME/sail-backend/cheriot-rocq, keyed by the compiled file, the files it
@@ -115,7 +115,7 @@ DEFAULT_CASE_STUDY = CHECKOUT / 'case-studies' / 'cheriot'
 SAIL_VERSION = '0.20.3'
 COQC = 'coqc'
 VERBOSE = '4'
-CASE_STUDY_FILES = ['configuration.lisp', 'printvar.mak']
+CASE_STUDY_FILES = ['configuration.sexp', 'printvar.mak']
 SCOPE_FILE = HERE / 'scope.toml'
 REWRITES = CHECKOUT / 'sail_plugin' / 'Rewrites.ml'
 DUMP_CACHE = Path(
@@ -126,7 +126,7 @@ ROCQ_CACHE = Path(
     os.environ.get('SAIL_BACKEND_CHERIOT_ROCQ_CACHE')
     or Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'sail-backend' / 'cheriot-rocq'
 )
-SCOPE_INCLUDE = 'scope-ignores.lisp'
+SCOPE_INCLUDE = 'scope-ignores.sexp'
 BASELINE = HERE / 'baseline.json'
 HISTORY = CHECKOUT / 'case-studies' / 'cheriot' / 'docs' / 'history.csv'
 HISTORY_FIELDS = ['timestamp', 'commit', 'dirty', 'scope', 'instructions total', 'instructions clean',
@@ -135,11 +135,12 @@ HISTORY_FIELDS = ['timestamp', 'commit', 'dirty', 'scope', 'instructions total',
 
 # A configuration that ignores every definition, so that a Sail run only makes the rewrite dumps.
 DUMP_ONLY_CONFIGURATION = """\
-(ignore-function-definition-and-top-level-type-constraints-predicate (lambda (identifier) #t))
-(ignore-value-definition-predicate (lambda (identifier) #t))
-(ignore-type-definition-predicate (lambda (identifier) #t))
-(ignore-all-overloads)
-(ignore-pragmas (lambda (identifier) #t))
+(ignore
+ (overloads)
+ (pragmas "*")
+ (types "*")
+ (values "*")
+ (functions "*"))
 """
 
 INTERNAL_ERROR = re.compile(r'^Internal error', re.M)
@@ -348,10 +349,10 @@ def rewrite_dump(sources: list[Path], sandbox: Path, sail_version: str, cache: P
         return cached, f'dump from the cache ({cached.name})'
     directory = sandbox / 'scope-dump'
     (directory / 'dump').mkdir(parents=True)
-    (directory / 'configuration.lisp').write_text(DUMP_ONLY_CONFIGURATION)
+    (directory / 'configuration.sexp').write_text(DUMP_ONLY_CONFIGURATION)
     start = time.monotonic()
     command = [str(SAIL_LOCAL), '--ddump-rewrite-ast', 'dump/rw',
-               '--katamaran', '--katamaran-config', 'configuration.lisp', *map(str, sources)]
+               '--katamaran', '--katamaran-config', 'configuration.sexp', *map(str, sources)]
     code = run_command(command, directory, directory / 'log.txt', {'VERBOSE': '0'})
     last = last_dump(directory / 'dump', keep_all=False)
     if code != 0 or last is None:
@@ -409,14 +410,14 @@ def compute_scope(sources: list[Path], cheriot_sail: Path, sandbox: Path, sail_v
 
 def translate(sources: list[Path], case_study: Path, sandbox: Path, with_scope: bool, verbose: str = VERBOSE) -> Stage:
     stage = Stage('translate')
-    for template in [case_study / 'configuration.lisp', *sorted(case_study.glob('*.template.v'))]:
+    for template in [case_study / 'configuration.sexp', *sorted(case_study.glob('*.template.v'))]:
         shutil.copy2(template, sandbox / template.name)
     if with_scope:
-        with open(sandbox / 'configuration.lisp', 'a') as handle:
-            handle.write(f'\n;; Added by tests/cheriot/run.py: ignore what is outside the scope.\n$include {SCOPE_INCLUDE}\n')
+        with open(sandbox / 'configuration.sexp', 'a') as handle:
+            handle.write(f'\n;; Added by tests/cheriot/run.py: ignore what is outside the scope.\n(include {SCOPE_INCLUDE})\n')
     (sandbox / 'dump').mkdir()
     command = [str(SAIL_LOCAL), '--ddump-rewrite-ast', 'dump/rw',
-               '--katamaran', '--katamaran-config', 'configuration.lisp', *map(str, sources)]
+               '--katamaran', '--katamaran-config', 'configuration.sexp', *map(str, sources)]
     start = time.monotonic()
     code = run_command(command, sandbox, sandbox / 'log.txt', {'VERBOSE': verbose})
     stage.seconds = time.monotonic() - start

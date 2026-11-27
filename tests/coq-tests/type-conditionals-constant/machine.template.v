@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* The conditional widths are constants: if xlen == 32 then 34 else 64 is 34, if false then 4 else 5 is 5 *)

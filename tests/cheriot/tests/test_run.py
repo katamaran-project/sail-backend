@@ -100,10 +100,10 @@ class ClassifyTranslationTests(unittest.TestCase):
         self.assertEqual(run.classify_translation(1, log, False), (False, 'Sail crashed (exit 1)'))
 
     def test_uncaught_exception(self):
-        log = ('Fatal error: exception Nanosail__Slang__Exception.SlangError("unbound identifier foo")\n'
-               'Raised at Nanosail__Slang__Evaluation.evaluate in file "nanosail/Slang/Evaluation.ml", line 51\n')
+        log = ('Fatal error: exception Failure("configuration.sexp:3: unknown option foo")\n'
+               'Raised at Nanosail__ConfigurationFile.error in file "nanosail/ConfigurationFile.ml", line 46\n')
         self.assertEqual(run.classify_translation(2, log, False),
-                         (False, 'uncaught exception: Nanosail__Slang__Exception.SlangError("unbound identifier foo")'))
+                         (False, 'uncaught exception: Failure("configuration.sexp:3: unknown option foo")'))
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'log.txt'
             path.write_text('[INFO] x.ml:1\n   info\n' + log)

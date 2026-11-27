@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 Check (fun_radius : Stm [ "merge#var" ∷ ty.union Ushape ] (ty.bvec 8)).

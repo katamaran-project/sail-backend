@@ -48,7 +48,7 @@ fi
 # remove git-ignored files from the current directory
 git clean -fX
 
-OPT="--katamaran --katamaran-config configuration.lisp"
+OPT="--katamaran --katamaran-config configuration.sexp"
 
 if [[ -v VERBOSE ]]
 then

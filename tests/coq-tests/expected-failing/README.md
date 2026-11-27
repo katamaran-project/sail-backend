@@ -14,7 +14,7 @@ git mv tests/coq-tests/expected-failing/NAME tests/coq-tests/NAME
 
 Likewise, a test that is known to fail (a new one for a missing feature, or an existing one broken on purpose) is moved here.
 Test names must be unique across `tests/coq-tests` and this directory.
-`shared-configuration.lisp` is a symbolic link to `../shared-configuration.lisp`, so that the tests' `$include ../shared-configuration.lisp` also works when running Sail in a test's directory.
+`shared-configuration.sexp` is a symbolic link to `../shared-configuration.sexp`, so that the tests' `(include ../shared-configuration.sexp)` also works when running Sail in a test's directory.
 
 | Test | Why it fails |
 |---|---|

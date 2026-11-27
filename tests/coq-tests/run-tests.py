@@ -17,8 +17,8 @@ The sandbox for a run lives in
 
     <output-dir>/<timestamp>-<commit>[-dirty]/<test>/
 
-with a copy of shared-configuration.lisp one level up, because every test's
-configuration.lisp does `$include ../shared-configuration.lisp`.
+with a copy of shared-configuration.sexp one level up, because every test's
+configuration.sexp does `(include ../shared-configuration.sexp)`.
 
 Usage:
     ./run-tests.py                                   # run everything
@@ -68,7 +68,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REINDENT_AST = HERE.parent / 'reindent-ast.py'
-SHARED_CONFIGURATION = HERE / 'shared-configuration.lisp'
+SHARED_CONFIGURATION = HERE / 'shared-configuration.sexp'
 
 # Tests that are known to fail live here rather than next to this script.  A
 # run fails if one of them passes: it should then be moved next to this script.
@@ -143,7 +143,7 @@ def discover():
 
             looks_test_shaped = any(
                 (directory / name).exists()
-                for name in ['configuration.lisp', 'base.template.v', 'base.v']
+                for name in ['configuration.sexp', 'base.template.v', 'base.v']
             )
             if looks_test_shaped:
                 non_tests.append(str(directory.relative_to(HERE)))
@@ -355,34 +355,52 @@ def write_reindented_ast(sandbox):
 # configuration registers (usually base.v and machine.v), and with
 # preserve-file-structure (docs/usage.md#preserve-file-structure) also the
 # declarations of the functions (machine_decl.v, named after the output of the
-# template with (program-translation)) and one file per Sail file with functions,
+# template with program-translation) and one file per Sail file with functions,
 # in a subdirectory (Machine/ by default). The inputs of a test are never .v files,
 # except the templates (*.template.v), so every other .v file is generated.
 
-TEMPLATE_RE = re.compile(r'\(template\s+"([^"]+)"(?:\s+"([^"]+)")?\s*\)')
-INCLUDE_RE = re.compile(r'^\s*\$include\s+(\S+)')
 REQUIRE_RE = re.compile(r"Require\s+(?:(?:Import|Export)\s+)?((?:[\w']+(?:\.[\w']+)*\s*)+)\.")
+SEXP_TOKEN_RE = re.compile(r'\s+|;[^\n]*|"((?:[^"\\]|\\.)*)"|([()])|([^\s()";]+)')
+
+
+def top_level_forms(text):
+    """The top-level lists of an S-expression configuration, as nested Python lists of strings."""
+    stack = [[]]
+    for match in SEXP_TOKEN_RE.finditer(text):
+        quoted, parenthesis, atom = match.groups()
+        if parenthesis == '(':
+            stack.append([])
+        elif parenthesis == ')' and len(stack) > 1:
+            form = stack.pop()
+            stack[-1].append(form)
+        elif quoted is not None:
+            stack[-1].append(quoted)
+        elif atom is not None:
+            stack[-1].append(atom)
+    return [form for form in stack[0] if isinstance(form, list)]
 
 
 def template_outputs(configuration):
     """The .v files that the templates of a configuration generate, in its order.
 
-    Follows $include, relative to the configuration's directory; (template IN OUT)
-    generates OUT, and (template IN) generates IN without ".template".
+    Follows (include PATH), relative to the configuration's directory;
+    (templates IN ...) generates each IN without ".template".
     """
     outputs = []
     if not configuration.is_file():
         return outputs
-    for line in configuration.read_text().splitlines():
-        line = line.split(';', 1)[0]
-        include = INCLUDE_RE.match(line)
-        if include:
-            outputs += template_outputs(configuration.parent / include.group(1))
+    for form in top_level_forms(configuration.read_text()):
+        if not form or not isinstance(form[0], str):
             continue
-        for template, output in TEMPLATE_RE.findall(line):
-            output = output or template.replace('.template', '', 1)
-            if output.endswith('.v'):
-                outputs.append(output)
+        arguments = [argument for argument in form[1:] if isinstance(argument, str)]
+        if form[0] == 'include':
+            for include in arguments:
+                outputs += template_outputs(configuration.parent / include)
+        elif form[0] == 'templates':
+            for template in arguments:
+                output = template.replace('.template', '', 1)
+                if output.endswith('.v'):
+                    outputs.append(output)
     return outputs
 
 
@@ -404,7 +422,7 @@ def coq_sources(sandbox):
     without an order between them stay in the order of the configuration, followed
     by the other generated files in alphabetical order.
     """
-    outputs = template_outputs(sandbox / 'configuration.lisp')
+    outputs = template_outputs(sandbox / 'configuration.sexp')
     generated = sorted(
         str(path.relative_to(sandbox))
         for directory in [sandbox, *subdirectories(sandbox)]
@@ -486,7 +504,7 @@ def coq_cache_path(sandbox, arguments):
     """
     if arguments.coq_fingerprint is None or arguments.keep_vo:
         return None
-    outputs = template_outputs(sandbox / 'configuration.lisp')
+    outputs = template_outputs(sandbox / 'configuration.sexp')
     if not outputs or not all((sandbox / output).is_file() for output in outputs):
         return None
     digest = hashlib.sha256(arguments.coq_fingerprint.encode())
@@ -591,7 +609,7 @@ def run_test(name, source, run_directory, arguments):
     if arguments.monomorphise:
         sail_command += ['--auto-mono', '--mono-rewrites']
     sail_command += ['--katamaran',
-                     '--katamaran-config', 'configuration.lisp',
+                     '--katamaran-config', 'configuration.sexp',
                      'model.sail']
 
     # A sail failure is recorded but does not stop the test: the Coq stage is
@@ -832,7 +850,7 @@ def main(argv=None):
     run_directory = arguments.output_dir.resolve() / identifier
     run_directory.mkdir(parents=True)
 
-    # Every test's configuration.lisp does `$include ../shared-configuration.lisp`,
+    # Every test's configuration.sexp does `(include ../shared-configuration.sexp)`,
     # so the shared configuration must sit one level above the sandboxes.
     shutil.copy2(SHARED_CONFIGURATION, run_directory / SHARED_CONFIGURATION.name)
 

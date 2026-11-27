@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* A constraint on a width is an implicit hypothesis of the constructor and of the definition *)

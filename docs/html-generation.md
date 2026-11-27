@@ -42,16 +42,16 @@ Add the following:
     </head>
     <body>
 (*<
-    (generate (base-html-translation))
+    base-html-translation
 >*)
     </body>
 </html>
 ```
 
-Next, in the `configuration.lisp` file, add an extra line
+Next, add it to the templates in the configuration file:
 
 ```lisp
-(template "base.template.html")
+(templates base.template.html)
 ```
 
 See the end to end tests (`tests/coq-tests`) for examples.

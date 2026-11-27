@@ -1,5 +1,5 @@
 Require Export types.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)

@@ -98,7 +98,7 @@ class DispatcherInScopeTests(unittest.TestCase):
 
     def test_out_of_scope_instructions_are_failures(self):
         self.assertEqual(self.scope.undispatched, {'execute_FOO'})
-        self.assertIn("(exclude-functions-as-failure\n  '(\n   \"execute_FOO\"\n  ))\n", scope.configuration(self.scope))
+        self.assertIn('(exclude\n (as-failure\n  "execute_FOO"))\n', scope.configuration(self.scope))
 
     def test_unexpected_calls(self):
         # execute's call to execute_FOO should have become a failure
@@ -115,8 +115,9 @@ class ConfigurationTests(unittest.TestCase):
     def test_lists_the_excluded_names(self):
         text = scope.configuration(fixture_scope())
         self.assertIn(";; the 7 functions and 1 values outside the scope.", text)
-        self.assertIn("(ignore-functions\n  '(\n   \"after_split_comment\"\n   \"documented\"\n   \"execute\"\n   \"execute_FOO\"\n   \"undocumented_callee\"\n   \"unused\"\n   \"vector_helper\"\n  ))", text)
-        self.assertIn("(ignore-values\n  '(\n   \"vlen_default\"\n  ))", text)
+        self.assertIn('(ignore\n (functions\n  "after_split_comment"\n  "documented"\n  "execute"\n  "execute_FOO"\n'
+                      '  "undocumented_callee"\n  "unused"\n  "vector_helper"))\n', text)
+        self.assertIn('(ignore\n (values\n  "vlen_default"))\n', text)
 
 
 class ScopedMetricsTests(unittest.TestCase):
@@ -183,12 +184,17 @@ class PolicyExclusionTests(unittest.TestCase):
         result = policy_scope(text)
         self.assertNotIn('fetch', result.nodes)
         self.assertEqual(result.policy_counts()['value'], 2)
-        self.assertIn("(exclude-functions-as-value\n  '(\n   (\"fetch\" \"0x00\")\n   (\"unused\" \"None()\")\n  ))\n",
+        self.assertIn('(exclude\n (as-value\n  ("fetch" "0x00")\n  ("unused" "None()")))\n',
                       scope.configuration(result))
 
     def test_a_value_with_a_double_quote(self):
-        with self.assertRaisesRegex(ValueError, 'value for fetch must be a Sail expression without double quotes'):
-            scope.ScopeFile.from_text(POLICY_SCOPE_FILE + 'value = { fetch = \'"x"\' }\n')
+        # S-expression strings escape it
+        result = policy_scope(POLICY_SCOPE_FILE + 'value = { fetch = \'"x"\' }\n')
+        self.assertIn('("fetch" "\\"x\\"")', scope.configuration(result))
+
+    def test_a_value_that_is_not_a_string(self):
+        with self.assertRaisesRegex(ValueError, 'value for fetch must be a Sail expression'):
+            scope.ScopeFile.from_text(POLICY_SCOPE_FILE + 'value = { fetch = 0 }\n')
 
     def test_two_policies_for_one_definition(self):
         with self.assertRaisesRegex(ValueError, 'helper under both no-op and failure'):
@@ -200,7 +206,7 @@ class PolicyExclusionTests(unittest.TestCase):
         self.assertIn('vlen_init', self.scope.excluded_functions)
 
     def test_policy_exclusions_are_not_ignored(self):
-        # they get their own configuration functions, not ignore-functions
+        # they get their own parts of the option exclude, not (ignore (functions ...))
         self.assertNotIn('helper', self.scope.excluded_functions)
         self.assertEqual(self.scope.policy, {'helper': 'no-op', 'truncate': 'unconstrained', 'vlenb': 'registers'})
         self.assertEqual(self.scope.policy_counts(), {'no-op': 1, 'failure': 0, 'unconstrained': 1, 'value': 0, 'registers': 1})
@@ -229,7 +235,7 @@ class PolicyExclusionTests(unittest.TestCase):
         self.assertEqual(result.policy, {'helper': 'no-op', 'vlenb': 'registers'})
         self.assertNotIn('helper', result.nodes)
         self.assertIn('vector_helper', result.excluded_functions)
-        self.assertIn("(exclude-functions-as-no-op\n  '(\n   \"helper\"\n  ))\n", scope.configuration(result))
+        self.assertIn('(exclude\n (as-no-op\n  "helper"))\n', scope.configuration(result))
         self.assertEqual(result.warnings, [])
 
     def test_a_pattern_excludes_a_reached_extern(self):
@@ -252,10 +258,10 @@ class PolicyExclusionTests(unittest.TestCase):
 
     def test_configuration(self):
         text = scope.configuration(self.scope)
-        self.assertIn("(exclude-functions-as-no-op\n  '(\n   \"helper\"\n  ))\n", text)
-        self.assertIn("(exclude-functions-as-unconstrained\n  '(\n   \"truncate\"\n  ))\n", text)
-        self.assertIn("(exclude-registers\n  '(\n   \"vlenb\"\n  ))\n", text)
-        self.assertNotIn('exclude-functions-as-failure', text)
+        self.assertIn('(exclude\n (as-no-op\n  "helper"))\n', text)
+        self.assertIn('(exclude\n (as-unconstrained\n  "truncate"))\n', text)
+        self.assertIn('(exclude\n (registers\n  "vlenb"))\n', text)
+        self.assertNotIn('as-failure', text)
         self.assertNotIn('"helper"', text.split(';; The policy exclusions')[0])
 
     def test_a_remaining_call_to_an_excluded_function_is_a_problem(self):

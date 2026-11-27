@@ -2,8 +2,28 @@
 
    This module serves as globally accessible source of configuration settings.
 
+   The settings are read from a configuration file of S-expressions (docs/usage.md#configuration-file),
+   one form per option:
+
+     (include ../shared-configuration.sexp)
+     (templates base.template.v machine.template.v)
+     (dump-nanosail-ast)
+     (ignore (functions "undefined_*" log2) (types regfp))
+
+   Repeating an option adds to it: lists are combined, later values of single settings win.
+
 *)
 open ExtBase
+
+
+module Setting = struct
+  type 'a t = 'a ref
+
+  let mk (initial : 'a) : 'a t = ref initial
+  let get (setting : 'a t) : 'a = !setting
+  let set (setting : 'a t) (value : 'a) : unit = setting := value
+  let update (setting : 'a t) ~(f : 'a -> 'a) : unit = setting := f !setting
+end
 
 
 type monomorphization_request =
@@ -20,7 +40,7 @@ type template_translation =
 
 (*
    Requests that a union be translated to muSail's ty.sum.
-   See the translate-union-as-sum Slang function below.
+   See the option union-as-sum below.
 *)
 type sum_union =
   {
@@ -32,8 +52,7 @@ type sum_union =
 
 (*
    What the uses of a function that the configuration excludes become.
-   See the Slang functions exclude-functions-as-no-op, exclude-functions-as-failure
-   and exclude-functions-as-unconstrained below.
+   See the option exclude below.
 *)
 module FunctionExclusion = struct
   type t =
@@ -53,19 +72,19 @@ module FunctionExclusion = struct
     | Unconstrained, (NoOp | Failure | Value _)
     | Value _      , (NoOp | Failure | Unconstrained) -> false
 
-  (* The name of the Slang function that selects this exclusion *)
-  let slang_function_name (exclusion : t) : string =
+  (* The configuration entry that selects this exclusion, for messages *)
+  let configuration_name (exclusion : t) : string =
     match exclusion with
-    | NoOp          -> "exclude-functions-as-no-op"
-    | Failure       -> "exclude-functions-as-failure"
-    | Unconstrained -> "exclude-functions-as-unconstrained"
-    | Value _       -> "exclude-functions-as-value"
+    | NoOp          -> "(exclude (as-no-op ...))"
+    | Failure       -> "(exclude (as-failure ...))"
+    | Unconstrained -> "(exclude (as-unconstrained ...))"
+    | Value _       -> "(exclude (as-value ...))"
 end
 
 
 (*
    The semantics of a foreign function, i.e., of a Sail extern that is not translated into a muSail operation.
-   See the Slang functions foreign-function-semantics and foreign-functions-unconstrained below.
+   See the option foreign-functions below.
 *)
 module ForeignFunctionSemantics = struct
   type t =
@@ -81,805 +100,607 @@ module ForeignFunctionSemantics = struct
 end
 
 
-module Implementation = struct
-  include ConfigLib.BuildContext.Make(struct end)
-
-  module EC = Slang.EvaluationContext
-
-  open Slang.Prelude.Shared
-
-  module Exported = struct
-    (*
-
-       Name of the generated base module.
-
-       Example Usage
-       -------------
-
-         (base-name "MinimalCapsBase")
-
-    *)
-    let base_name = string "base-name" "UntitledBase"
-
-    (*
-
-       Name of the generated program module.
-
-       Example Usage
-       -------------
-
-         (program-name "MyLittleProgram")
-
-    *)
-    let program_name = string "program-name" "ModelProgram"
-
-    (*
-
-       Preserves the file structure of the Sail model in the generated functions
-       (see docs/usage.md#preserve-file-structure). Next to the file that the template with
-       (program-translation) produces (say machine.v), the translator then writes
-
-         machine_decl.v      the declarations of the functions (Fun, FunX, Stm)
-         Machine/dir/foo.v   the bodies of the functions of dir/foo.sail, one file per Sail file
-                             (dir relative to preserve-file-structure-root)
-
-       and (program-translation) produces only the program module, which puts them together,
-       with the bodies of the functions of Sail's library.
-
-       Example Usage
-       -------------
-
-         (preserve-file-structure)
-
-    *)
-    let preserve_file_structure = bool "preserve-file-structure" false
-
-    (*
-
-       With preserve-file-structure, the Sail file dir/foo.sail goes to Machine/dir/foo.v,
-       where dir is relative to this directory (relative to the current directory).
-       By default (""), it is the longest common directory of the model's files.
-
-       Example Usage
-       -------------
-
-         (preserve-file-structure-root "../cheriot-sail")
-
-    *)
-    let preserve_file_structure_root = string "preserve-file-structure-root" ""
-
-    (*
-
-       With preserve-file-structure, the directory next to the output of (program-translation)
-       that holds the files of the Sail files, and the first part of their libraries' names.
-
-       Example Usage
-       -------------
-
-         (preserve-file-structure-directory "Model")
-
-    *)
-    let preserve_file_structure_directory = string "preserve-file-structure-directory" "Machine"
-
-    (*
-       Verbosity level.
-
-       This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing
-       the desired verbosity level.
-       To see which values are valid and which verbosity levels they represent, see LogLib.VerbosityLevel.of_int.
-
-
-       Example Usage
-       -------------
-       $ VERBOSE=0 sail ...        # Suppress all logging
-       $ VERBOSE=4 sail ...        # Enable all logging
-    *)
-    let verbosity_level_environment_variable = "VERBOSE"
-    let verbosity_level = environment_variable verbosity_level_environment_variable LogLib.VerbosityLevel.default (LogLib.VerbosityLevel.of_int <. Int.of_string)
-
-    (*
-       The translation of match expressions can lead to an explosion in code generation.
-       We therefore try out many different translations and look for the one that leads
-       to the least amount of generated code.
-       This is done in a brute force way: all permutations of a list are tried one after the other,
-       i.e., there is a superexponential growth in the number of possibilities to consider.
-
-       This setting imposes an upper limit on this number of permutations.
-
-       For more detailed information, see the SailToNanosail.Translate.Match module.
-
-
-       Example Usage
-       -------------
-
-         (pattern-tree-max-permutations 10000)
-    *)
-    let pattern_tree_maximum_permutations = integer "pattern-tree-max-permutations" 1000
-
-    (*
-       Annotate muSail definitions with their corresponding Sail definition.
-
-       Example
-       -------
-       The following Sail code
-
-          val double : int -> int
-          function double(x) = {
-            2 * x
-          }
-
-       becomes
-
-         (*
-           Original Sail code
-
-             val double : int -> int
-             $[complete]
-             function double x = $[overloaded { "name" = "*", "is_infix" = true }] mult_atom(2, x)
-         *)
-         Definition fun_double : Stm [
-                                       "x"  ∷  ty.int
-                                     ]
-                                     (ty.int) :=
-           stm_exp (((exp_int 2%Z))*((exp_var "x"))).
-
-
-       Example Usage
-       -------------
-
-         (include-original-code #t)
-         (include-original-code #f)
-         (include-original-code)    ; Same as (include-original-code #t)
-
-    *)
-    let include_original_code = bool "include-original-code" false
-
-    (*
-       Ignore overload definitions
-       Overloads should be resolved by Sail, so there's no need to process them.
-    *)
-    let ignore_overloads = bool "ignore-all-overloads" false
-
-    (* Ignore the default Order line *)
-    let ignore_default_order = bool "ignore-default-order" true
-
-    (*
-
-       Plain printing produces
-
-          (cons (exp_int 1%Z)
-                (cons (exp_int 2%Z)
-                      (cons (exp_int 3%Z)
-                            nil)))
-
-       Pretty printing produces
-
-          [
-            exp_int 1%Z;
-            exp_int 2%Z;
-            exp_int 3%Z
-          ]
-
-    *)
-    let pretty_print_lists = bool "pretty-print-lists" false
-
-    (*
-
-       Plain printing produces
-
-        stm_let "x"
-                (ty.int)
-                (stm_exp (exp_int 5%Z))
-                (stm_exp (exp_var "x"))
-
-
-       Pretty printing produces
-
-        let: "x" :: ty.int := stm_exp (exp_int 5%Z)
-        in
-          stm_exp (exp_var "x")
-
-       Example Usage
-       -------------
-
-         (pretty-print-let #t)
-         (pretty-print-let #f)
-         (pretty-print-let)        ; Same as (pretty-print-let #t)
-
-    *)
-    let pretty_print_let = bool "pretty-print-let" false
-
-    (*
-       Plain printing produces
-
-          stm_match_enum Emyenum
-                         (stm_exp (exp_var "ж0"))
-                         (fun K => match K with
-                                   | x => stm_exp (exp_int 1%Z)
-                                   | y => stm_exp (exp_int 2%Z)
-                                   | z => stm_exp (exp_int 3%Z)
-                                   end)
-
-       Pretty printing produces
-
-          match: (stm_exp (exp_var "ж0")) in Emyenum with
-           | x  =>  stm_exp (exp_int 1%Z)
-           | y  =>  stm_exp (exp_int 2%Z)
-           | z  =>  stm_exp (exp_int 3%Z)
-          end
-
-    *)
-    let pretty_print_match_enum = bool"pretty-print-match-enum" false
-
-    (*
-
-       Plain printing produces
-
-        stm_exp (exp_binop bop.bvadd (exp_var "x") (exp_var "y")).
-
-       Pretty printing produces
-
-         stm_exp (((exp_var "x") +ᵇ (exp_var "y"))).
-
-    *)
-    let pretty_print_binary_operators = bool "pretty-print-binary-operators" false
-
-    (*
-       Applies to calls to Sail functions (stm_call) and to externs (stm_foreign).
-       See docs/usage.md#pretty-print-function-calls.
-
-       Plain printing produces
-
-         stm_call foo (env.snoc (env.snoc (env.snoc (env.nil) (_::_) ((exp_int 1%Z))%exp) (_::_) ((exp_false))%exp) (_::_) ((exp_val (ty.bvec 4) ([bv 1])))%exp).
-         stm_foreign bar (env.snoc (env.nil) (_::_) ((exp_var "x"))%exp)
-
-       Pretty printing uses Katamaran's call and foreign notations:
-
-         (call foo (exp_int 1%Z) (exp_false) (exp_val (ty.bvec 4) ([bv 1])))%exp.
-         (foreign bar (exp_var "x"))%exp
-
-       The notations only accept a name as function, so two kinds of calls are printed plainly either way:
-       calls whose callee has size variables passed by name, (store_bytes (kid__n := 4)),
-       and the foreign calls that produce unconstrained values, stm_foreign (unconstrained (ty.int)) env.nil.
-
-       Example Usage
-       -------------
-
-         (pretty-print-function-calls #t)
-         (pretty-print-function-calls #f)
-         (pretty-print-function-calls)        ; Same as (pretty-print-function-calls #t)
-
-    *)
-    let pretty_print_function_calls = bool "pretty-print-function-calls" false
-
-    (*
-       Outputs extra debug info.
-       Superseded by HTML generation.
-    *)
-    let show_generation_blocks = bool "show-generation-blocks" false
-
-    (*
-       Use bv 0 instead of Bitvector.bv.zero, analogously for ones
-    *)
-    let bitvectors_zeros_ones_as_literal = bool "literal-zeros-and-ones" false
-
-    (*
-       Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg.
-    *)
-    let inline_definitions_in_notations = bool "inline-definitions-in-notations" true
-
-    (*
-       Annotates functions with the nanosail AST in F-Expression form.
-    *)
-    let annotate_functions_with_ast = bool "annotate-functions-with-ast" false
-    
-    (*
-       Dumps a sail definition's nanosail AST to stdout as soon as it
-       is completed.
-    *)
-    let dump_nanosail_ast = bool "dump-nanosail-ast" false
-
-    let ignore_pragma_predicate                    = string_predicate "ignore-pragmas"                             (Fn.const false)
-    let ignore_type_definition_predicate           = string_predicate "ignore-type-definition-predicate"           (Fn.const false)
-    let ignore_value_definition_predicate          = string_predicate "ignore-value-definition-predicate"          (Fn.const false)
-    let ignore_function_definition_predicate       = string_predicate "ignore-function-definition-predicate"       (Fn.const false)
-    let ignore_top_level_type_constraint_predicate = string_predicate "ignore-top-level-type-constraint-predicate" (Fn.const false)
-
-    (*
-       Names of definitions to ignore in addition to those the predicates above select;
-       see the Slang functions ignore-functions and ignore-values below.
-    *)
-    let ignored_function_names                     = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
-    let ignored_value_names                        = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
-
-    (*
-       Definitions removed together with their uses;
-       see the Slang functions exclude-functions-as-no-op, ..., and exclude-registers below.
-    *)
-    let excluded_functions                         = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : FunctionExclusion.t Base.Map.M(Base.String).t)
-    let excluded_registers                         = ConfigLib.Setting.mk (Base.Set.empty (module Base.String))
-
-    (*
-       Semantics of foreign functions given by the configuration, by Sail name;
-       see the Slang functions foreign-function-semantics and foreign-functions-unconstrained below.
-    *)
-    let foreign_function_semantics                 = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
-
-    (*
-       New names for Sail identifiers in the output, by Sail name; see the Slang function rename below.
-    *)
-    let renamed_identifiers                        = ConfigLib.Setting.mk (Base.Map.empty (module Base.String) : string Base.Map.M(Base.String).t)
-
-    let template_block_left_delimiter              = string "template-block-left-delimiter"  "(*<"
-    let template_block_right_delimiter             = string "template-block-right-delimiter" ">*)"
-
-    let template_translations                      = ConfigLib.Setting.mk ([] : template_translation list)
-
-    let sum_unions                                 = ConfigLib.Setting.mk ([] : sum_union list)
-  end
-
-  (*
-     Defines Slang function named template.
-
-       (template in-file)
-       (template in-file out-file)
-  *)
-  let () =
-    let exported_function_name = "template"
-    and add_translation template_filename output_filename =
-      ConfigLib.Setting.update Exported.template_translations ~f:(fun x -> { template_filename; output_filename } :: x)
-    and derive_output_filename_from_template_filename (template_filename : string) : string =
-      (*
-         Given the filename of the template file, derives an output filename from it.
-         This is achieved by looking for a ".template" substring in template_filename and remove it.
-       *)
-      let pattern = String.Search_pattern.create ".template"
-      in
-      match String.Search_pattern.index_all pattern ~may_overlap:false ~in_:template_filename with
-      | [] -> begin
-          (* No ".template" substring was found *)
-          let error_message =
-            Printf.sprintf
-              "Error: when using (template %s), %s must contain the substring \".template\"."
-              template_filename
-              template_filename
-          in
-          failwith error_message
-        end
-      | [_] -> begin
-          (* Replace ".template" by the empty string *)
-          String.Search_pattern.replace_first pattern ~in_:template_filename ~with_:""
-        end
-      | _  -> begin
-          (* Multiple occurrences of ".template" found *)
-          let error_message =
-            Printf.sprintf
-              {|Error: when calling template with a single argument (in this case "%s"), it must contain ".template" at most once|}
-              template_filename
-          in
-          failwith error_message
-        end
-    in
-    let handler_function =
-      (*
-         Deals with
-
-          (template input)
-      *)
-      let unary_version evaluated_arguments =
-        match Slang.Converters.(map1 string) evaluated_arguments with
-        | Some template_filename -> begin
-            let output_filename =
-              derive_output_filename_from_template_filename template_filename
-            in
-            add_translation template_filename output_filename;
-            EC.return @@ Some Slang.Value.Nil
-          end
-        | None -> EC.return None
-      (*
-         Deals with
-
-          (template input output)
-      *)
-      and binary_version evaluated_arguments =
-        match Slang.Converters.(map2 string string) evaluated_arguments with
-        | Some (template_filename, output_filename) -> begin
-            add_translation template_filename output_filename;
-            EC.return @@ Some Slang.Value.Nil
-          end
-        | None -> EC.return None
-      in
-      Slang.Functions.mk_multimethod [ unary_version; binary_version ]
-    in
-    export_callable exported_function_name handler_function
-
-  (* helper function template-block-delimiters that allows setting both template block delimiters in one step *)
-  let () = export_strict_function "template-block-delimiters" @@ fun evaluated_arguments -> begin
-      let=! left, right = Slang.Converters.(map2 string string) evaluated_arguments
-      in
-      ConfigLib.Setting.set Exported.template_block_left_delimiter left;
-      ConfigLib.Setting.set Exported.template_block_right_delimiter right
-    end
-
-
-  let () =
-    let exported_function_name =
-      "ignore-function-definition-and-top-level-type-constraints-predicate"
-    and setter (predicate : string -> bool) : unit =
-      (ConfigLib.Setting.set Exported.ignore_function_definition_predicate) predicate;
-      (ConfigLib.Setting.set Exported.ignore_top_level_type_constraint_predicate) predicate
-    in
-    export_string_predicate_setter exported_function_name setter
-
-
-  (*
-     Slang functions that ignore definitions by name:
-
-       (ignore-functions '("f" "g"))   ignores the function definitions f and g, and their top-level type constraints
-       (ignore-values '("x"))          ignores the top-level let definition x
-
-     The names are ignored in addition to those the ignore predicates select
-     (ignore-function-definition-and-top-level-type-constraints-predicate and
-     ignore-value-definition-predicate), whether the predicate is set before or after.
-     Each call adds to the names of earlier calls.
-
-     The CHERIoT loop (tests/cheriot/run.py) appends such calls to the case study's
-     configuration, for the definitions outside the scope it translates.
-  *)
-  let () =
-    let export_name_adder
-        (export_as : string                        )
-        (setting   : Base.Set.M(Base.String).t ConfigLib.Setting.t) : unit
-      =
-      export_strict_function export_as @@ fun evaluated_arguments -> begin
-        let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
-        in
-        ConfigLib.Setting.update setting ~f:(fun ignored -> Base.Set.union ignored (Base.Set.of_list (module Base.String) names))
-      end
-    in
-    export_name_adder "ignore-functions" Exported.ignored_function_names;
-    export_name_adder "ignore-values"    Exported.ignored_value_names
-
-
-  (*
-     Slang functions that exclude definitions together with their uses.
-     Ignoring a function (ignore-functions) only drops its definition, so that its callers
-     call a function that no longer exists. Excluding it also rewrites every call to it:
-
-       (exclude-functions-as-no-op '("f" "g"))
-         Each call becomes the unit value. Only for functions that return unit,
-         such as printing and tracing; a call to one that returns something else is an error.
-
-       (exclude-functions-as-failure '("f"))
-         Each call becomes a failure (muSail's stm_fail), for code that must be unreachable.
-
-       (exclude-functions-as-unconstrained '("f"))
-         Each call becomes an unconstrained value of the call's type: a call to the foreign
-         function (unconstrained σ) of the generated program, whose semantics allows every
-         value of σ, and leaves registers and memory unchanged. A proof about a caller must then
-         hold for every value the call could return: the value is universally quantified.
-         The arguments are still computed, but the result does not depend on them.
-
-       (exclude-functions-as-value '(("f" "None()") ("g" "0")))
-         Each call to f becomes the Sail expression None(), each call to g the expression 0.
-         The expression is type-checked at the type of the call, in the environment of the call,
-         and then translated as if it were written there. Arguments with an effect are still
-         computed (let excluded_call_arguments = <arguments> in <expression>); the others are dropped.
-         For a function whose result is known, such as a platform setting.
-
-       (exclude-registers '("r"))
-         Leaves the register r out of Reg. Each read of r becomes an unconstrained value of its
-         type (as above), each write to r a no-op (the written value is still computed).
-
-     An excluded function's definition and its val specification are left out, as with
-     ignore-functions. A function excluded in two different ways is an error.
-     Each call adds to the names of earlier calls.
-     The names are Sail's names, as in ignore-functions.
-  *)
-  let () =
-    let add_exclusions (exclusions : (string * FunctionExclusion.t) list) : unit =
-      let add
-          (excluded            : FunctionExclusion.t Base.Map.M(Base.String).t)
-          ((name, exclusion)   : string * FunctionExclusion.t                 ) : FunctionExclusion.t Base.Map.M(Base.String).t
-        =
-        match Base.Map.find excluded name with
-        | None                   -> Base.Map.set excluded ~key:name ~data:exclusion
-        | Some earlier_exclusion -> begin
-            if FunctionExclusion.equal earlier_exclusion exclusion
-            then excluded
-            else begin
-              let describe (exclusion : FunctionExclusion.t) : string =
-                match exclusion with
-                | Value value                     -> Printf.sprintf "%s (with %s)" (FunctionExclusion.slang_function_name exclusion) value
-                | NoOp | Failure | Unconstrained  -> FunctionExclusion.slang_function_name exclusion
-              in
-              let message =
-                Printf.sprintf
-                  "Error: %s is excluded twice, by %s and by %s"
-                  name
-                  (describe earlier_exclusion)
-                  (describe exclusion)
-              in
-              failwith message
-            end
-          end
-      in
-      ConfigLib.Setting.update Exported.excluded_functions ~f:(fun excluded -> List.fold exclusions ~init:excluded ~f:add)
-    in
-    let export_function_excluder (exclusion : FunctionExclusion.t) : unit =
-      export_strict_function (FunctionExclusion.slang_function_name exclusion) @@ fun evaluated_arguments -> begin
-        let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
-        in
-        add_exclusions @@ List.map names ~f:(fun name -> (name, exclusion))
-      end
-    in
-    export_function_excluder NoOp;
-    export_function_excluder Failure;
-    export_function_excluder Unconstrained;
-    export_strict_function (FunctionExclusion.slang_function_name (Value "")) begin fun evaluated_arguments ->
-      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
-      in
-      add_exclusions @@ List.map pairs ~f:(fun (name, value) -> (name, FunctionExclusion.Value value))
-    end;
-    export_strict_function "exclude-registers" @@ fun evaluated_arguments -> begin
-      let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
-      in
-      ConfigLib.Setting.update Exported.excluded_registers ~f:(fun excluded -> Base.Set.union excluded (Base.Set.of_list (module Base.String) names))
-    end
-
-
-  (*
-     Slang functions that set the semantics of foreign functions.
-
-     A Sail extern (a val specification with an extern binding, such as
-     val f = pure {c: "f", _: "f"} : bits(32) -> int, and no Sail body) is translated in one of two ways:
-     a call to an extern that corresponds to a muSail operation (shifts, slices, bitvector subtraction,
-     equality, ...) becomes that operation; any other extern becomes a foreign function: a constructor
-     of FunX with the extern's signature, and each call to it a stm_foreign.
-     The semantics of a foreign function (ForeignCall) never fails and never changes the registers.
-     A pure extern leaves the memory unchanged; a monadic one may change it in any way.
-     Its result is given by a Rocq term, or else unconstrained: any value of the result type,
-     so that a proof about a caller must hold for every value the call could return.
-     Externs of Sail's library with a well-known meaning (integer division and modulus, pow2,
-     min_int, count_leading_zeros, ...) have a default term; the others are unconstrained.
-     See ForeignFunctions in NanosailToMicrosail for the defaults and the translation.
-
-       (foreign-function-semantics '(("f" "Z.gcd arg1 arg2") ("g" "bv.of_Z arg1")))
-         The result of f is the Rocq term Z.gcd arg1 arg2, where arg1, arg2, ... are the arguments,
-         as values (Val σ). The term is the body of a definition whose result type is the
-         extern's (Val τ); its type-level integers (widths) are implicit arguments named kid__n for 'n.
-         bv_width x is the width of the bitvector x.
-
-       (foreign-functions-unconstrained '("f"))
-         The result of f is unconstrained, also if the translator knows a term for it.
-
-     The names are Sail's names. Giving a function two different semantics is an error.
-  *)
-  let () =
-    let add_semantics (pairs : (string * ForeignFunctionSemantics.t) list) : unit =
-      let add
-          (semantics           : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
-          ((name, semantics')  : string * ForeignFunctionSemantics.t                 ) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t
-        =
-        match Base.Map.find semantics name with
-        | None                                                                     -> Base.Map.set semantics ~key:name ~data:semantics'
-        | Some earlier when ForeignFunctionSemantics.equal earlier semantics'      -> semantics
-        | Some _                                                                   -> failwith @@ Printf.sprintf "Error: foreign function %s is given two different semantics" name
-      in
-      ConfigLib.Setting.update Exported.foreign_function_semantics ~f:(fun semantics -> List.fold pairs ~init:semantics ~f:add)
-    in
-    export_strict_function "foreign-function-semantics" begin fun evaluated_arguments ->
-      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
-      in
-      add_semantics @@ List.map pairs ~f:(fun (name, term) -> (name, ForeignFunctionSemantics.Given term))
-    end;
-    export_strict_function "foreign-functions-unconstrained" begin fun evaluated_arguments ->
-      let=! names = Slang.Converters.(map1 (list string)) evaluated_arguments
-      in
-      add_semantics @@ List.map names ~f:(fun name -> (name, ForeignFunctionSemantics.Unconstrained))
-    end
-
-
-  (*
-     Slang function that gives Sail identifiers another name in the output.
-
-       (rename '(("write_register" "write_register_model")))
-
-     Every occurrence of the identifier is renamed: its definition and all its uses. For a Sail
-     definition whose name clashes with one of Katamaran's (write_register: DefaultRegStoreKit).
-     There is no automatic scheme: a clash fails in Rocq until the configuration renames it.
-     The names in the rest of the configuration (ignore-functions, ...) stay Sail's names.
-     Renaming one identifier to two different names is an error; each call adds to the earlier ones.
-  *)
-  let () =
-    export_strict_function "rename" begin fun evaluated_arguments ->
-      let=! pairs = Slang.Converters.(map1 (list (tuple2 string string))) evaluated_arguments
-      in
-      let add
-          (renamed           : string Base.Map.M(Base.String).t)
-          ((name, new_name)  : string * string                 ) : string Base.Map.M(Base.String).t
-        =
-        match Base.Map.find renamed name with
-        | None                                           -> Base.Map.set renamed ~key:name ~data:new_name
-        | Some earlier when String.equal earlier new_name -> renamed
-        | Some earlier                                   -> failwith @@ Printf.sprintf "Error: %s is renamed to both %s and %s" name earlier new_name
-      in
-      ConfigLib.Setting.update Exported.renamed_identifiers ~f:(fun renamed -> List.fold pairs ~init:renamed ~f:add)
-    end
-
-
-  (*
-     Slang function to translate a union to muSail's ty.sum instead of to a ty.union of its own.
-     Multiple calls are allowed, one per union.
-
-       (translate-union-as-sum <union> <left constructor> <right constructor>)
-
-     The union must have exactly the two given constructors.
-     The left constructor becomes inl, the right one inr.
-     muSail's ty.sum is polymorphic, so all instances of a polymorphic union share the same representation:
-     option(int) and option(bits(3)) both become sums, instead of having to be monomorphized.
-
-     For example, with Sail's standard library
-
-       union option('a : Type) = {
-         Some : 'a,
-         None : unit
-       }
-
-       union result('a : Type, 'b : Type) = {
-         Ok  : 'a,
-         Err : 'b
-       }
-
-     the calls
-
-       (translate-union-as-sum "option" "Some" "None")
-       (translate-union-as-sum "result" "Ok" "Err")
-
-     translate option(T) to ty.sum T ty.unit, which is muSail's ty.option T,
-     and result(A, B) to ty.sum A B.
-     Some(x) becomes exp_inl x, None() becomes exp_inr (exp_val ty.unit tt),
-     and a match on either becomes stm_match_sum.
-  *)
-  let () =
-    export_strict_function "translate-union-as-sum" @@ fun evaluated_arguments -> begin
-      let=! union_identifier, left_constructor, right_constructor = Slang.Converters.(map3 string string string) evaluated_arguments
-      in
-      let sum_union =
-        {
-          union_identifier  = Ast.Identifier.mk union_identifier;
-          left_constructor  = Ast.Identifier.mk left_constructor;
-          right_constructor = Ast.Identifier.mk right_constructor;
-        }
-      in
-      ConfigLib.Setting.update Exported.sum_unions ~f:(fun sum_unions -> sum_union :: sum_unions)
-    end
-
-
-  let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref =
-    ref Ast.Identifier.Map.empty
-
-  (*
-     Adds an extra entry to monomorphization_requests.
-  *)
-  let register_monomorphization_request
-      (polymorphic_identifier : Ast.Identifier.t        )
-      (request                : monomorphization_request) : unit
-    =
-    let update (requests : monomorphization_request list option) : monomorphization_request list =
-      let requests =
-        Option.value ~default:[] requests
-      in
-      request :: requests
-    in
-    monomorphization_requests := Ast.Identifier.Map.update !monomorphization_requests polymorphic_identifier ~f:update
-
-
-  (*
-     Slang function to request monomorphizations for a specific function.
-     Multiple calls are allowed.
-
-     For example, take the following polymorphic function:
-
-       val foo : forall 'n 'm. (bitvector('n), bitvector('m)) -> bitvector(4)
-
-     It can be monomorphized for n=1 and m=2 with
-
-       (monomorphize "foo"
-                     "foo_1_2"
-                     '(
-                       ("'n" 1)
-                       ("'m" 2)
-                     ))
-  *)
-  let () =
-    let exported_function_name =
-      "monomorphize"
-    and handler_function arguments =
-      let open Slang in
-      let open Slang.Prelude.Shared
-      in
-      let open Monads.Notations.Star(Slang.EvaluationContext)
-      in
-      let* evaluated_arguments = EC.map ~f:Evaluation.evaluate arguments
-      in
-      let=! polymorphic_identifier, monomorphization_identifier, substitutions =
-        Converters.(map3 string string (list (tuple2 string integer))) evaluated_arguments
-      in
-      let polymorphic_identifier      = Ast.Identifier.mk polymorphic_identifier
-      and monomorphization_identifier = Ast.Identifier.mk monomorphization_identifier
-      and substitutions               = List.map ~f:(fun (id, n) -> (Ast.Identifier.mk id, n)) substitutions
-      in
-      let monomorphization_request : monomorphization_request = {
-        monomorphization_identifier;
-        substitutions;
+(*
+   Name of the generated base module.
+
+     (base-name MinimalCapsBase)
+*)
+let base_name = Setting.mk "UntitledBase"
+
+(*
+   Name of the generated program module.
+
+     (program-name MyLittleProgram)
+*)
+let program_name = Setting.mk "ModelProgram"
+
+(*
+   Preserves the file structure of the Sail model in the generated functions
+   (see docs/usage.md#preserve-file-structure). Next to the file that the template with
+   program-translation produces (say machine.v), the translator then writes
+
+     machine_decl.v      the declarations of the functions (Fun, FunX, Stm)
+     Machine/dir/foo.v   the bodies of the functions of dir/foo.sail, one file per Sail file
+                         (dir relative to preserve-file-structure-root)
+
+   and program-translation produces only the program module, which puts them together,
+   with the bodies of the functions of Sail's library.
+
+     (preserve-file-structure)
+*)
+let preserve_file_structure = Setting.mk false
+
+(*
+   With preserve-file-structure, the Sail file dir/foo.sail goes to Machine/dir/foo.v,
+   where dir is relative to this directory (relative to the current directory).
+   By default (""), it is the longest common directory of the model's files.
+
+     (preserve-file-structure-root "../cheriot-sail")
+*)
+let preserve_file_structure_root = Setting.mk ""
+
+(*
+   With preserve-file-structure, the directory next to the output of program-translation
+   that holds the files of the Sail files, and the first part of their libraries' names.
+
+     (preserve-file-structure-directory Model)
+*)
+let preserve_file_structure_directory = Setting.mk "Machine"
+
+(*
+   Verbosity level.
+
+   This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing
+   the desired verbosity level.
+   To see which values are valid and which verbosity levels they represent, see LogLib.VerbosityLevel.of_int.
+
+     $ VERBOSE=0 sail ...        # Suppress all logging
+     $ VERBOSE=4 sail ...        # Enable all logging
+*)
+let verbosity_level_environment_variable = "VERBOSE"
+
+let verbosity_level =
+  let setting = Setting.mk LogLib.VerbosityLevel.default
+  in
+  begin
+    match Sys.getenv_opt verbosity_level_environment_variable with
+    | Some value -> Setting.set setting (LogLib.VerbosityLevel.of_int (Int.of_string value))
+    | None       -> ()
+  end;
+  setting
+
+(*
+   The translation of match expressions can lead to an explosion in code generation.
+   We therefore try out many different translations and look for the one that leads
+   to the least amount of generated code.
+   This is done in a brute force way: all permutations of a list are tried one after the other,
+   i.e., there is a superexponential growth in the number of possibilities to consider.
+
+   This setting imposes an upper limit on this number of permutations.
+   For more detailed information, see the SailToNanosail.Translate.Match module.
+
+     (pattern-tree-max-permutations 10000)
+*)
+let pattern_tree_maximum_permutations = Setting.mk 1000
+
+(*
+   Annotate muSail definitions with their corresponding Sail definition.
+
+   The following Sail code
+
+      val double : int -> int
+      function double(x) = {
+        2 * x
       }
-      in
-      register_monomorphization_request polymorphic_identifier monomorphization_request;
-      EC.return @@ Value.Nil
+
+   becomes
+
+     (*
+       Original Sail code
+
+         val double : int -> int
+         $[complete]
+         function double x = $[overloaded { "name" = "*", "is_infix" = true }] mult_atom(2, x)
+     *)
+     Definition fun_double : Stm [
+                                   "x"  ∷  ty.int
+                                 ]
+                                 (ty.int) :=
+       stm_exp (((exp_int 2%Z))*((exp_var "x"))).
+
+     (include-original-code)          ; same as (include-original-code true)
+     (include-original-code false)
+*)
+let include_original_code = Setting.mk false
+
+(*
+   Ignore overload definitions: overloads are resolved by Sail, so there's no need to process them.
+
+     (ignore (overloads))
+*)
+let ignore_overloads = Setting.mk false
+
+(*
+   Ignore the default Order line.
+
+     (ignore (default-order false))
+*)
+let ignore_default_order = Setting.mk true
+
+(*
+   Plain printing produces
+
+      (cons (exp_int 1%Z)
+            (cons (exp_int 2%Z)
+                  (cons (exp_int 3%Z)
+                        nil)))
+
+   Pretty printing produces
+
+      [
+        exp_int 1%Z;
+        exp_int 2%Z;
+        exp_int 3%Z
+      ]
+*)
+let pretty_print_lists = Setting.mk false
+
+(*
+   Plain printing produces
+
+    stm_let "x"
+            (ty.int)
+            (stm_exp (exp_int 5%Z))
+            (stm_exp (exp_var "x"))
+
+   Pretty printing produces
+
+    let: "x" :: ty.int := stm_exp (exp_int 5%Z)
     in
-    export_callable exported_function_name handler_function
+      stm_exp (exp_var "x")
+*)
+let pretty_print_let = Setting.mk false
+
+(*
+   Plain printing produces
+
+      stm_match_enum Emyenum
+                     (stm_exp (exp_var "ж0"))
+                     (fun K => match K with
+                               | x => stm_exp (exp_int 1%Z)
+                               | y => stm_exp (exp_int 2%Z)
+                               | z => stm_exp (exp_int 3%Z)
+                               end)
+
+   Pretty printing produces
+
+      match: (stm_exp (exp_var "ж0")) in Emyenum with
+       | x  =>  stm_exp (exp_int 1%Z)
+       | y  =>  stm_exp (exp_int 2%Z)
+       | z  =>  stm_exp (exp_int 3%Z)
+      end
+*)
+let pretty_print_match_enum = Setting.mk false
+
+(*
+   Plain printing produces
+
+    stm_exp (exp_binop bop.bvadd (exp_var "x") (exp_var "y")).
+
+   Pretty printing produces
+
+     stm_exp (((exp_var "x") +ᵇ (exp_var "y"))).
+*)
+let pretty_print_binary_operators = Setting.mk false
+
+(*
+   Applies to calls to Sail functions (stm_call) and to externs (stm_foreign).
+   See docs/usage.md#pretty-print-function-calls.
+
+   Plain printing produces
+
+     stm_call foo (env.snoc (env.snoc (env.snoc (env.nil) (_::_) ((exp_int 1%Z))%exp) (_::_) ((exp_false))%exp) (_::_) ((exp_val (ty.bvec 4) ([bv 1])))%exp).
+     stm_foreign bar (env.snoc (env.nil) (_::_) ((exp_var "x"))%exp)
+
+   Pretty printing uses Katamaran's call and foreign notations:
+
+     (call foo (exp_int 1%Z) (exp_false) (exp_val (ty.bvec 4) ([bv 1])))%exp.
+     (foreign bar (exp_var "x"))%exp
+
+   The notations only accept a name as function, so two kinds of calls are printed plainly either way:
+   calls whose callee has size variables passed by name, (store_bytes (kid__n := 4)),
+   and the foreign calls that produce unconstrained values, stm_foreign (unconstrained (ty.int)) env.nil.
+
+     (pretty-print-function-calls)
+*)
+let pretty_print_function_calls = Setting.mk false
+
+(*
+   Outputs extra debug info.
+   Superseded by HTML generation.
+*)
+let show_generation_blocks = Setting.mk false
+
+(* Use bv 0 instead of Bitvector.bv.zero, analogously for ones *)
+let bitvectors_zeros_ones_as_literal = Setting.mk false
+
+(* Needed in certain circumstances to make Coq successfully derive NoConfusionHom for Reg. *)
+let inline_definitions_in_notations = Setting.mk true
+
+(* Annotates functions with the nanosail AST in F-Expression form. *)
+let annotate_functions_with_ast = Setting.mk false
+
+(* Dumps a sail definition's nanosail AST to stdout as soon as it is completed. *)
+let dump_nanosail_ast = Setting.mk false
+
+(*
+   Definitions to ignore, by name; see the option ignore below.
+*)
+let ignored_pragmas              = Setting.mk NameFilter.empty
+let ignored_types                = Setting.mk NameFilter.empty
+let ignored_values               = Setting.mk NameFilter.empty
+let ignored_functions            = Setting.mk NameFilter.empty   (* definition and top-level type constraint *)
+let ignored_function_definitions = Setting.mk NameFilter.empty
+let ignored_type_constraints     = Setting.mk NameFilter.empty
+
+(*
+   Definitions removed together with their uses; see the option exclude below.
+*)
+let excluded_functions = Setting.mk (Base.Map.empty (module Base.String) : FunctionExclusion.t Base.Map.M(Base.String).t)
+let excluded_registers = Setting.mk (Base.Set.empty (module Base.String))
+
+(*
+   Semantics of foreign functions given by the configuration, by Sail name; see the option foreign-functions below.
+*)
+let foreign_function_semantics = Setting.mk (Base.Map.empty (module Base.String) : ForeignFunctionSemantics.t Base.Map.M(Base.String).t)
+
+(*
+   New names for Sail identifiers in the output, by Sail name; see the option rename below.
+*)
+let renamed_identifiers = Setting.mk (Base.Map.empty (module Base.String) : string Base.Map.M(Base.String).t)
+
+let template_block_left_delimiter  = Setting.mk "(*<"
+let template_block_right_delimiter = Setting.mk ">*)"
+
+let template_translations = Setting.mk ([] : template_translation list)
+
+let sum_unions = Setting.mk ([] : sum_union list)
+
+let monomorphization_requests : monomorphization_request list Ast.Identifier.Map.t ref =
+  ref Ast.Identifier.Map.empty
+
+
+let get = Setting.get
+let set = Setting.set
+
+
+(*
+   Reading the configuration
+*)
+module Reader = struct
+  module Node = ConfigurationFile.Node
+
+  let error = ConfigurationFile.error
+
+  (* A name: an atom, quoted or not *)
+  let name (node : Node.t) : string =
+    match node with
+    | Atom { text; _ }     -> text
+    | List { location; _ } -> error location "expected a name, not a list"
+
+  let names (nodes : Node.t list) : string list =
+    List.map nodes ~f:name
+
+  let single
+      (option    : string    )
+      (location  : ConfigurationFile.Location.t)
+      (arguments : Node.t list) : Node.t
+    =
+    match arguments with
+    | [ argument ] -> argument
+    | _            -> error location @@ Printf.sprintf "%s takes one value" option
+
+  (* (option) is true; (option true) and (option false) set it *)
+  let flag
+      (option    : string    )
+      (location  : ConfigurationFile.Location.t)
+      (arguments : Node.t list) : bool
+    =
+    match arguments with
+    | []                                                    -> true
+    | [ Atom { text = "true"; quoted = false; _ } ]         -> true
+    | [ Atom { text = "false"; quoted = false; _ } ]        -> false
+    | _                                                     -> error location @@ Printf.sprintf "%s takes no value, true or false" option
+
+  let integer
+      (option    : string    )
+      (location  : ConfigurationFile.Location.t)
+      (arguments : Node.t list) : int
+    =
+    let value = name (single option location arguments)
+    in
+    match Int.of_string_opt value with
+    | Some n -> n
+    | None   -> error location @@ Printf.sprintf "%s takes an integer, not %s" option value
+
+  (* (a b) *)
+  let pair (node : Node.t) : string * string =
+    match node with
+    | List { elements = [ first; second ]; _ } -> (name first, name second)
+    | Atom { location; _ } | List { location; _ } -> error location @@ Printf.sprintf "expected a pair (<name> <value>), not %s" (Node.to_string node)
+
+  (* (head arguments ...), the form of an option and of each of its parts *)
+  let form (node : Node.t) : string * Node.t list * ConfigurationFile.Location.t =
+    match node with
+    | List { elements = Atom { text; quoted = false; _ } :: arguments; location } -> (text, arguments, location)
+    | Atom { location; _ } | List { location; _ } -> error location @@ Printf.sprintf "expected (<option> ...), not %s" (Node.to_string node)
+
+  (* The patterns of a name list, with the names of (except ...) entries as exceptions *)
+  let name_filter (arguments : Node.t list) : NameFilter.t =
+    let patterns, exceptions =
+      List.partition_map arguments ~f:(fun (argument : Node.t) ->
+          match argument with
+          | Atom { text; _ }                                                         -> First text
+          | List { elements = Atom { text = "except"; quoted = false; _ } :: excepted; _ } -> Second (names excepted)
+          | List { location; _ }                                                     -> error location @@ Printf.sprintf "expected a name, a pattern or (except ...), not %s" (Node.to_string argument))
+    in
+    NameFilter.of_patterns ~patterns ~exceptions:(List.concat exceptions)
+
+  let add_names (setting : NameFilter.t Setting.t) (arguments : Node.t list) : unit =
+    Setting.update setting ~f:(fun filter -> NameFilter.union filter (name_filter arguments))
+
+  let add_name_set (setting : Base.Set.M(Base.String).t Setting.t) (arguments : Node.t list) : unit =
+    Setting.update setting ~f:(fun names' -> Base.Set.union names' (Base.Set.of_list (module Base.String) (names arguments)))
+
+  let add_template (template_filename : string) (location : ConfigurationFile.Location.t) : unit =
+    (* The output file is named after the template, without ".template" *)
+    let pattern = String.Search_pattern.create ".template"
+    in
+    let output_filename =
+      match String.Search_pattern.index_all pattern ~may_overlap:false ~in_:template_filename with
+      | [_] -> String.Search_pattern.replace_first pattern ~in_:template_filename ~with_:""
+      | _   -> error location @@ Printf.sprintf "the template %s must contain \".template\" exactly once" template_filename
+    in
+    Setting.update template_translations ~f:(fun templates -> { template_filename; output_filename } :: templates)
+
+  let add_exclusions
+      (location   : ConfigurationFile.Location.t)
+      (exclusions : (string * FunctionExclusion.t) list) : unit
+    =
+    let add
+        (excluded          : FunctionExclusion.t Base.Map.M(Base.String).t)
+        ((name, exclusion) : string * FunctionExclusion.t                 ) : FunctionExclusion.t Base.Map.M(Base.String).t
+      =
+      match Base.Map.find excluded name with
+      | None                                                              -> Base.Map.set excluded ~key:name ~data:exclusion
+      | Some earlier when FunctionExclusion.equal earlier exclusion       -> excluded
+      | Some earlier -> begin
+          error location @@ Printf.sprintf "%s is excluded twice, by %s and by %s"
+            name
+            (FunctionExclusion.configuration_name earlier)
+            (FunctionExclusion.configuration_name exclusion)
+        end
+    in
+    Setting.update excluded_functions ~f:(fun excluded -> List.fold exclusions ~init:excluded ~f:add)
+
+  let add_foreign_function_semantics
+      (location : ConfigurationFile.Location.t)
+      (pairs    : (string * ForeignFunctionSemantics.t) list) : unit
+    =
+    let add semantics (name, semantics') =
+      match Base.Map.find semantics name with
+      | None                                                                -> Base.Map.set semantics ~key:name ~data:semantics'
+      | Some earlier when ForeignFunctionSemantics.equal earlier semantics' -> semantics
+      | Some _                                                              -> error location @@ Printf.sprintf "foreign function %s is given two different semantics" name
+    in
+    Setting.update foreign_function_semantics ~f:(fun semantics -> List.fold pairs ~init:semantics ~f:add)
+
+  let add_renaming
+      (location : ConfigurationFile.Location.t)
+      (pairs    : (string * string) list) : unit
+    =
+    let add renamed (name, new_name) =
+      match Base.Map.find renamed name with
+      | None                                            -> Base.Map.set renamed ~key:name ~data:new_name
+      | Some earlier when String.equal earlier new_name -> renamed
+      | Some earlier                                    -> error location @@ Printf.sprintf "%s is renamed to both %s and %s" name earlier new_name
+    in
+    Setting.update renamed_identifiers ~f:(fun renamed -> List.fold pairs ~init:renamed ~f:add)
+
+  let add_monomorphization (node : Node.t) : unit =
+    (* (f (name f_1_2) (values ('n 1) ('m 2))) *)
+    let function_name, parts, location = form node
+    in
+    let part (wanted : string) : Node.t list =
+      match List.filter_map parts ~f:(fun part -> let head, arguments, _ = form part in if String.equal head wanted then Some arguments else None) with
+      | [ arguments ] -> arguments
+      | _             -> error location @@ Printf.sprintf "the monomorphization of %s needs exactly one (%s ...)" function_name wanted
+    in
+    List.iter parts ~f:(fun part ->
+        let head, _, part_location = form part in
+        if not (List.mem [ "name"; "values" ] head ~equal:String.equal)
+        then error part_location @@ Printf.sprintf "unknown part (%s ...) of a monomorphization; expected name or values" head);
+    let monomorphization_identifier = Ast.Identifier.mk (name (single "name" location (part "name")))
+    and substitutions =
+      List.map (part "values") ~f:(fun value ->
+          let type_variable, n = pair value in
+          match Int.of_string_opt n with
+          | Some n -> (Ast.Identifier.mk type_variable, n)
+          | None   -> error (Node.location value) @@ Printf.sprintf "the value of %s must be an integer, not %s" type_variable n)
+    in
+    let request = { monomorphization_identifier; substitutions }
+    in
+    let update (requests : monomorphization_request list option) : monomorphization_request list =
+      request :: Option.value ~default:[] requests
+    in
+    monomorphization_requests := Ast.Identifier.Map.update !monomorphization_requests (Ast.Identifier.mk function_name) ~f:update
+
+  (* Applies each part (head ...) of an option such as (ignore (functions ...) (types ...)) *)
+  let parts
+      (option    : string)
+      (arguments : Node.t list)
+      ~(f        : string -> Node.t list -> ConfigurationFile.Location.t -> unit) : unit
+    =
+    ignore option;
+    List.iter arguments ~f:(fun argument -> let head, part_arguments, location = form argument in f head part_arguments location)
+
+  let unknown_part (option : string) (part : string) (location : ConfigurationFile.Location.t) (known : string list) : 'a =
+    error location @@ Printf.sprintf "unknown part (%s ...) of %s; expected one of %s" part option (String.concat ~sep:", " known)
+
+  let flags : (string * bool Setting.t) list =
+    [
+      ("include-original-code"           , include_original_code           );
+      ("pretty-print-lists"              , pretty_print_lists              );
+      ("pretty-print-let"                , pretty_print_let                );
+      ("pretty-print-match-enum"         , pretty_print_match_enum         );
+      ("pretty-print-binary-operators"   , pretty_print_binary_operators   );
+      ("pretty-print-function-calls"     , pretty_print_function_calls     );
+      ("show-generation-blocks"          , show_generation_blocks          );
+      ("literal-zeros-and-ones"          , bitvectors_zeros_ones_as_literal);
+      ("inline-definitions-in-notations" , inline_definitions_in_notations );
+      ("annotate-functions-with-ast"     , annotate_functions_with_ast     );
+      ("dump-nanosail-ast"               , dump_nanosail_ast               );
+      ("preserve-file-structure"         , preserve_file_structure         );
+    ]
+
+  let apply (node : Node.t) : unit =
+    let option, arguments, location = form node
+    in
+    match List.Assoc.find flags option ~equal:String.equal with
+    | Some setting -> Setting.set setting (flag option location arguments)
+    | None -> begin
+        match option with
+        | "templates"                     -> List.iter arguments ~f:(fun argument -> add_template (name argument) (Node.location argument))
+        | "base-name"                     -> Setting.set base_name (name (single option location arguments))
+        | "program-name"                  -> Setting.set program_name (name (single option location arguments))
+        | "preserve-file-structure-root"      -> Setting.set preserve_file_structure_root (name (single option location arguments))
+        | "preserve-file-structure-directory" -> Setting.set preserve_file_structure_directory (name (single option location arguments))
+        | "pattern-tree-max-permutations" -> Setting.set pattern_tree_maximum_permutations (integer option location arguments)
+        | "template-block-delimiters"     -> begin
+            match arguments with
+            | [ left; right ] -> Setting.set template_block_left_delimiter (name left); Setting.set template_block_right_delimiter (name right)
+            | _               -> error location "template-block-delimiters takes two strings: the left and the right delimiter"
+          end
+        | "ignore" -> begin
+            let known = [ "overloads"; "default-order"; "pragmas"; "types"; "values"; "functions"; "function-definitions"; "type-constraints" ]
+            in
+            parts option arguments ~f:(fun part part_arguments part_location ->
+                match part with
+                | "overloads"            -> Setting.set ignore_overloads (flag part part_location part_arguments)
+                | "default-order"        -> Setting.set ignore_default_order (flag part part_location part_arguments)
+                | "pragmas"              -> add_names ignored_pragmas part_arguments
+                | "types"                -> add_names ignored_types part_arguments
+                | "values"               -> add_names ignored_values part_arguments
+                | "functions"            -> add_names ignored_functions part_arguments
+                | "function-definitions" -> add_names ignored_function_definitions part_arguments
+                | "type-constraints"     -> add_names ignored_type_constraints part_arguments
+                | _                      -> unknown_part option part part_location known)
+          end
+        | "exclude" -> begin
+            let known = [ "as-no-op"; "as-failure"; "as-unconstrained"; "as-value"; "registers" ]
+            in
+            parts option arguments ~f:(fun part part_arguments part_location ->
+                let excluded_as (exclusion : FunctionExclusion.t) =
+                  add_exclusions part_location @@ List.map (names part_arguments) ~f:(fun name -> (name, exclusion))
+                in
+                match part with
+                | "as-no-op"         -> excluded_as NoOp
+                | "as-failure"       -> excluded_as Failure
+                | "as-unconstrained" -> excluded_as Unconstrained
+                | "as-value"         -> add_exclusions part_location @@ List.map part_arguments ~f:(fun node -> let name, value = pair node in (name, FunctionExclusion.Value value))
+                | "registers"        -> add_name_set excluded_registers part_arguments
+                | _                  -> unknown_part option part part_location known)
+          end
+        | "foreign-functions" -> begin
+            parts option arguments ~f:(fun part part_arguments part_location ->
+                match part with
+                | "semantics"     -> add_foreign_function_semantics part_location @@ List.map part_arguments ~f:(fun node -> let name, term = pair node in (name, ForeignFunctionSemantics.Given term))
+                | "unconstrained" -> add_foreign_function_semantics part_location @@ List.map (names part_arguments) ~f:(fun name -> (name, ForeignFunctionSemantics.Unconstrained))
+                | _               -> unknown_part option part part_location [ "semantics"; "unconstrained" ])
+          end
+        | "rename"        -> add_renaming location @@ List.map arguments ~f:pair
+        | "union-as-sum"  -> begin
+            List.iter arguments ~f:(fun (argument : Node.t) ->
+                match argument with
+                | List { elements = [ union; left; right ]; _ } -> begin
+                    let sum_union =
+                      {
+                        union_identifier  = Ast.Identifier.mk (name union);
+                        left_constructor  = Ast.Identifier.mk (name left);
+                        right_constructor = Ast.Identifier.mk (name right);
+                      }
+                    in
+                    Setting.update sum_unions ~f:(fun sum_unions -> sum_union :: sum_unions)
+                  end
+                | Atom { location; _ } | List { location; _ } -> error location @@ Printf.sprintf "expected (<union> <left constructor> <right constructor>), not %s" (Node.to_string argument))
+          end
+        | "monomorphize"  -> List.iter arguments ~f:add_monomorphization
+        | _               -> error location @@ Printf.sprintf "unknown option %s" option
+      end
 end
 
-include Implementation.Exported
+
+let load_configuration (path : string) : unit =
+  List.iter (ConfigurationFile.read path) ~f:Reader.apply
 
 
 let requested_monomorphizations_for (function_identifier : Ast.Identifier.t) : monomorphization_request list option =
-  Ast.Identifier.Map.find !Implementation.monomorphization_requests function_identifier
+  Ast.Identifier.Map.find !monomorphization_requests function_identifier
 
 
 (*
-   Returns the translate-union-as-sum request for the union with the given name, if any.
+   Returns the union-as-sum request for the union with the given name, if any.
 *)
 let sum_union_for (union_identifier : Ast.Identifier.t) : sum_union option =
-  List.find (ConfigLib.Setting.get sum_unions) ~f:(fun (sum_union : sum_union) -> Ast.Identifier.equal sum_union.union_identifier union_identifier)
+  List.find (get sum_unions) ~f:(fun (sum_union : sum_union) -> Ast.Identifier.equal sum_union.union_identifier union_identifier)
 
 
-let load_configuration = Implementation.load_configuration
-let get                = ConfigLib.Setting.get
-let set                = ConfigLib.Setting.set
+let should_ignore_pragma (identifier : string) : bool =
+  NameFilter.matches (get ignored_pragmas) identifier
 
+let should_ignore_type_definition (identifier : string) : bool =
+  NameFilter.matches (get ignored_types) identifier
 
 (*
-   Whether to ignore the definition with the given name: its ignore predicate
-   selects it, or it is one of the names given to ignore-functions or ignore-values.
+   Whether to ignore the definition with the given name: (ignore (functions ...)) or
+   (ignore (function-definitions ...)) selects it, or it is excluded.
 *)
 let should_ignore_function_definition (identifier : string) : bool =
-  get ignore_function_definition_predicate identifier
-  || Base.Set.mem (get ignored_function_names) identifier
+  NameFilter.matches (get ignored_functions) identifier
+  || NameFilter.matches (get ignored_function_definitions) identifier
   || Base.Map.mem (get excluded_functions) identifier
 
 let should_ignore_top_level_type_constraint (identifier : string) : bool =
-  get ignore_top_level_type_constraint_predicate identifier
-  || Base.Set.mem (get ignored_function_names) identifier
+  NameFilter.matches (get ignored_functions) identifier
+  || NameFilter.matches (get ignored_type_constraints) identifier
   || Base.Map.mem (get excluded_functions) identifier
 
 let should_ignore_value_definition (identifier : string) : bool =
-  get ignore_value_definition_predicate identifier || Base.Set.mem (get ignored_value_names) identifier
+  NameFilter.matches (get ignored_values) identifier
 
 
 (*
    How the uses of the function with the given (Sail) name are translated,
-   if the configuration excludes it; see exclude-functions-as-no-op and the like.
+   if the configuration excludes it; see the option exclude.
 *)
 let function_exclusion (identifier : string) : FunctionExclusion.t option =
   Base.Map.find (get excluded_functions) identifier
 
 
 (*
-   Whether the configuration excludes the register with the given (Sail) name; see exclude-registers.
+   Whether the configuration excludes the register with the given (Sail) name; see (exclude (registers ...)).
 *)
 let is_excluded_register (identifier : string) : bool =
   Base.Set.mem (get excluded_registers) identifier
 
 
-(*
-   The semantics the configuration gives to the foreign function with the given (Sail) name, if any;
-   see foreign-function-semantics and foreign-functions-unconstrained.
-*)
 let renamed (identifier : string) : string =
   Option.value (Base.Map.find (get renamed_identifiers) identifier) ~default:identifier
 
 
+(*
+   The semantics the configuration gives to the foreign function with the given (Sail) name, if any;
+   see the option foreign-functions.
+*)
 let foreign_function_semantics_for (identifier : string) : ForeignFunctionSemantics.t option =
   Base.Map.find (get foreign_function_semantics) identifier

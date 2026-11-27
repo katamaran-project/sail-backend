@@ -5,7 +5,6 @@ module Shared = Shared
 
 let tests =
   "all tests" >::: [
-    SlangTests.test_suite;
     ConversionTests.test_suite;
     PrecedenceFormatterTests.test_suite;
     ExtendedIntegerTests.test_suite;
@@ -19,7 +18,7 @@ let tests =
     RenamingTests.test_suite;
     BlockTests.test_suite;
     MakeSequenceTests.test_suite;
-    IgnoreByNameTests.test_suite;
+    ConfigurationTests.test_suite;
     ConstantTypeConditionalsTests.test_suite;
     ParameterPatternsTests.test_suite;
     FileStructureTests.test_suite;

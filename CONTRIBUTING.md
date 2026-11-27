@@ -43,7 +43,7 @@ Details in [tests](docs/tests.md).
   - an `XPASS` means the test must be moved out of `expected-failing` (`git mv`, printed by the runner);
     a new test for a missing feature goes into it, with a line in its `README.md` saying why it fails;
   - `--no-expected-failing` skips the expected failures.
-- Each test's `configuration.lisp` does `$include ../shared-configuration.lisp`.
+- Each test's `configuration.sexp` does `(include ../shared-configuration.sexp)`.
 - CI (`.github/workflows/build.yaml`) runs the unit tests, the template tests and the end-to-end tests, including the expected failures;
   it fails on any `FAIL` or `XPASS` ([details](docs/tests.md#continuous-integration)).
 

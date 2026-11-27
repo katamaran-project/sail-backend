@@ -22,7 +22,7 @@ let pending ?(sail_files_directory : string = "Machine") (directory : string) (s
   }
 
 
-(* Runs f with a fresh directory, and with the output of (base-translation) in it, as base.v *)
+(* Runs f with a fresh directory, and with the output of base-translation in it, as base.v *)
 let with_output_directory (f : string -> unit) : unit =
   let directory = Stdlib.Filename.temp_dir "additional-files" ""
   in
@@ -106,7 +106,7 @@ let fails_with (description : string) (expected_fragment : string) (f : unit -> 
 
 let test_failures =
   "failures" >::: [
-    fails_with "no template generates (base-translation)" "(base-translation)" begin fun () ->
+    fails_with "no template generates base-translation" "base-translation" begin fun () ->
       let directory = Stdlib.Filename.temp_dir "additional-files" ""
       in
       AdditionalFiles.reset ();
@@ -123,7 +123,7 @@ let test_failures =
 
 
 let test_html_base_translation_is_not_a_library =
-  "(base-translation) into an HTML file does not count as the base library" >:: fun _ -> begin
+  "base-translation into an HTML file does not count as the base library" >:: fun _ -> begin
       AdditionalFiles.reset ();
       AdditionalFiles.current_output_file := Some "out/base.v";
       AdditionalFiles.record_base_translation ();

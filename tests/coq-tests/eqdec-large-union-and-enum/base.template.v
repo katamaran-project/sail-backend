@@ -1,10 +1,9 @@
 (*<
-  (generate (base-translation))
+  base-translation
 >*)
 
 (*<
-  (if (untranslated-definitions?)
-    (generate "Theorem UNTRANSLATED_DEFINITIONS : False. Qed."))
+  (when untranslated-definitions "Theorem UNTRANSLATED_DEFINITIONS : False. Qed.")
 >*)
 
 (* eq_dec computes on closed values: equal values give left eq_refl, different ones right. *)
@@ -47,7 +46,7 @@ Proof. reflexivity. Qed.
 (*
 
 (*<
-  (generate (untranslated-definitions))
+  untranslated-definitions
 >*)
 
 *)

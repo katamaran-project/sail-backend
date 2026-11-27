@@ -6,7 +6,7 @@ SAIL=${SAIL:-sail}
 
 SAIL_SOURCES=model.sail
 
-$SAIL --katamaran --katamaran-config configuration.lisp $SAIL_SOURCES || exit 1
+$SAIL --katamaran --katamaran-config configuration.sexp $SAIL_SOURCES || exit 1
 
 failed=0
 for file in $(cd expected && find . -type f | sort); do

@@ -1,5 +1,5 @@
 (*<
-  (generate (base-translation))
+  base-translation
 >*)
 
 Theorem test : forall x : instruction, x = Pop.
@@ -8,14 +8,13 @@ Proof.
 Qed.
 
 (*<
-  (if (untranslated-definitions?)
-    (generate "Theorem UNTRANSLATED_DEFINITIONS : False. Qed."))
+  (when untranslated-definitions "Theorem UNTRANSLATED_DEFINITIONS : False. Qed.")
 >*)
 
 (*
 
 (*<
-  (generate (untranslated-definitions))
+  untranslated-definitions
 >*)
 
 *)

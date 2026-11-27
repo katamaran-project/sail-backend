@@ -1,5 +1,5 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)

@@ -29,19 +29,19 @@ $ make cheriot-lib-tests        # unit tests of tests/cheriot/lib and run.py, on
 
 These tests translate a Sail model into Coq code and have Coq check its validity.
 They can be found in `tests/coq-tests`: each subdirectory containing a `model.sail` is one test.
-Each test also has a `configuration.lisp`, which includes `../shared-configuration.lisp`.
+Each test also has a `configuration.sexp`, which includes `../shared-configuration.sexp`.
 
 Tests that are known to fail, usually because the translation does not support a feature yet,
 live in `tests/coq-tests/expected-failing` instead (see [Expected Failures](#expected-failures)).
 
 A test proceeds in two phases:
 
-1. Sail translates `model.sail` using the plugin (`sail --katamaran --katamaran-config configuration.lisp model.sail`).
+1. Sail translates `model.sail` using the plugin (`sail --katamaran --katamaran-config configuration.sexp model.sail`).
    A model can consist of several Sail files: `model.sail` can `$include` the other files of the test's directory and its subdirectories.
 2. `coqc` compiles the generated Rocq files, each after the files it `Require`s.
 
 The generated files are the outputs of the templates that the test's configuration registers,
-and with [`preserve-file-structure`](usage.md#preserve-file-structure) also the declarations (named after the output of `(program-translation)`,
+and with [`preserve-file-structure`](usage.md#preserve-file-structure) also the declarations (named after the output of `program-translation`,
 e.g. `machine_decl.v`) and one file per Sail file in a subdirectory (`Machine/` by default).
 The runner reads the outputs of the templates from the configuration, so that a missing one (if Sail failed) fails the test,
 and takes every other `.v` file in the sandbox as generated: a test's inputs contain no `.v` files apart from the templates.
@@ -123,8 +123,8 @@ Conversely, a new test for a feature that is not implemented yet goes into `expe
 * `--no-expected-failing` skips the expected failures, except those named with `--test` or `--include-file`.
 * With `--no-coq`, a test passes if Sail translates it, which most expected failures do: their generated Coq is what fails.
   An `XPASS` therefore does not fail a run without the Coq phase.
-* `expected-failing/shared-configuration.lisp` is a symbolic link to `../shared-configuration.lisp`,
-  so the tests' `$include ../shared-configuration.lisp` also resolves when running Sail in a test's directory.
+* `expected-failing/shared-configuration.sexp` is a symbolic link to `../shared-configuration.sexp`,
+  so the tests' `(include ../shared-configuration.sexp)` also resolves when running Sail in a test's directory.
 
 ### Selecting Tests
 
@@ -188,12 +188,12 @@ A run directory contains
 * `failures.txt`: the names of the failed tests (`FAIL` and `XFAIL`), one per line, usable with `--include-file`.
 * `unexpected.txt`: the names of the tests that made the run fail (`FAIL`, and `XPASS` when the Coq phase ran).
 * `run.json`: the run's settings and results.
-* `shared-configuration.lisp`: a copy of the shared configuration, included by each test's configuration.
+* `shared-configuration.sexp`: a copy of the shared configuration, included by each test's configuration.
 * one directory per test.
 
 Each test directory contains
 
-* copies of the test's inputs (`model.sail`, `configuration.lisp`, templates, ...);
+* copies of the test's inputs (`model.sail`, `configuration.sexp`, templates, ...);
 * the generated Coq files (`base.v`, `machine.v`, ...);
 * `output.txt`: the commands that were run, their combined stdout/stderr and exit codes;
 * `output.ast.txt`: `output.txt` reindented by `tests/reindent-ast.py`, to make dumped ASTs readable;

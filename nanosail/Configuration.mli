@@ -1,3 +1,12 @@
+module Setting : sig
+  type 'a t
+
+  val mk     : 'a -> 'a t
+  val get    : 'a t -> 'a
+  val set    : 'a t -> 'a -> unit
+  val update : 'a t -> f:('a -> 'a) -> unit
+end
+
 type monomorphization_request = {
   monomorphization_identifier : Ast.Identifier.t;
   substitutions : (Ast.Identifier.t * int) list;
@@ -15,141 +24,55 @@ module FunctionExclusion :
   sig
     type t = NoOp | Failure | Unconstrained | Value of string
     val equal : t -> t -> bool
-    val slang_function_name : t -> string
+    val configuration_name : t -> string
   end
 module ForeignFunctionSemantics :
   sig
     type t = Given of string | Unconstrained
     val equal : t -> t -> bool
   end
-module Implementation :
-  sig
-    val configuration_interpreter_state : Slang.State.t ref
-    val run : 'a Slang.EvaluationContext.t -> 'a
-    val export : string -> Slang.Value.t -> unit
-    val export_callable : string -> Slang.Value.callable -> unit
-    val read_file_contents : string -> string
-    val load_configuration : string -> unit
-    val export_strict_function :
-      string -> (Slang.Value.t list -> unit) -> unit
-    val generic_strict :
-      string ->
-      init:'a -> (Slang.Value.t list -> 'a) -> 'a ConfigLib.Setting.t
-    val bool : string -> bool -> bool ConfigLib.Setting.t
-    val integer : string -> int -> int ConfigLib.Setting.t
-    val string : string -> string -> string ConfigLib.Setting.t
-    val strings : string -> string list ConfigLib.Setting.t
-    val string_to_string :
-      string -> (string * string) list ConfigLib.Setting.t
-    val callable :
-      string ->
-      Slang.Value.callable -> Slang.Value.callable ConfigLib.Setting.t
-    val export_string_predicate_setter :
-      string -> ((string -> bool) -> unit) -> unit
-    val string_predicate :
-      string -> (string -> bool) -> (string -> bool) ConfigLib.Setting.t
-    val environment_variable :
-      string -> 'a -> (string -> 'a) -> 'a ConfigLib.Setting.t
-    val constant_function :
-      arity:int -> return_value:Slang.Value.t -> Slang.Value.callable
-    module EC = Slang.EvaluationContext
-    module Exported :
-      sig
-        val base_name : string ConfigLib.Setting.t
-        val program_name : string ConfigLib.Setting.t
-        val preserve_file_structure : bool ConfigLib.Setting.t
-        val preserve_file_structure_root : string ConfigLib.Setting.t
-        val preserve_file_structure_directory : string ConfigLib.Setting.t
-        val verbosity_level_environment_variable : string
-        val verbosity_level : LogLib.VerbosityLevel.t ConfigLib.Setting.t
-        val pattern_tree_maximum_permutations : int ConfigLib.Setting.t
-        val include_original_code : bool ConfigLib.Setting.t
-        val ignore_overloads : bool ConfigLib.Setting.t
-        val ignore_default_order : bool ConfigLib.Setting.t
-        val pretty_print_lists : bool ConfigLib.Setting.t
-        val pretty_print_let : bool ConfigLib.Setting.t
-        val pretty_print_match_enum : bool ConfigLib.Setting.t
-        val pretty_print_binary_operators : bool ConfigLib.Setting.t
-        val pretty_print_function_calls : bool ConfigLib.Setting.t
-        val show_generation_blocks : bool ConfigLib.Setting.t
-        val bitvectors_zeros_ones_as_literal : bool ConfigLib.Setting.t
-        val inline_definitions_in_notations : bool ConfigLib.Setting.t
-        val annotate_functions_with_ast : bool ConfigLib.Setting.t
-        val dump_nanosail_ast : bool ConfigLib.Setting.t
-        val ignore_pragma_predicate : (string -> bool) ConfigLib.Setting.t
-        val ignore_type_definition_predicate :
-          (string -> bool) ConfigLib.Setting.t
-        val ignore_value_definition_predicate :
-          (string -> bool) ConfigLib.Setting.t
-        val ignore_function_definition_predicate :
-          (string -> bool) ConfigLib.Setting.t
-        val ignore_top_level_type_constraint_predicate :
-          (string -> bool) ConfigLib.Setting.t
-        val ignored_function_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
-        val ignored_value_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
-        val excluded_functions :
-          FunctionExclusion.t Base.Map.M(Base.String).t ConfigLib.Setting.t
-        val excluded_registers : Base.Set.M(Base.String).t ConfigLib.Setting.t
-        val foreign_function_semantics :
-          ForeignFunctionSemantics.t Base.Map.M(Base.String).t ConfigLib.Setting.t
-        val renamed_identifiers : string Base.Map.M(Base.String).t ConfigLib.Setting.t
-        val template_block_left_delimiter : string ConfigLib.Setting.t
-        val template_block_right_delimiter : string ConfigLib.Setting.t
-        val template_translations :
-          template_translation list ConfigLib.Setting.t
-        val sum_unions : sum_union list ConfigLib.Setting.t
-      end
-    val monomorphization_requests :
-      monomorphization_request list Ast.Identifier.Map.t ref
-    val register_monomorphization_request :
-      Ast.Identifier.t -> monomorphization_request -> unit
-  end
-val base_name : string ConfigLib.Setting.t
-val program_name : string ConfigLib.Setting.t
-val preserve_file_structure : bool ConfigLib.Setting.t
-val preserve_file_structure_root : string ConfigLib.Setting.t
-val preserve_file_structure_directory : string ConfigLib.Setting.t
+
+val base_name : string Setting.t
+val program_name : string Setting.t
+val preserve_file_structure : bool Setting.t
+val preserve_file_structure_root : string Setting.t
+val preserve_file_structure_directory : string Setting.t
 val verbosity_level_environment_variable : string
-val verbosity_level : LogLib.VerbosityLevel.t ConfigLib.Setting.t
-val pattern_tree_maximum_permutations : int ConfigLib.Setting.t
-val include_original_code : bool ConfigLib.Setting.t
-val ignore_overloads : bool ConfigLib.Setting.t
-val ignore_default_order : bool ConfigLib.Setting.t
-val pretty_print_lists : bool ConfigLib.Setting.t
-val pretty_print_let : bool ConfigLib.Setting.t
-val pretty_print_match_enum : bool ConfigLib.Setting.t
-val pretty_print_binary_operators : bool ConfigLib.Setting.t
-val pretty_print_function_calls : bool ConfigLib.Setting.t
-val show_generation_blocks : bool ConfigLib.Setting.t
-val bitvectors_zeros_ones_as_literal : bool ConfigLib.Setting.t
-val inline_definitions_in_notations : bool ConfigLib.Setting.t
-val annotate_functions_with_ast : bool ConfigLib.Setting.t
-val dump_nanosail_ast : bool ConfigLib.Setting.t
-val ignore_pragma_predicate : (string -> bool) ConfigLib.Setting.t
-val ignore_type_definition_predicate : (string -> bool) ConfigLib.Setting.t
-val ignore_value_definition_predicate : (string -> bool) ConfigLib.Setting.t
-val ignore_function_definition_predicate :
-  (string -> bool) ConfigLib.Setting.t
-val ignore_top_level_type_constraint_predicate :
-  (string -> bool) ConfigLib.Setting.t
-val ignored_function_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
-val ignored_value_names : Base.Set.M(Base.String).t ConfigLib.Setting.t
-val excluded_functions :
-  FunctionExclusion.t Base.Map.M(Base.String).t ConfigLib.Setting.t
-val excluded_registers : Base.Set.M(Base.String).t ConfigLib.Setting.t
-val foreign_function_semantics :
-  ForeignFunctionSemantics.t Base.Map.M(Base.String).t ConfigLib.Setting.t
-val renamed_identifiers : string Base.Map.M(Base.String).t ConfigLib.Setting.t
-val template_block_left_delimiter : string ConfigLib.Setting.t
-val template_block_right_delimiter : string ConfigLib.Setting.t
-val template_translations : template_translation list ConfigLib.Setting.t
-val sum_unions : sum_union list ConfigLib.Setting.t
-val requested_monomorphizations_for :
-  Ast.Identifier.t -> monomorphization_request list option
+val verbosity_level : LogLib.VerbosityLevel.t Setting.t
+val pattern_tree_maximum_permutations : int Setting.t
+val include_original_code : bool Setting.t
+val ignore_overloads : bool Setting.t
+val ignore_default_order : bool Setting.t
+val pretty_print_lists : bool Setting.t
+val pretty_print_let : bool Setting.t
+val pretty_print_match_enum : bool Setting.t
+val pretty_print_binary_operators : bool Setting.t
+val pretty_print_function_calls : bool Setting.t
+val show_generation_blocks : bool Setting.t
+val bitvectors_zeros_ones_as_literal : bool Setting.t
+val inline_definitions_in_notations : bool Setting.t
+val annotate_functions_with_ast : bool Setting.t
+val dump_nanosail_ast : bool Setting.t
+val excluded_functions : FunctionExclusion.t Base.Map.M(Base.String).t Setting.t
+val excluded_registers : Base.Set.M(Base.String).t Setting.t
+val foreign_function_semantics : ForeignFunctionSemantics.t Base.Map.M(Base.String).t Setting.t
+val renamed_identifiers : string Base.Map.M(Base.String).t Setting.t
+val template_block_left_delimiter : string Setting.t
+val template_block_right_delimiter : string Setting.t
+val template_translations : template_translation list Setting.t
+val sum_unions : sum_union list Setting.t
+
+val requested_monomorphizations_for : Ast.Identifier.t -> monomorphization_request list option
 val sum_union_for : Ast.Identifier.t -> sum_union option
+
+(* Reads the configuration file (docs/usage.md#configuration-file); raises Failure on an error, with its location *)
 val load_configuration : string -> unit
-val get : 'a ConfigLib.Setting.t -> 'a
-val set : 'a ConfigLib.Setting.t -> 'a -> unit
+
+val get : 'a Setting.t -> 'a
+val set : 'a Setting.t -> 'a -> unit
+
+val should_ignore_pragma : string -> bool
+val should_ignore_type_definition : string -> bool
 val should_ignore_function_definition : string -> bool
 val should_ignore_top_level_type_constraint : string -> bool
 val should_ignore_value_definition : string -> bool

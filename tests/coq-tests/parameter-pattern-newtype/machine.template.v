@@ -1,7 +1,7 @@
 Require Export base.
 
 (*<
-  (generate (program-translation))
+  program-translation
 >*)
 
 (* A newtype parameter becomes arg#0; the other parameters keep their names *)
