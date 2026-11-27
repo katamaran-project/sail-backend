@@ -15,6 +15,7 @@ $ make test
 
 * When running the tests, the verbosity level is set to quiet, thereby suppressing all logging.
   It is, however, possible to override this by setting the verbosity level explicitly using `VERBOSE`.
+* Some tests ask Sail's SMT solver (`BranchConstraintsTests.ml`), so `z3` must be on `PATH`, as it is for Sail itself.
 
 ## CHERIoT Loop
 

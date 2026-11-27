@@ -14,4 +14,5 @@ module Variant                = Variant
 module Recursive              = Recursive
 module Literal                = Literal
 module Match                  = Match
+module BranchConstraints      = BranchConstraints
 module ParameterPatterns      = ParameterPatterns

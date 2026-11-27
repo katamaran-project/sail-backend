@@ -832,6 +832,15 @@ let specialise_branch
   in
   let inner_environment = branch_annotation.env
   in
+  (* the solver queries are limited to what the branch can change, see BranchConstraints *)
+  let outer_constraints = Libsail.Type_check.Env.get_constraints outer_environment
+  and inner_constraints = Libsail.Type_check.Env.get_constraints inner_environment
+  in
+  let added_constraints : S.n_constraint list =
+    BranchConstraints.added_constraints ~outer:outer_constraints ~inner:inner_constraints
+  and affected_size_variables : Libsail.Ast_compare.KidSet.t =
+    BranchConstraints.affected_size_variables ~outer:outer_constraints ~inner:inner_constraints
+  in
   let proves_false (environment : Libsail.Type_check.Env.t) : bool =
     try Libsail.Type_check.prove __POS__ environment Libsail.Ast_util.nc_false with _ -> false
   in
@@ -841,7 +850,7 @@ let specialise_branch
      type class search backtrack for a long time). It fails, as unreachable.
   *)
   if
-    proves_false inner_environment && not (proves_false outer_environment)
+    not (List.is_empty added_constraints) && proves_false inner_environment && not (proves_false outer_environment)
   then
     TC.recover
       begin
@@ -867,7 +876,8 @@ let specialise_branch
       )
   in
   let fixed : (S.kid * Z.t) list =
-    List.filter_map candidates ~f:(fun kid ->
+    List.filter candidates ~f:(fun kid -> Libsail.Ast_compare.KidSet.mem kid affected_size_variables)
+    |> List.filter_map ~f:(fun kid ->
         match Libsail.Type_check.solve_unique outer_environment (Libsail.Ast_util.nvar kid) with
         | Some _ -> None
         | None   -> begin
@@ -882,14 +892,10 @@ let specialise_branch
      over the candidate size variables only.
   *)
   let* facts : Ast.Numeric.Constraint.t list =
-    let outer_constraints = Libsail.Type_check.Env.get_constraints outer_environment
-    in
     let is_candidate (kid : S.kid) : bool =
       List.mem candidates kid ~equal:(fun kid kid' -> Libsail.Ast_compare.Kid.compare kid kid' = 0)
     in
-    Libsail.Type_check.Env.get_constraints inner_environment
-    |> List.filter ~f:(fun numeric_constraint ->
-        not (List.exists outer_constraints ~f:(fun numeric_constraint' -> Libsail.Ast_compare.NC.compare numeric_constraint numeric_constraint' = 0)))
+    added_constraints
     |> List.concat_map ~f:TypeQuantifier.sail_conjuncts
     |> List.filter ~f:(fun numeric_constraint ->
         let kids = Libsail.Ast_compare.KidSet.elements @@ Libsail.Ast_util.tyvars_of_constraint numeric_constraint

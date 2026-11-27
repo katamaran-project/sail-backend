@@ -31,6 +31,7 @@ Where things are:
 * `nanosail/SailToNanosail/Translate/`: one translator per Sail construct. The largest is `Function.ml`, which turns Sail expressions into muSail statements and carries the expected type along.
   A loop becomes a recursive helper function (`statement_of_loop`); the `TranslationContext` collects the helpers of the function being translated, and `Translation.translate_definition_and_loop_functions` emits them before it.
   A parameter that is a pattern, such as `Regidx(i)`, becomes a fresh parameter that the body matches on (`ParameterPatterns.ml`).
+  For every branch, `specialise_branch` asks Sail's solver whether the branch is dead and which size variables it fixes; `BranchConstraints.ml` limits these queries to what the branch's added constraints can change (each query starts `z3`).
 * `nanosail/Ast/`: the nanosail IR. Expressions and statements are separate, as in muSail; numeric expressions and constraints are kept.
 * `nanosail/NanosailToMicrosail/`: pretty-prints the IR as Rocq.
   With `preserve-file-structure`, `FileStructure.ml` decides which Sail file each function belongs to and which file in `Machine/` that becomes,
