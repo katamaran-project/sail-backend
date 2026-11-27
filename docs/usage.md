@@ -219,6 +219,48 @@ Definition fun_double : Stm [
   stm_exp (((exp_int 2%Z))*((exp_var "x"))).
 ```
 
+### `pretty-print-function-calls`
+
+```lisp
+(pretty-print-function-calls)       ; on
+(pretty-print-function-calls true)  ; on
+(pretty-print-function-calls false) ; off
+```
+
+This option is off by default.
+It determines how calls are printed: calls to Sail functions (`stm_call`) and calls to externs, which become foreign calls (`stm_foreign`).
+On, they use Katamaran's `call` and `foreign` notations, which take the arguments one after another:
+
+```coq
+(call foo (exp_int 1%Z) (exp_false) (exp_val (ty.bvec 4) ([bv 1])))%exp
+(foreign combine (exp_var "a") (exp_var "b"))%exp
+(call baz)%exp                                      (* no arguments *)
+```
+
+Off, the arguments form an environment, a chain of `env.snoc`:
+
+```coq
+stm_call foo (env.snoc (env.snoc (env.snoc (env.nil)
+                                           (_::_)
+                                           ((exp_int 1%Z))%exp)
+                                 (_::_)
+                                 ((exp_false))%exp)
+                       (_::_)
+                       ((exp_val (ty.bvec 4) ([bv 1])))%exp)
+stm_foreign combine (env.snoc (env.snoc (env.nil)
+                                        (_::_)
+                                        ((exp_var "a"))%exp)
+                              (_::_)
+                              ((exp_var "b"))%exp)
+```
+
+Both denote the same term: the notations stand for `stm_call` and `stm_foreign` with such an environment.
+
+The notations only accept a name as the function, so two kinds of calls use `stm_call` and `stm_foreign` even when the option is on:
+
+* calls to a function with a size variable that Rocq cannot infer and that is passed by name, such as `stm_call (store_bytes (kid__n := 4)) (env.snoc ...)`;
+* the foreign calls that produce an unconstrained value, `stm_foreign (unconstrained (ty.int)) env.nil`.
+
 ### `annotate-functions-with-ast`
 
 ```lisp

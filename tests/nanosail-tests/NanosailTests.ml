@@ -22,6 +22,7 @@ let tests =
     ConstantTypeConditionalsTests.test_suite;
     FileStructureTests.test_suite;
     AdditionalFilesTests.test_suite;
+    FunctionCallPrettyPrintingTests.test_suite;
   ]
 
 

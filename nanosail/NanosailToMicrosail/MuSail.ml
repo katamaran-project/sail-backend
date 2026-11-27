@@ -522,19 +522,44 @@ module Statement = struct
   end
 
   (*
+     (<keyword> <function_name> <arguments[0]> <arguments[1]> ...)%exp
+
+     with <keyword> call or foreign, Katamaran's notations for stm_call and stm_foreign.
+     Katamaran requires <function_name> to be a global name (not an application) and each argument
+     to be at level 9, so the callers parenthesize them.
+  *)
+  let pp_call_like_using_notation
+      ~(keyword       : string   )
+       (function_name : PP.t     )
+       (arguments     : PP.t list) : PP.t
+    =
+    PP.annotate [%here] begin
+      Coq.pp_scope ~scope:(PP.string "exp") begin
+        Coq.pp_application
+          (PP.string keyword)
+          (function_name :: arguments)
+      end
+    end
+
+
+  (*
      (call <function_name> <arguments[0]> <arguments[1]> ...)%exp
   *)
   let pp_call_using_notation
       (function_name : PP.t     )
       (arguments     : PP.t list) : PP.t
     =
-    PP.annotate [%here] begin
-      Coq.pp_scope ~scope:(PP.string "exp") begin
-        Coq.pp_application
-          (PP.string "call")
-          (function_name :: arguments)
-      end
-    end
+    pp_call_like_using_notation ~keyword:"call" function_name arguments
+
+
+  (*
+     (foreign <function_name> <arguments[0]> <arguments[1]> ...)%exp
+  *)
+  let pp_foreign_call_using_notation
+      (function_name : PP.t     )
+      (arguments     : PP.t list) : PP.t
+    =
+    pp_call_like_using_notation ~keyword:"foreign" function_name arguments
 
 
   (*
@@ -580,27 +605,12 @@ module Statement = struct
       (function_name : PP.t     )
       (arguments     : PP.t list) : PP.t
     =
-    let pp_arguments =
-      let add_snoc tail argument =
-        Coq.pp_hanging_application
-          (PP.string "env.snoc")
-          [
-            PP.(surround parens) tail;
-            PP.string "(_::_)";
-            Coq.pp_scope ~scope:(PP.string "exp") argument
-          ]
-      in
-      List.fold_left
-        arguments
-        ~init:(PP.string "env.nil")
-        ~f:add_snoc
-    in
     PP.annotate [%here] begin
       Coq.pp_application
         (PP.string "stm_call")
         [
           function_name;
-          PP.(surround parens) pp_arguments
+          PP.(surround parens) @@ pp_call_arguments arguments
         ]
     end
 

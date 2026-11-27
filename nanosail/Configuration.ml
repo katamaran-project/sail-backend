@@ -294,13 +294,24 @@ let pretty_print_match_enum = Setting.mk false
 let pretty_print_binary_operators = Setting.mk false
 
 (*
+   Applies to calls to Sail functions (stm_call) and to externs (stm_foreign).
+   See docs/usage.md#pretty-print-function-calls.
+
    Plain printing produces
 
      stm_call foo (env.snoc (env.snoc (env.snoc (env.nil) (_::_) ((exp_int 1%Z))%exp) (_::_) ((exp_false))%exp) (_::_) ((exp_val (ty.bvec 4) ([bv 1])))%exp).
+     stm_foreign bar (env.snoc (env.nil) (_::_) ((exp_var "x"))%exp)
 
-   Pretty printing produces
+   Pretty printing uses Katamaran's call and foreign notations:
 
      (call foo (exp_int 1%Z) (exp_false) (exp_val (ty.bvec 4) ([bv 1])))%exp.
+     (foreign bar (exp_var "x"))%exp
+
+   The notations only accept a name as function, so two kinds of calls are printed plainly either way:
+   calls whose callee has size variables passed by name, (store_bytes (kid__n := 4)),
+   and the foreign calls that produce unconstrained values, stm_foreign (unconstrained (ty.int)) env.nil.
+
+     (pretty-print-function-calls)
 *)
 let pretty_print_function_calls = Setting.mk false
 
