@@ -8,6 +8,22 @@ end
 
 
 (*
+   The callee of a call: its name, or, if some of its size variables must be passed by name
+   (see pp_callee), the application of its name to them.
+   Katamaran's call notation only accepts the former.
+*)
+type callee =
+  | Name                of PP.t   (* f                     *)
+  | WithNamedArguments  of PP.t   (* (f (kid__n := 4))     *)
+
+
+let pp_callee_term (callee : callee) : PP.t =
+  match callee with
+  | Name               pp_name -> pp_name
+  | WithNamedArguments pp_term -> pp_term
+
+
+(*
    The callee of a call to a function of the program. A size variable that is a parameter of the
    callee only because its constraints relate it to the types (see TypeLevelParameters.of_signature)
    cannot be inferred by Rocq; it is passed by name, from the argument whose Sail type is int('n):
@@ -19,7 +35,7 @@ end
 *)
 let pp_callee
     (function_identifier : Ast.Identifier.t     )
-    (arguments           : Ast.Expression.t list) : PP.t GC.t
+    (arguments           : Ast.Expression.t list) : callee GC.t
   =
   let pp_name = Identifier.pp function_identifier
   in
@@ -27,7 +43,7 @@ let pp_callee
     GC.lookup_definition_opt Ast.Definition.Select.(without_sail_definition @@ function_definition_named function_identifier)
   in
   match function_definition with
-  | None                     -> GC.return pp_name
+  | None                     -> GC.return @@ Name pp_name
   | Some function_definition -> begin
       let signature =
         TypeLevelParameters.of_function function_definition
@@ -117,24 +133,45 @@ let pp_callee
           )
       in
       match List.filter_opt named_arguments with
-      | []                -> GC.return pp_name
-      | named_arguments   -> GC.return @@ PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (pp_name :: named_arguments)
+      | []                -> GC.return @@ Name pp_name
+      | named_arguments   -> GC.return @@ WithNamedArguments (PP.(surround parens) @@ PP.separate_horizontally ~separator:PP.space (pp_name :: named_arguments))
     end
 
 
 (*
-   Generates function call using the syntax specified in the configuration.
+   Generates function call using the syntax specified in the configuration (pretty-print-function-calls):
+
+     (call f arg1 arg2)%exp                         if on
+     stm_call f (env.snoc (env.snoc ...))           if off
+
+   A callee with named arguments, such as (f (kid__n := 4)), is always printed with stm_call,
+   since Katamaran's call notation only accepts a name.
 *)
 let pp_function_call_using_configured_syntax
+    (callee    : callee   )
+    (arguments : PP.t list) : PP.t
+  =
+  match callee with
+  | Name pp_name when Configuration.(get pretty_print_function_calls) -> MuSail.Statement.pp_call_using_notation pp_name arguments
+  | Name _ | WithNamedArguments _                                     -> MuSail.Statement.pp_call (pp_callee_term callee) arguments
+
+
+(*
+   Generates foreign call using the syntax specified in the configuration (pretty-print-function-calls):
+
+     (foreign f arg1 arg2)%exp                      if on
+     stm_foreign f (env.snoc (env.snoc ...))        if off
+*)
+let pp_foreign_call_using_configured_syntax
     (function_name : PP.t     )
     (arguments     : PP.t list) : PP.t
   =
   if
     Configuration.(get pretty_print_function_calls)
   then
-    MuSail.Statement.pp_call_using_notation function_name arguments
+    MuSail.Statement.pp_foreign_call_using_notation function_name arguments
   else
-    MuSail.Statement.pp_call function_name arguments
+    MuSail.Statement.pp_foreign_call function_name arguments
 
 
 (*
@@ -155,7 +192,7 @@ let try_foreign_call
       let* pp_arguments =
         GC.map ~f:(fun e -> GC.lift ~f:PP.(surround parens) @@ Expressions.pp_expression e) arguments
       in
-      GC.return @@ Some (PP.annotate [%here] @@ MuSail.Statement.pp_foreign_call (Identifier.pp foreign_function.identifier) pp_arguments)
+      GC.return @@ Some (PP.annotate [%here] @@ pp_foreign_call_using_configured_syntax (Identifier.pp foreign_function.identifier) pp_arguments)
     end
 
 
@@ -235,7 +272,7 @@ let report_incorrect_argument_count
     GC.add_annotation message
   in
   let translation =
-    pp_function_call_using_configured_syntax (Identifier.pp original_function_name) operands
+    pp_function_call_using_configured_syntax (Name (Identifier.pp original_function_name)) operands
   in
   GC.return begin
     PP.annotate [%here] begin
