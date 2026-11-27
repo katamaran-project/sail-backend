@@ -123,6 +123,74 @@ The name of the base module; the default is `UntitledBase`.
 
 The name of the program module; the default is `ModelProgram`.
 
+### `preserve-file-structure`
+
+```lisp
+(preserve-file-structure)
+```
+
+Gives every Sail file with functions its own Rocq file with the bodies of those functions, instead of putting all bodies in the output of `program-translation`.
+Off by default.
+
+Below, `base.v` stands for the output of the template with `base-translation` and `machine.v` for that of the template with `program-translation`;
+their names come from `templates`. The translator writes:
+
+| file | contents |
+|---|---|
+| `base.v` | unchanged: all types, constants and registers |
+| `machine_decl.v` | named after `machine.v` (`model.v` gives `model_decl.v`); the module `ModelProgramDecl` (the program name followed by `Decl`): the declarations of the functions (`Fun`, `FunX`) and `Stm` |
+| `Machine/dir/foo.v` | for each Sail file `dir/foo.sail` with functions: the bodies of its functions (`Definition fun_f`) |
+| `machine.v` | the bodies of the functions of Sail's library, and the program module, which includes `ModelProgramDecl` and whose `FunDef` refers to the bodies, as in `Machine.dir.foo.fun_f` |
+
+The declarations need a file of their own because of how Katamaran is built: every body needs `Fun`, which lists all functions, and `FunDef`, a match over `Fun`, needs all bodies.
+The bodies only refer to each other through `Fun`, so the files in `Machine/` do not depend on each other.
+
+`Machine/` mirrors the directories of the Sail files, relative to a root: by default the longest common directory of the model's files.
+For CHERIoT, whose files are in `src/` and `sail-riscv/model/` of the cheriot-sail checkout, `src/cheri_insts.sail` becomes `Machine/src/cheri_insts.v`
+and `sail-riscv/model/riscv_insts_base.sail` becomes `Machine/sail_riscv/model/riscv_insts_base.v`.
+`preserve-file-structure-root` sets the root instead, relative to the directory in which Sail runs:
+
+```lisp
+(preserve-file-structure-root "../cheriot-sail")
+```
+
+`preserve-file-structure-directory` names the directory instead of `Machine` (default), which also changes the libraries' names, e.g. `Model.src.cheri_insts`:
+
+```lisp
+(preserve-file-structure-directory "Model")
+```
+
+It must be a name that Rocq allows: a letter followed by letters, digits, `_` and `'`; another name is an error.
+
+The names of directories and files are changed where Rocq does not allow them: other characters than letters, digits, `_` and `'` become `_`
+(`sail-riscv` becomes `sail_riscv`), and a name that does not start with a letter gets the prefix `sail_`.
+
+* A function goes to the file of its clauses.
+  The functions that Sail's `split` rewrite makes from the clauses of a scattered function (`execute_ADD`) go to the files of those clauses.
+  A function whose clauses come from several files (the merged `execute`, the functions of a scattered mapping) goes to the file where Sail puts it, which is the file that declares it (`scattered function execute`).
+* The functions that Sail generates for a bitfield `B` (`Mk_B`, `_get_B_F`, `_update_B_F`, ...) go to the file of `B`.
+* The functions of Sail's library (the files included with `$include <...>`), and functions without a source location, go to `machine.v`.
+* A Sail file without functions gets no file in `Machine/`.
+  `.v` files in `Machine/` and its subdirectories that are no longer generated (for example, after renaming a Sail file) are removed; directories are not.
+* `base.v` and `machine.v` must be in the same directory.
+  A Sail file outside the root, two Sail files that become the same Rocq file (such as `foo-bar.sail` and `foo_bar.sail`),
+  and a Sail file with the name of one of the generated files (`base`, `machine`, `machine_decl`) are errors:
+  with `-R` (see below), `Require base` would then match both `base.v` and `Machine/base.v`.
+
+Compile in dependency order: `base.v`, `machine_decl.v`, the files in `Machine/` (in any order, or in parallel), and `machine.v`.
+`machine.v` Requires the files in `Machine/` as `Machine.dir.foo`, so the output directory must be on the load path, e.g.:
+
+```bash
+coqc -Q . "" base.v
+coqc -Q . "" machine_decl.v
+find Machine -name '*.v' | while read -r file; do coqc -Q . "" "$file"; done
+coqc -Q . "" machine.v
+```
+
+The generated files `Require` each other by their names relative to the output directory (`base`, `machine_decl`, `Machine.dir.foo`).
+So map the output directory to the empty prefix (`-Q . ""`, as above), or use `-R` with any prefix, which also finds libraries by these partial names;
+`-Q` with a prefix does not work, since it only finds libraries by their full names.
+
 ### `include-original-code`
 
 ```lisp

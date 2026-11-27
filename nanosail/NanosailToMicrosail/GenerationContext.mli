@@ -32,7 +32,7 @@ val lookup_compile_time_integer : Ast.Identifier.t -> Z.t option option t
 
 val map     : f:('a -> 'b t) -> 'a list -> 'b list t
 
-val generate            : Ast.Program.t -> PP.t t -> PP.t
+val generate            : Ast.Program.t -> 'a t -> 'a
 val block               : PP.t t -> PP.t t
 val add_annotation      : PP.t -> int t
 val add_comment         : PP.t -> unit t

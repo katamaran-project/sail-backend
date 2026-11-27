@@ -702,18 +702,42 @@ def read_sources(sources, log):
     return []
 
 
+REQUIRE_RE = re.compile(r"Require\s+(?:(?:Import|Export)\s+)?((?:[\w']+(?:\.[\w']+)*\s*)+)\.")
+
+
 def find_rocq_files(d):
-    """The generated .v files in d, each after the files it Requires."""
-    files = sorted(f for f in os.listdir(d)
-                   if f.endswith(".v") and not f.endswith(".template.v"))
-    stems = {os.path.splitext(f)[0] for f in files}
+    """The generated .v files in d, each after the files it Requires.
+
+    With preserve-file-structure, the bodies of the functions are in d/Machine/**/*.v
+    (the directory's name is configurable), which machine.v Requires as Machine.dir.foo
+    (see docs/usage.md#preserve-file-structure): the directories that the files in d
+    Require from are searched too.
+    """
+    def rocq_files(directory, prefix, recursive):
+        if not os.path.isdir(directory):
+            return []
+        files = []
+        for f in sorted(os.listdir(directory)):
+            path = os.path.join(directory, f)
+            if recursive and os.path.isdir(path):
+                files += rocq_files(path, prefix + f + ".", recursive)
+            elif f.endswith(".v") and not f.endswith(".template.v"):
+                files.append((prefix + os.path.splitext(f)[0], path))
+        return files
+
+    def required(path):
+        with open(path, encoding="utf-8", errors="replace") as h:
+            return [name for libraries in REQUIRE_RE.findall(h.read())
+                    for name in libraries.split()]
+    files = rocq_files(d, "", False)
+    directories = sorted({name.split(".")[0] for _, path in files for name in required(path)
+                          if "." in name and os.path.isdir(os.path.join(d, name.split(".")[0]))})
+    for directory in directories:
+        files += rocq_files(os.path.join(d, directory), directory + ".", True)
+    paths = dict(files)
     deps = {}
-    for f in files:
-        with open(os.path.join(d, f), encoding="utf-8", errors="replace") as h:
-            head = h.read(4000)
-        deps[os.path.splitext(f)[0]] = {
-            m for m in re.findall(r"Require\s+(?:Import\s+|Export\s+)?([\w.]+)", head)
-            if m in stems}
+    for stem, path in files:
+        deps[stem] = {name for name in required(path) if name in paths}
     ordered, done = [], set()
 
     def visit(stem, seen=()):
@@ -723,9 +747,9 @@ def find_rocq_files(d):
             visit(dep, seen + (stem,))
         done.add(stem)
         ordered.append(stem)
-    for f in files:
-        visit(os.path.splitext(f)[0])
-    return [os.path.join(d, s + ".v") for s in ordered]
+    for stem, _ in files:
+        visit(stem)
+    return [paths[s] for s in ordered]
 
 
 def default_title(d):

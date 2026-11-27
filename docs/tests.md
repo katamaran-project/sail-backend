@@ -37,9 +37,18 @@ live in `tests/coq-tests/expected-failing` instead (see [Expected Failures](#exp
 A test proceeds in two phases:
 
 1. Sail translates `model.sail` using the plugin (`sail --katamaran --katamaran-config configuration.sexp model.sail`).
-2. `coqc` compiles the generated `base.v` and `machine.v`.
+   A model can consist of several Sail files: `model.sail` can `$include` the other files of the test's directory and its subdirectories.
+2. `coqc` compiles the generated Rocq files, each after the files it `Require`s.
 
-A test passes if both files compile.
+The generated files are the outputs of the templates that the test's configuration registers,
+and with [`preserve-file-structure`](usage.md#preserve-file-structure) also the declarations (named after the output of `program-translation`,
+e.g. `machine_decl.v`) and one file per Sail file in a subdirectory (`Machine/` by default).
+The runner reads the outputs of the templates from the configuration, so that a missing one (if Sail failed) fails the test,
+and takes every other `.v` file in the sandbox as generated: a test's inputs contain no `.v` files apart from the templates.
+When there are files in subdirectories, it passes `-Q . ""` to `coqc`, since the other files refer to them as `Machine.foo`.
+`preserve-file-structure-scattered` uses other names (`types.v`, `program.v`, `program_decl.v` and `Model/`).
+
+A test passes if all files compile.
 When the Coq phase is disabled (see `--no-coq` below), a test passes if Sail exits successfully.
 
 The tests use the `sail` on `PATH`, but load the katamaran plugin built by `dune build` in this checkout
@@ -73,9 +82,9 @@ This builds the plugin, then calls `tests/coq-tests/run-tests.py`.
 #### The Coq Cache
 
 Compiling the generated Coq dominates the run time of a test, and its result depends only on the generated
-`base.v` and `machine.v` and on the Coq installation.
+Rocq files and on the Coq installation.
 The runner therefore stores each test's `coqc` exit codes and output in a cache,
-keyed by the contents of those two files and by a fingerprint of `coqc` (its version, and the size and modification
+keyed by the names and contents of those files and by a fingerprint of `coqc` (its version, and the size and modification
 time of every `.vo` file under `coqc -where`, `ROCQPATH` and `COQPATH`).
 When a test generates Coq that an earlier run already compiled, `coqc` is not run again and the earlier output
 is reused; `output.txt` says so, `result.json` has `"coq_cached": true`, and the run reports the number of hits.
@@ -196,8 +205,10 @@ The run directories are not tracked by Git.
 
 ## Template Tests
 
-`tests/template-tests` holds one test per subdirectory: Sail translates its `model.sail`, and the generated `microsail.v`
-must be identical to `expected/microsail.v`.
+`tests/template-tests` holds one test per subdirectory: Sail translates its `model.sail`, and every file in its `expected/`
+(usually just `microsail.v`) must be generated identically.
+A directory in `expected/` (such as `Machine/` for [`preserve-file-structure`](usage.md#preserve-file-structure), in test `006`)
+must not get other `.v` files.
 
 ```bash
 $ make template-tests

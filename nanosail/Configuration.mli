@@ -34,6 +34,9 @@ module ForeignFunctionSemantics :
 
 val base_name : string Setting.t
 val program_name : string Setting.t
+val preserve_file_structure : bool Setting.t
+val preserve_file_structure_root : string Setting.t
+val preserve_file_structure_directory : string Setting.t
 val verbosity_level_environment_variable : string
 val verbosity_level : LogLib.VerbosityLevel.t Setting.t
 val pattern_tree_maximum_permutations : int Setting.t

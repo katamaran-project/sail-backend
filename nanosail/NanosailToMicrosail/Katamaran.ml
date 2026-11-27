@@ -98,6 +98,22 @@ class katamaran (intermediate_representation : Ast.Program.t) = object(self : 's
     in
     GC.return @@ program_module
 
+  (* The program split over several files, for preserve-file-structure (see ProgramModule.generate_files) *)
+  method pp_program_files
+      ~(declarations_library : string     )
+      ~(reserved_names       : string list) : ProgramModule.files GC.t
+    =
+    ProgramModule.generate_files
+      ~declarations_library
+      ~library_directories:(FileStructure.library_directories ())
+      ~current_directory:(Stdlib.Sys.getcwd ())
+      ~sail_files_directory:(FileStructure.directory ())
+      ~root:(match Configuration.(get preserve_file_structure_root) with "" -> None | root -> Some root)
+      ~reserved_names
+      type_definitions
+      function_definitions
+      top_level_type_constraint_definitions
+
   method pp_finite : PP.t GC.t =
     let* finite_definitions =
       let finite_enums =

@@ -115,6 +115,39 @@ let base_name = Setting.mk "UntitledBase"
 let program_name = Setting.mk "ModelProgram"
 
 (*
+   Preserves the file structure of the Sail model in the generated functions
+   (see docs/usage.md#preserve-file-structure). Next to the file that the template with
+   program-translation produces (say machine.v), the translator then writes
+
+     machine_decl.v      the declarations of the functions (Fun, FunX, Stm)
+     Machine/dir/foo.v   the bodies of the functions of dir/foo.sail, one file per Sail file
+                         (dir relative to preserve-file-structure-root)
+
+   and program-translation produces only the program module, which puts them together,
+   with the bodies of the functions of Sail's library.
+
+     (preserve-file-structure)
+*)
+let preserve_file_structure = Setting.mk false
+
+(*
+   With preserve-file-structure, the Sail file dir/foo.sail goes to Machine/dir/foo.v,
+   where dir is relative to this directory (relative to the current directory).
+   By default (""), it is the longest common directory of the model's files.
+
+     (preserve-file-structure-root "../cheriot-sail")
+*)
+let preserve_file_structure_root = Setting.mk ""
+
+(*
+   With preserve-file-structure, the directory next to the output of program-translation
+   that holds the files of the Sail files, and the first part of their libraries' names.
+
+     (preserve-file-structure-directory Model)
+*)
+let preserve_file_structure_directory = Setting.mk "Machine"
+
+(*
    Verbosity level.
 
    This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing
@@ -516,6 +549,7 @@ module Reader = struct
       ("inline-definitions-in-notations" , inline_definitions_in_notations );
       ("annotate-functions-with-ast"     , annotate_functions_with_ast     );
       ("dump-nanosail-ast"               , dump_nanosail_ast               );
+      ("preserve-file-structure"         , preserve_file_structure         );
     ]
 
   let apply (node : Node.t) : unit =
@@ -528,6 +562,8 @@ module Reader = struct
         | "templates"                     -> List.iter arguments ~f:(fun argument -> add_template (name argument) (Node.location argument))
         | "base-name"                     -> Setting.set base_name (name (single option location arguments))
         | "program-name"                  -> Setting.set program_name (name (single option location arguments))
+        | "preserve-file-structure-root"      -> Setting.set preserve_file_structure_root (name (single option location arguments))
+        | "preserve-file-structure-directory" -> Setting.set preserve_file_structure_directory (name (single option location arguments))
         | "pattern-tree-max-permutations" -> Setting.set pattern_tree_maximum_permutations (integer option location arguments)
         | "template-block-delimiters"     -> begin
             match arguments with

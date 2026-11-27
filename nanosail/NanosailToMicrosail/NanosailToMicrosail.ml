@@ -14,6 +14,7 @@ module Untranslated         = Untranslated
 module ValueDefinitions     = ValueDefinitions
 module BaseModule           = BaseModule
 module ProgramModule        = ProgramModule
+module FileStructure        = FileStructure
 module Kind                 = Kind
 module TypeQuantifier       = TypeQuantifier
 module MuSail               = MuSail

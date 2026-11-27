@@ -53,9 +53,21 @@ let output
     Html.to_string @@ html_of_document @@ GC.generate translation#program document
   in
   match name with
-  | "base-translation"         -> Some (string_of translation#pp_base)
+  | "base-translation"         -> begin
+      (* the files of preserve-file-structure Require the library this generates into (see AdditionalFiles) *)
+      AdditionalFiles.record_base_translation ();
+      Some (string_of translation#pp_base)
+    end
   | "base-html-translation"    -> Some (html_of translation#pp_base)
-  | "program-translation"      -> Some (string_of translation#pp_program)
+  | "program-translation"      -> begin
+      (* with preserve-file-structure, only the program module; the other files are written later (see AdditionalFiles) *)
+      if
+        Configuration.(get preserve_file_structure)
+      then
+        Some (AdditionalFiles.generate_program_files ~string_of_document translation)
+      else
+        Some (string_of translation#pp_program)
+    end
   | "program-html-translation" -> Some (html_of translation#pp_program)
   | "ignored-definitions"      -> begin
       let ignored_definitions =

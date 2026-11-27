@@ -37,7 +37,8 @@ or worktrees can be tested at the same time without overwriting each other's
 installed plugin.
 
 Compiling the generated Coq is the slow part of a test.  Its verdict depends
-only on the generated base.v and machine.v and on the Coq installation, so it
+only on the generated Coq (the outputs of the templates, usually base.v and
+machine.v, and the other generated .v files) and on the Coq installation, so it
 is cached, keyed by those files and by a fingerprint of coqc and the
 libraries it loads.  A test whose generated Coq did not change since an
 earlier run reuses that run's coqc exits and output instead of running coqc
@@ -247,10 +248,19 @@ def is_input(name):
 
 
 def populate_sandbox(source, sandbox):
-    """Copy a test's inputs into a fresh sandbox directory."""
+    """Copy a test's inputs into a fresh sandbox directory.
+
+    Subdirectories are copied too, since a model can $include Sail files from
+    them; as everywhere, only the inputs, so not the .v files of a run in the
+    test's directory.
+    """
     sandbox.mkdir(parents=True)
 
     for entry in sorted(os.listdir(source)):
+        if (source / entry).is_dir():
+            if not entry.startswith('.'):
+                populate_sandbox(source / entry, sandbox / entry)
+            continue
         if not (source / entry).is_file() or not is_input(entry):
             continue
         shutil.copy2(source / entry, sandbox / entry)
@@ -341,7 +351,117 @@ def write_reindented_ast(sandbox):
 # caching coqc verdicts
 # --------------------------------------------------------------------------
 
-COQ_SOURCES = ['base.v', 'machine.v']
+# The generated Coq files: the .v outputs of the templates that the test's
+# configuration registers (usually base.v and machine.v), and with
+# preserve-file-structure (docs/usage.md#preserve-file-structure) also the
+# declarations of the functions (machine_decl.v, named after the output of the
+# template with program-translation) and one file per Sail file with functions,
+# in a subdirectory (Machine/ by default). The inputs of a test are never .v files,
+# except the templates (*.template.v), so every other .v file is generated.
+
+REQUIRE_RE = re.compile(r"Require\s+(?:(?:Import|Export)\s+)?((?:[\w']+(?:\.[\w']+)*\s*)+)\.")
+SEXP_TOKEN_RE = re.compile(r'\s+|;[^\n]*|"((?:[^"\\]|\\.)*)"|([()])|([^\s()";]+)')
+
+
+def top_level_forms(text):
+    """The top-level lists of an S-expression configuration, as nested Python lists of strings."""
+    stack = [[]]
+    for match in SEXP_TOKEN_RE.finditer(text):
+        quoted, parenthesis, atom = match.groups()
+        if parenthesis == '(':
+            stack.append([])
+        elif parenthesis == ')' and len(stack) > 1:
+            form = stack.pop()
+            stack[-1].append(form)
+        elif quoted is not None:
+            stack[-1].append(quoted)
+        elif atom is not None:
+            stack[-1].append(atom)
+    return [form for form in stack[0] if isinstance(form, list)]
+
+
+def template_outputs(configuration):
+    """The .v files that the templates of a configuration generate, in its order.
+
+    Follows (include PATH), relative to the configuration's directory;
+    (templates IN ...) generates each IN without ".template".
+    """
+    outputs = []
+    if not configuration.is_file():
+        return outputs
+    for form in top_level_forms(configuration.read_text()):
+        if not form or not isinstance(form[0], str):
+            continue
+        arguments = [argument for argument in form[1:] if isinstance(argument, str)]
+        if form[0] == 'include':
+            for include in arguments:
+                outputs += template_outputs(configuration.parent / include)
+        elif form[0] == 'templates':
+            for template in arguments:
+                output = template.replace('.template', '', 1)
+                if output.endswith('.v'):
+                    outputs.append(output)
+    return outputs
+
+
+def subdirectories(sandbox):
+    """The subdirectories of a sandbox, at any depth."""
+    return sorted(path for path in sandbox.rglob('*') if path.is_dir())
+
+
+def library_of_source(source):
+    """The Rocq library of a file relative to the sandbox, with the sandbox mapped to "" (-Q . "")."""
+    return source[:-len('.v')].replace('/', '.')
+
+
+def coq_sources(sandbox):
+    """The generated Coq files of a sandbox, in the order in which they compile.
+
+    The outputs of the templates are included even if they are missing (Sail died),
+    so that compiling them fails. Each file comes after the files it Requires; files
+    without an order between them stay in the order of the configuration, followed
+    by the other generated files in alphabetical order.
+    """
+    outputs = template_outputs(sandbox / 'configuration.sexp')
+    generated = sorted(
+        str(path.relative_to(sandbox))
+        for directory in [sandbox, *subdirectories(sandbox)]
+        for path in directory.glob('*.v')
+        if not path.name.endswith('.template.v')
+    )
+    sources = outputs + [source for source in generated if source not in outputs]
+    by_library = {library_of_source(source): source for source in sources}
+
+    def requires(source):
+        path = sandbox / source
+        if not path.is_file():
+            return []
+        return [by_library[name]
+                for libraries in REQUIRE_RE.findall(path.read_text(errors='replace'))
+                for name in libraries.split() if name in by_library]
+
+    ordered = []
+    visiting = set()
+
+    def visit(source):
+        if source in ordered or source in visiting:
+            return
+        visiting.add(source)
+        for dependency in requires(source):
+            visit(dependency)
+        visiting.discard(source)
+        ordered.append(source)
+
+    for source in sources:
+        visit(source)
+    return ordered
+
+
+def coqc_command(sandbox, arguments, source):
+    """Files in subdirectories are Required as Machine.dir.foo, which needs the sandbox on the load path."""
+    if any(directory.glob('*.v') for directory in subdirectories(sandbox)):
+        return [arguments.coqc, '-Q', '.', '', source]
+    return [arguments.coqc, source]
 
 
 def coq_fingerprint(coqc):
@@ -380,14 +500,15 @@ def coq_cache_path(sandbox, arguments):
     """The cache entry for this sandbox's generated Coq, or None not to cache.
 
     Nothing is cached when caching is off, when the .vo files are to be kept
-    (a cache hit produces none), or when sail produced no base.v.
+    (a cache hit produces none), or when sail did not produce all outputs of the templates.
     """
     if arguments.coq_fingerprint is None or arguments.keep_vo:
         return None
-    if not (sandbox / 'base.v').is_file():
+    outputs = template_outputs(sandbox / 'configuration.sexp')
+    if not outputs or not all((sandbox / output).is_file() for output in outputs):
         return None
     digest = hashlib.sha256(arguments.coq_fingerprint.encode())
-    for source in COQ_SOURCES:
+    for source in coq_sources(sandbox):
         path = sandbox / source
         contents = path.read_bytes() if path.is_file() else b''
         digest.update(f'\n{source} {len(contents)}\n'.encode())
@@ -433,9 +554,9 @@ def run_coq(sandbox, arguments, log):
 
     coq_exits = {}
     coq_log = []
-    # base.vo must exist before machine.v, which does `Require Export base`.
-    for source in COQ_SOURCES:
-        coq_exits[source] = capture([arguments.coqc, source], sandbox, coq_log)
+    # In dependency order: base.vo must exist before machine.v, which does `Require Export base`.
+    for source in coq_sources(sandbox):
+        coq_exits[source] = capture(coqc_command(sandbox, arguments, source), sandbox, coq_log)
         if coq_exits[source] != 0:
             break
     log.extend(coq_log)
@@ -444,9 +565,10 @@ def run_coq(sandbox, arguments, log):
 
 
 def prune(sandbox):
-    for entry in os.listdir(sandbox):
-        if any(fnmatch.fnmatch(entry, pattern) for pattern in BULK_PATTERNS):
-            (sandbox / entry).unlink()
+    for directory in [sandbox, *subdirectories(sandbox)]:
+        for entry in os.listdir(directory):
+            if any(fnmatch.fnmatch(entry, pattern) for pattern in BULK_PATTERNS):
+                (directory / entry).unlink()
 
 
 def outcome(passed, expected_to_fail):
@@ -502,9 +624,9 @@ def run_test(name, source, run_directory, arguments):
     if arguments.coq:
         coq_exits, coq_cached = run_coq(sandbox, arguments, log)
 
-        # Both must have run and succeeded; if sail died there is no base.v to
-        # compile, and coqc reports that as a failure of its own.
-        passed = len(coq_exits) == 2 and all(code == 0 for code in coq_exits.values())
+        # All must have run and succeeded; if sail died, the outputs of the templates
+        # are missing, and coqc reports that as a failure of its own.
+        passed = len(coq_exits) == len(coq_sources(sandbox)) and all(code == 0 for code in coq_exits.values())
     else:
         passed = sail_exit == 0
 
