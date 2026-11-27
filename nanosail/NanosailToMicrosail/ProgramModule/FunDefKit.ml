@@ -230,7 +230,15 @@ let pp_function_definitions
   GC.map ~f:(Fn.uncurry pp_function_definition) type_and_function_pairs
 
 
-let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t list) : PP.t GC.t =
+(*
+   FunDef, the match from functions to their bodies. qualifier gives the Rocq library
+   that defines the body of a function (fun_f), if it is not the current one
+   (see FileStructure, for preserve-file-structure).
+*)
+let pp_fundef_inductive_type
+    ?(qualifier           : Ast.Identifier.t -> string option = fun _ -> None)
+    (function_definitions : Ast.Definition.Function.t list                    ) : PP.t GC.t
+  =
   (* extract monomorphs *)
   let function_definitions : Ast.Definition.Function.t list =
     let fetch_monomorphs_if_present (function_definition : Ast.Definition.Function.t) : Ast.Definition.Function.t list =
@@ -269,7 +277,14 @@ let pp_fundef_inductive_type (function_definitions : Ast.Definition.Function.t l
           in
           (
             TypeLevelParameters.pp_signature_explicit_application (Identifier.pp function_definition.function_name) signature,
-            TypeLevelParameters.pp_signature_explicit_application (Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name) signature
+            let pp_body_identifier =
+              let pp_identifier = Identifier.pp @@ Ast.Identifier.add_prefix "fun_" function_definition.function_name
+              in
+              match qualifier function_definition.function_name with
+              | Some library -> PP.horizontal [ PP.string library; PP.string "."; pp_identifier ]
+              | None         -> pp_identifier
+            in
+            TypeLevelParameters.pp_signature_explicit_application pp_body_identifier signature
           )
         in
         List.map ~f:case_of_function_definition function_definitions

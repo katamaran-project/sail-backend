@@ -112,10 +112,15 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit string_of_document_exported_function "base-translation" translation#program
+      inherit string_of_document_exported_function "base-translation" translation#program as super
 
       method document =
         translation#pp_base
+
+      (* the files of preserve-file-structure Require the library this generates into (see AdditionalFiles) *)
+      method! generate_string =
+        AdditionalFiles.record_base_translation ();
+        super#generate_string
     end;
 
     export object
@@ -126,10 +131,16 @@ let prelude (translation : NanosailToMicrosail.Katamaran.katamaran) =
     end;
 
     export object
-      inherit string_of_document_exported_function "program-translation" translation#program
+      inherit exported_nullary_string_function "program-translation"
 
-      method document =
-        translation#pp_program
+      (* with preserve-file-structure, only the program module; the other files are written later (see AdditionalFiles) *)
+      method generate_string =
+        if
+          Configuration.(get preserve_file_structure)
+        then
+          EC.return @@ AdditionalFiles.generate_program_files ~string_of_document translation
+        else
+          EC.return @@ string_of_document @@ GC.generate translation#program translation#pp_program
     end;
 
     export object

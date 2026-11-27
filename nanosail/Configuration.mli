@@ -57,6 +57,9 @@ module Implementation :
       sig
         val base_name : string ConfigLib.Setting.t
         val program_name : string ConfigLib.Setting.t
+        val preserve_file_structure : bool ConfigLib.Setting.t
+        val preserve_file_structure_root : string ConfigLib.Setting.t
+        val preserve_file_structure_directory : string ConfigLib.Setting.t
         val verbosity_level_environment_variable : string
         val verbosity_level : LogLib.VerbosityLevel.t ConfigLib.Setting.t
         val pattern_tree_maximum_permutations : int ConfigLib.Setting.t
@@ -103,6 +106,9 @@ module Implementation :
   end
 val base_name : string ConfigLib.Setting.t
 val program_name : string ConfigLib.Setting.t
+val preserve_file_structure : bool ConfigLib.Setting.t
+val preserve_file_structure_root : string ConfigLib.Setting.t
+val preserve_file_structure_directory : string ConfigLib.Setting.t
 val verbosity_level_environment_variable : string
 val verbosity_level : LogLib.VerbosityLevel.t ConfigLib.Setting.t
 val pattern_tree_maximum_permutations : int ConfigLib.Setting.t

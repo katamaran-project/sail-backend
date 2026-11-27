@@ -22,6 +22,8 @@ tests/**/machine.html
 # ... except the excerpts that the CHERIoT analysis library's tests read
 !tests/cheriot/tests/fixtures/run/base.v
 !tests/cheriot/tests/fixtures/run/machine.v
+# ... and the expected outputs of the template tests
+!tests/template-tests/*/expected/**
 katamaran
 .claude
 ocamldoc.out

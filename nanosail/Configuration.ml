@@ -114,6 +114,54 @@ module Implementation = struct
     let program_name = string "program-name" "ModelProgram"
 
     (*
+
+       Preserves the file structure of the Sail model in the generated functions
+       (see docs/usage.md#preserve-file-structure). Next to the file that the template with
+       (program-translation) produces (say machine.v), the translator then writes
+
+         machine_decl.v      the declarations of the functions (Fun, FunX, Stm)
+         Machine/dir/foo.v   the bodies of the functions of dir/foo.sail, one file per Sail file
+                             (dir relative to preserve-file-structure-root)
+
+       and (program-translation) produces only the program module, which puts them together,
+       with the bodies of the functions of Sail's library.
+
+       Example Usage
+       -------------
+
+         (preserve-file-structure)
+
+    *)
+    let preserve_file_structure = bool "preserve-file-structure" false
+
+    (*
+
+       With preserve-file-structure, the Sail file dir/foo.sail goes to Machine/dir/foo.v,
+       where dir is relative to this directory (relative to the current directory).
+       By default (""), it is the longest common directory of the model's files.
+
+       Example Usage
+       -------------
+
+         (preserve-file-structure-root "../cheriot-sail")
+
+    *)
+    let preserve_file_structure_root = string "preserve-file-structure-root" ""
+
+    (*
+
+       With preserve-file-structure, the directory next to the output of (program-translation)
+       that holds the files of the Sail files, and the first part of their libraries' names.
+
+       Example Usage
+       -------------
+
+         (preserve-file-structure-directory "Model")
+
+    *)
+    let preserve_file_structure_directory = string "preserve-file-structure-directory" "Machine"
+
+    (*
        Verbosity level.
 
        This can only be configured by setting an environment variable named "VERBOSE" to a certain number representing

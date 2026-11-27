@@ -482,7 +482,7 @@ let generation_block
 (* Computes the document described by f *)
 let generate
     (program : Ast.Program.t)
-    (f       : PP.t t       ) : PP.t
+    (f       : 'a t         ) : 'a
   =
   let result, _ =
     (* Add an extra check to f to ensure there are no open frames left *)

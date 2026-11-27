@@ -3,6 +3,7 @@ open Monads.Notations.Star(Slang.EvaluationContext)
 
 module Blocks = Blocks
 module Prelude = Prelude
+module AdditionalFiles = AdditionalFiles
 
 module EC = Slang.EvaluationContext
 
@@ -78,11 +79,13 @@ let process_template
     (output_file : string   ) : unit
   =
   Logging.info [%here] @@ lazy (PP.format "Processing template %s -> %s" input_file output_file);
+  AdditionalFiles.current_output_file := Some output_file;
   Stdio.In_channel.with_file ~binary:false input_file ~f:begin fun input_stream ->
     Stdio.Out_channel.with_file output_file ~f:begin fun output_stream ->
       process_template_streams translation input_stream output_stream
     end
-  end
+  end;
+  AdditionalFiles.current_output_file := None
 
 
 (* Processes all templates defined in the configuration *)
@@ -92,4 +95,7 @@ let process (translation : Ast.Program.t) =
   in
   let templates = Configuration.(get template_translations)
   in
-  List.iter ~f:(fun { template_filename; output_filename } -> process_template sanitized_translation template_filename output_filename) templates
+  AdditionalFiles.reset ();
+  List.iter ~f:(fun { template_filename; output_filename } -> process_template sanitized_translation template_filename output_filename) templates;
+  (* the files of preserve-file-structure, which need to know the outputs of all templates *)
+  AdditionalFiles.write_all ()

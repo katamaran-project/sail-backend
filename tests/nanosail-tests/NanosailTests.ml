@@ -21,6 +21,8 @@ let tests =
     MakeSequenceTests.test_suite;
     IgnoreByNameTests.test_suite;
     ConstantTypeConditionalsTests.test_suite;
+    FileStructureTests.test_suite;
+    AdditionalFilesTests.test_suite;
   ]
 
 
